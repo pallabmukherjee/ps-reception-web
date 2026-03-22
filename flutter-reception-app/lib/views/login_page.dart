@@ -45,7 +45,7 @@ class _LoginPageState extends State<LoginPage> {
                             text: TextSpan(
                               children: [
                                 TextSpan(
-                                  text: 'Krishnanagar ',
+                                  text: 'West Bengal ',
                                   style: TextStyle(
                                     color: Color(0xFFFF0000),
                                     fontSize: 40,
@@ -53,7 +53,7 @@ class _LoginPageState extends State<LoginPage> {
                                   ),
                                 ),
                                 TextSpan(
-                                  text: 'PD',
+                                  text: 'Police',
                                   style: TextStyle(
                                     color: Color(0xFF00137F),
                                     fontSize: 40,

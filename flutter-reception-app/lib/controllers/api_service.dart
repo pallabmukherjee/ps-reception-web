@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
-  static const String baseUrl = "http://127.0.0.1:8000/api";
+  static const String baseUrl = "https://dist.jalpaiguripolice.com";
 
   static Future<Map<String, String>> getHeaders() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -16,13 +16,13 @@ class ApiService {
   }
 
   static Future<http.Response> post(String endpoint, Map<String, dynamic> data) async {
-    final url = Uri.parse("$baseUrl$endpoint");
+    final url = Uri.parse("$baseUrl/api/$endpoint");
     final headers = await getHeaders();
     return await http.post(url, headers: headers, body: jsonEncode(data));
   }
 
   static Future<http.Response> get(String endpoint) async {
-    final url = Uri.parse("$baseUrl$endpoint");
+    final url = Uri.parse("$baseUrl/api/$endpoint");
     final headers = await getHeaders();
     return await http.get(url, headers: headers);
   }

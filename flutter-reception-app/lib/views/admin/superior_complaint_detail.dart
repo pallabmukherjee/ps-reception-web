@@ -1,16 +1,13 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../layout/app_bar.dart';
-import '../layout/custom_bottom_nav.dart';
 import '../layout/custom_drawer.dart';
 import '../layout/superior_custom_bottom_nav.dart';
 
 class SuperiorComplaintDetailScreen extends StatefulWidget {
-  final DocumentSnapshot complaint;
+  final Map<String, dynamic> complaint;
 
-  // Constructor to receive the complaint document
   SuperiorComplaintDetailScreen({required this.complaint});
 
   @override
@@ -18,18 +15,22 @@ class SuperiorComplaintDetailScreen extends StatefulWidget {
 }
 
 class _SuperiorComplaintDetailScreenState extends State<SuperiorComplaintDetailScreen> {
-  int _selectedIndex = 1; // Track the selected index for BottomNavigationBar
+  int _selectedIndex = 1;
 
-  // Update the selected index when a tab is selected
   void _onTabSelected(int index) {
     setState(() {
       _selectedIndex = index;
     });
   }
 
-  String formatTimestamp(Timestamp timestamp) {
-    DateTime dateTime = timestamp.toDate(); // Convert Timestamp to DateTime
-    return DateFormat('dd MMM yyyy - hh:mm a').format(dateTime); // Format the DateTime
+  String formatTimestamp(String? timestamp) {
+    if (timestamp == null) return 'N/A';
+    try {
+      DateTime dateTime = DateTime.parse(timestamp);
+      return DateFormat('dd MMM yyyy - hh:mm a').format(dateTime);
+    } catch (e) {
+      return timestamp;
+    }
   }
 
   Widget _buildComplaintField(String title, String? value) {
@@ -57,7 +58,7 @@ class _SuperiorComplaintDetailScreenState extends State<SuperiorComplaintDetailS
           ),
           SizedBox(height: 2),
           Text(
-            value ?? 'No description provided',
+            value ?? 'N/A',
             style: TextStyle(
               fontSize: 18,
               color: Colors.black,
@@ -80,21 +81,19 @@ class _SuperiorComplaintDetailScreenState extends State<SuperiorComplaintDetailS
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildComplaintField('Name', widget.complaint['name']),
+              _buildComplaintField('Name', widget.complaint['complainant_name']),
               SizedBox(height: 7),
               _buildComplaintField('Phone', widget.complaint['phone']),
               SizedBox(height: 7),
               _buildComplaintField('Address', widget.complaint['address']),
               SizedBox(height: 7),
-              _buildComplaintField('Complaint Type', widget.complaint['complainType']),
+              _buildComplaintField('Complaint Type', widget.complaint['sub_category']?['name']),
               SizedBox(height: 7),
               _buildComplaintField('Description', widget.complaint['description']),
               SizedBox(height: 7),
-              _buildComplaintField('Receptionist Name', widget.complaint['receptionistName']),
+              _buildComplaintField('Police Station', widget.complaint['police_station']?['name']),
               SizedBox(height: 7),
-              _buildComplaintField('Receptionist Mobile', widget.complaint['receptionistMobile']),
-              SizedBox(height: 7),
-              _buildComplaintField('Date & Time', formatTimestamp(widget.complaint['timestamp'])),
+              _buildComplaintField('Date & Time', formatTimestamp(widget.complaint['created_at'])),
             ],
           ),
         ),

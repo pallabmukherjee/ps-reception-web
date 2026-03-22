@@ -11,7 +11,7 @@ class AuthService {
   // user login function
   static Future<String> loginWithEmail(String email, String password) async {
     try {
-      final response = await ApiService.post('/login', {
+      final response = await ApiService.post('login', {
         'email': email,
         'password': password,
         'device_name': 'mobile_app', // You can dynamically get device name
@@ -37,7 +37,7 @@ class AuthService {
   // user logout function
   static Future logout() async {
     try {
-      await ApiService.post('/logout', {});
+      await ApiService.post('logout', {});
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.remove('auth_token');
       await prefs.remove('user_role');

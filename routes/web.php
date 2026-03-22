@@ -10,6 +10,16 @@ use App\Http\Controllers\ComplaintController;
 use App\Http\Controllers\StatisticsController;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/api-test', function() {
+    return response()->json(['message' => 'Web route test is working.']);
+});
+
+Route::get('/api/login', function() {
+    return response()->json(['message' => 'API Login route is working from web.php']);
+});
+
+Route::post('/api/login', [App\Http\Controllers\Api\AuthController::class, 'login']);
+
 Route::get('/', function () {
     return redirect()->route('login');
 });

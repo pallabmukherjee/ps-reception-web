@@ -3,18 +3,32 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'api_service.dart';
 
 class ComplaintsService {
-  // Function to fetch categories from Laravel API
-  Future<List<Map<String, dynamic>>> fetchSubCategories() async {
+  // Function to fetch metadata (stations and sub-categories) from Laravel API
+  Future<Map<String, dynamic>> fetchMetadata() async {
     try {
-      final response = await ApiService.get('/metadata');
+      final response = await ApiService.get('metadata');
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return List<Map<String, dynamic>>.from(data['sub_categories']);
+        return jsonDecode(response.body);
       } else {
-        throw Exception('Failed to load sub-categories');
+        throw Exception('Failed to load metadata');
       }
     } catch (e) {
-      print('Error fetching sub-categories: $e');
+      print('Error fetching metadata: $e');
+      rethrow;
+    }
+  }
+
+  // Function to fetch my complaints from Laravel API
+  Future<List<Map<String, dynamic>>> fetchMyComplaints() async {
+    try {
+      final response = await ApiService.get('my-complaints');
+      if (response.statusCode == 200) {
+        return List<Map<String, dynamic>>.from(jsonDecode(response.body));
+      } else {
+        throw Exception('Failed to load my complaints');
+      }
+    } catch (e) {
+      print('Error fetching my complaints: $e');
       rethrow;
     }
   }
@@ -29,7 +43,7 @@ class ComplaintsService {
     required int policeStationId,
   }) async {
     try {
-      final response = await ApiService.post('/complaints', {
+      final response = await ApiService.post('complaints', {
         'complainant_name': name,
         'phone': phone,
         'address': address,
@@ -41,13 +55,6 @@ class ComplaintsService {
       if (response.statusCode == 201) {
         final data = jsonDecode(response.body);
         print('Complaint stored successfully');
-        
-        // Optionally store locally as well
-        SharedPreferences prefs = await SharedPreferences.getInstance();
-        List<String> complaintIds = _getComplaintIds(prefs);
-        complaintIds.add(data['id'].toString());
-        await prefs.setString('complaint_ids', jsonEncode(complaintIds));
-
         return data;
       } else {
         throw Exception('Failed to store complaint: ${response.body}');
@@ -56,15 +63,5 @@ class ComplaintsService {
       print('Error storing complaint: $e');
       rethrow;
     }
-  }
-
-  // Helper method to retrieve existing complaint IDs from SharedPreferences
-  List<String> _getComplaintIds(SharedPreferences prefs) {
-    String? jsonString = prefs.getString('complaint_ids');
-    if (jsonString != null) {
-      List<dynamic> jsonList = jsonDecode(jsonString);
-      return List<String>.from(jsonList);
-    }
-    return [];
   }
 }
