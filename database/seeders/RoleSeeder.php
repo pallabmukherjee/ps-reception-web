@@ -27,8 +27,8 @@ class RoleSeeder extends Seeder
         DB::table('roles')->truncate();
         Schema::enableForeignKeyConstraints();
 
-        // Define guards
-        $guards = ['web', 'api'];
+        // Define guards - only web is needed
+        $guards = ['web'];
 
         foreach ($guards as $guard) {
             Role::create(['name' => 'super', 'guard_name' => $guard]);
