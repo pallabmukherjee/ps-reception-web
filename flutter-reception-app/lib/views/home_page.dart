@@ -31,7 +31,7 @@ class _HomePageState extends State<HomePage> {
               text: TextSpan(
                 children: [
                   TextSpan(
-                    text: 'Krishnanagar ',
+                    text: 'West Bengal ',
                     style: TextStyle(
                       color: Color(0xFFFF0000),
                       fontSize: 40,
@@ -39,7 +39,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                   TextSpan(
-                    text: 'PD',
+                    text: 'Police',
                     style: TextStyle(
                       color: Color(0xFF00137F),
                       fontSize: 40,

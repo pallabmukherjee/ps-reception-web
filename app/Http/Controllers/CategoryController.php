@@ -17,7 +17,6 @@ class CategoryController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'notification_enabled' => 'boolean',
             'priority' => 'required|string|in:High Priority,Medium Priority,Low Priority,none',
         ]);
 
@@ -34,7 +33,6 @@ class CategoryController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'notification_enabled' => 'boolean',
             'priority' => 'required|string|in:High Priority,Medium Priority,Low Priority,none',
         ]);
 

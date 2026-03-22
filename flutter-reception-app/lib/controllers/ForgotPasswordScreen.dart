@@ -53,7 +53,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Top gap text "KPD RM"
+                  // Top gap text "WB Police RM"
                   Padding(
                     padding: const EdgeInsets.only(bottom: 40.0),
                     child: Center(
@@ -64,17 +64,17 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             text: TextSpan(
                               children: [
                                 TextSpan(
-                                  text: 'Krishnanagar ',
+                                  text: 'West Bengal ',
                                   style: TextStyle(
-                                    color: Color(0xFFFF0000), // Red color for "Krishnanagar"
+                                    color: Color(0xFFFF0000), // Red color for "West Bengal "
                                     fontSize: 40,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
                                 TextSpan(
-                                  text: 'PD',
+                                  text: 'Police',
                                   style: TextStyle(
-                                    color: Color(0xFF00137F), // Blue color for "PD"
+                                    color: Color(0xFF00137F), // Blue color for "Police"
                                     fontSize: 40,
                                     fontWeight: FontWeight.bold,
                                   ),

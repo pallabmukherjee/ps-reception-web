@@ -42,7 +42,7 @@ class ComplaintApiController extends Controller
             'police_station_id' => $request->police_station_id,
             'description' => $request->description,
             'receptionist_id' => auth()->id(),
-            'is_editable' => false,
+            'is_editable' => true,
         ]);
 
         return response()->json([
@@ -75,6 +75,12 @@ class ComplaintApiController extends Controller
     {
         $user = auth()->user();
         
+        \Log::info('Complaint Update Request:', [
+            'complaint_id' => $complaint->id,
+            'user_id' => $user->id,
+            'data' => $request->all()
+        ]);
+
         // Check if user is allowed to edit
         if (!$complaint->is_editable && !$user->hasRole(['super', 'admin'])) {
             return response()->json(['message' => 'This complaint is no longer editable.'], 403);
@@ -89,14 +95,21 @@ class ComplaintApiController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        $complaint->update([
-            'complainant_name' => $request->complainant_name,
-            'phone' => $request->phone,
-            'address' => $request->address,
-            'sub_category_id' => $request->sub_category_id,
-            'police_station_id' => $request->police_station_id,
-            'description' => $request->description,
-        ]);
+        try {
+            $complaint->update([
+                'complainant_name' => $request->complainant_name,
+                'phone' => $request->phone,
+                'address' => $request->address,
+                'sub_category_id' => $request->sub_category_id,
+                'police_station_id' => $request->police_station_id,
+                'description' => $request->description,
+            ]);
+            
+            \Log::info('Complaint Updated Successfully');
+        } catch (\Exception $e) {
+            \Log::error('Complaint Update Failed: ' . $e->getMessage());
+            return response()->json(['message' => 'Update failed: ' . $e->getMessage()], 500);
+        }
 
         return response()->json(['message' => 'Complaint updated successfully']);
     }

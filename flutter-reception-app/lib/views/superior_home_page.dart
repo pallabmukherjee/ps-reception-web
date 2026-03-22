@@ -78,17 +78,17 @@ class _SuperiorHomePageState extends State<SuperiorHomePage> {
                 text: TextSpan(
                   children: [
                     TextSpan(
-                      text: 'Krishnanagar ',
+                      text: 'West Bengal ',
                       style: TextStyle(
-                        color: Color(0xFFFF0000), // Red color for "Krishnanagar"
+                        color: Color(0xFFFF0000), // Red color for "West Bengal "
                         fontSize: 40,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     TextSpan(
-                      text: 'PD',
+                      text: 'Police',
                       style: TextStyle(
-                        color: Color(0xFF00137F), // Blue color for "PD"
+                        color: Color(0xFF00137F), // Blue color for "Police"
                         fontSize: 40,
                         fontWeight: FontWeight.bold,
                       ),

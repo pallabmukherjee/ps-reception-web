@@ -17,7 +17,7 @@ class CustomDrawer extends StatelessWidget {
               children: [
                 SizedBox(height: 20),
                 Text(
-                  'Krishnanagar PD',
+                  'West Bengal Police',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 24,

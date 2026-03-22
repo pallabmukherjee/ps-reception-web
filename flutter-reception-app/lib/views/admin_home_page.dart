@@ -120,7 +120,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
               text: TextSpan(
                 children: [
                   TextSpan(
-                    text: 'Krishnanagar ',
+                    text: 'West Bengal ',
                     style: TextStyle(
                       color: Color(0xFFFF0000),
                       fontSize: 40,
@@ -128,9 +128,9 @@ class _AdminHomePageState extends State<AdminHomePage> {
                     ),
                   ),
                   TextSpan(
-                    text: 'PD',
+                    text: 'Police',
                     style: TextStyle(
-                      color: Color(0xFF00137F), // Blue color for "PD"
+                      color: Color(0xFF00137F), // Blue color for "Police"
                       fontSize: 40,
                       fontWeight: FontWeight.bold,
                     ),
