@@ -43,9 +43,21 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
   Future<void> _loadMetadata() async {
     try {
       final metadata = await _complaintsService.fetchMetadata();
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? userPsId = prefs.getString('user_ps_id');
+      
       setState(() {
         _subCategories = List<Map<String, dynamic>>.from(metadata['sub_categories']);
         _policeStations = List<Map<String, dynamic>>.from(metadata['police_stations']);
+        
+        if (userPsId != null) {
+          int psId = int.parse(userPsId);
+          // Check if the psId exists in the loaded police stations
+          if (_policeStations.any((element) => element['id'] == psId)) {
+            _selectedStationId = psId;
+          }
+        }
+        
         _isLoading = false;
       });
     } catch (e) {

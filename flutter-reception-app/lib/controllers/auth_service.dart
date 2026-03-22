@@ -23,6 +23,9 @@ class AuthService {
         await prefs.setString('auth_token', data['token']);
         await prefs.setString('user_role', data['user']['role']);
         await prefs.setString('user_name', data['user']['name']);
+        if (data['user']['police_station_id'] != null) {
+          await prefs.setString('user_ps_id', data['user']['police_station_id'].toString());
+        }
         
         return "Login Successfully";
       } else {

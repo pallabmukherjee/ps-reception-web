@@ -14,13 +14,18 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create Roles safely
-        $superRole = Role::firstOrCreate(['name' => 'super']);
-        $userRole = Role::firstOrCreate(['name' => 'user']);
-        $superiorRole = Role::firstOrCreate(['name' => 'superior']);
+        // Define guards
+        $guards = ['web', 'api'];
+
+        foreach ($guards as $guard) {
+            Role::firstOrCreate(['name' => 'super', 'guard_name' => $guard]);
+            Role::firstOrCreate(['name' => 'admin', 'guard_name' => $guard]);
+            Role::firstOrCreate(['name' => 'superior', 'guard_name' => $guard]);
+            Role::firstOrCreate(['name' => 'user', 'guard_name' => $guard]);
+        }
 
         // Create or Update Super Admin
-        $admin = User::updateOrCreate(
+        $superAdmin = User::updateOrCreate(
             ['email' => 'admin@kpd.com'],
             [
                 'name' => 'Super Admin',
@@ -29,8 +34,8 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        if (!$admin->hasRole('super')) {
-            $admin->assignRole($superRole);
+        if (!$superAdmin->hasRole('super', 'web')) {
+            $superAdmin->assignRole('super');
         }
     }
 }
