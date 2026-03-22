@@ -53,18 +53,30 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
 
       setState(() {
         _subCategories = List<Map<String, dynamic>>.from(metadata['sub_categories']);
-        _policeStations = List<Map<String, dynamic>>.from(metadata['police_stations']);
+        List<Map<String, dynamic>> allStations = List<Map<String, dynamic>>.from(metadata['police_stations']);
         
-        if (userPsId != null) {
+        if (userPsId != null && _userRole != 'admin' && _userRole != 'super') {
+          // Filter to only show the user's assigned station for non-admin/super
           int? psId = int.tryParse(userPsId);
-          if (psId != null) {
-            print('DEBUG: Attempting to autoselect psId: $psId');
-            // Check if the psId exists in the loaded police stations
-            bool exists = _policeStations.any((element) => (int.tryParse(element['id'].toString()) ?? -1) == psId);
-            print('DEBUG: psId exists in list: $exists');
-            if (exists) {
-              _selectedStationId = psId;
-              print('DEBUG: Autoselected _selectedStationId: $_selectedStationId');
+          _policeStations = allStations.where((station) => (int.tryParse(station['id'].toString()) ?? -1) == psId).toList();
+          
+          if (_policeStations.isNotEmpty) {
+            _selectedStationId = int.tryParse(_policeStations.first['id'].toString());
+            print('DEBUG: Autoselected filtered station: $_selectedStationId');
+          }
+        } else {
+          // Show all stations for admin/super
+          _policeStations = allStations;
+          
+          if (userPsId != null) {
+            int? psId = int.tryParse(userPsId);
+            if (psId != null) {
+              // Still try to autoselect the user's station from the full list
+              bool exists = _policeStations.any((element) => (int.tryParse(element['id'].toString()) ?? -1) == psId);
+              if (exists) {
+                _selectedStationId = psId;
+                print('DEBUG: Autoselected station for admin: $_selectedStationId');
+              }
             }
           }
         }
