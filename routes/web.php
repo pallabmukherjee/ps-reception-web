@@ -20,6 +20,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Resource Routes
     Route::resource('police-stations', PoliceStationController::class)->except(['create', 'show', 'edit']);
     Route::resource('categories', CategoryController::class)->except(['create', 'show', 'edit']);
+    Route::patch('categories/{category}/toggle', [CategoryController::class, 'toggleStatus'])->name('categories.toggle');
     
     Route::patch('sub-categories/{sub_category}/toggle', [SubCategoryController::class, 'toggleStatus'])->name('sub-categories.toggle');
     Route::resource('sub-categories', SubCategoryController::class)->except(['create', 'show', 'edit']);

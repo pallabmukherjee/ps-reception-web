@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Category extends Model
 {
-    protected $fillable = ['name', 'notification_enabled', 'priority'];
+    protected $fillable = ['name', 'notification_enabled', 'priority', 'is_disabled'];
 
     public function subCategories()
     {

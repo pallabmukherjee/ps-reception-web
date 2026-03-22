@@ -15,6 +15,7 @@ import 'controllers/ForgotPasswordScreen.dart';
 import 'firebase_options.dart';
 
 import 'views/admin/add_complaint.dart';
+import 'views/admin/edit_complaint_screen.dart';
 import 'views/admin/superior_complaint_detail.dart';
 import 'views/admin/superior_complaint_list.dart';
 import 'views/admin_home_page.dart';
@@ -119,6 +120,7 @@ class MyApp extends StatelessWidget {
         // Note: These might need updating to handle non-Firestore data
         '/superior-complaint-detail': (context) => SuperiorComplaintDetailScreen(complaint: ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>),
         '/complaint_detail': (context) => ComplaintDetailScreen(complaint: ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>),
+        '/edit_complaint': (context) => EditComplaintScreen(complaint: ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>),
         "/profile": (context) =>  ProfileScreen(),
         '/change_password': (context) => ChangePasswordScreen(),
         '/forgot_password': (context) => ForgotPasswordScreen(),

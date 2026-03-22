@@ -14,7 +14,12 @@ class ComplaintApiController extends Controller
     {
         return response()->json([
             'police_stations' => PoliceStation::select('id', 'name')->get(),
-            'sub_categories' => SubCategory::where('is_disabled', false)->select('id', 'name', 'category_id')->get(),
+            'sub_categories' => SubCategory::where('is_disabled', false)
+                ->whereHas('category', function($query) {
+                    $query->where('is_disabled', false);
+                })
+                ->select('id', 'name', 'category_id')
+                ->get(),
         ]);
     }
 
@@ -64,5 +69,54 @@ class ComplaintApiController extends Controller
         $complaints = $query->latest()->get();
 
         return response()->json($complaints);
+    }
+
+    public function update(Request $request, Complaint $complaint)
+    {
+        $user = auth()->user();
+        
+        // Check if user is allowed to edit
+        if (!$complaint->is_editable && !$user->hasRole(['super', 'admin'])) {
+            return response()->json(['message' => 'This complaint is no longer editable.'], 403);
+        }
+
+        $request->validate([
+            'complainant_name' => 'required|string',
+            'phone' => 'required|string',
+            'address' => 'required|string',
+            'sub_category_id' => 'required|exists:sub_categories,id',
+            'police_station_id' => 'required|exists:police_stations,id',
+            'description' => 'nullable|string',
+        ]);
+
+        $complaint->update([
+            'complainant_name' => $request->complainant_name,
+            'phone' => $request->phone,
+            'address' => $request->address,
+            'sub_category_id' => $request->sub_category_id,
+            'police_station_id' => $request->police_station_id,
+            'description' => $request->description,
+        ]);
+
+        return response()->json(['message' => 'Complaint updated successfully']);
+    }
+
+    public function destroy(Complaint $complaint)
+    {
+        $user = auth()->user();
+
+        // Superiors and Admins can delete
+        if (!$user->hasRole(['super', 'admin', 'superior'])) {
+            return response()->json(['message' => 'Unauthorized to delete complaints.'], 403);
+        }
+
+        // Superior can only delete complaints from their station
+        if ($user->hasRole('superior') && $complaint->police_station_id !== $user->police_station_id) {
+            return response()->json(['message' => 'Unauthorized to delete complaints from other stations.'], 403);
+        }
+
+        $complaint->delete();
+
+        return response()->json(['message' => 'Complaint deleted successfully']);
     }
 }

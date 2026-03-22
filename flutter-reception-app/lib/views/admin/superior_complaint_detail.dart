@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:kp_police/controllers/complaints_service.dart';
 
 import '../layout/app_bar.dart';
 import '../layout/custom_drawer.dart';
@@ -16,11 +17,39 @@ class SuperiorComplaintDetailScreen extends StatefulWidget {
 
 class _SuperiorComplaintDetailScreenState extends State<SuperiorComplaintDetailScreen> {
   int _selectedIndex = 1;
+  final ComplaintsService _complaintsService = ComplaintsService();
+  bool _isDeleting = false;
 
   void _onTabSelected(int index) {
     setState(() {
       _selectedIndex = index;
     });
+  }
+
+  void _deleteComplaint() async {
+    bool confirm = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Delete Complaint'),
+        content: Text('Are you sure you want to delete this complaint?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text('Delete', style: TextStyle(color: Colors.red))),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      setState(() => _isDeleting = true);
+      try {
+        await _complaintsService.deleteComplaint(widget.complaint['id']);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Complaint deleted successfully')));
+        Navigator.pop(context, true); // Go back and indicate success
+      } catch (e) {
+        setState(() => _isDeleting = false);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to delete: $e')));
+      }
+    }
   }
 
   String formatTimestamp(String? timestamp) {
@@ -94,6 +123,22 @@ class _SuperiorComplaintDetailScreenState extends State<SuperiorComplaintDetailS
               _buildComplaintField('Police Station', widget.complaint['police_station']?['name']),
               SizedBox(height: 7),
               _buildComplaintField('Date & Time', formatTimestamp(widget.complaint['created_at'])),
+              SizedBox(height: 20),
+              if (_isDeleting)
+                Center(child: CircularProgressIndicator())
+              else
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: _deleteComplaint,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                    ),
+                    child: Text("Delete Complaint", style: TextStyle(fontSize: 18, color: Colors.white)),
+                  ),
+                ),
             ],
           ),
         ),

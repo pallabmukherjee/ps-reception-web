@@ -47,6 +47,16 @@ class CategoryController extends Controller
         return redirect()->back()->with('success', 'Category updated successfully.');
     }
 
+    public function toggleStatus(Category $category)
+    {
+        $category->update([
+            'is_disabled' => !$category->is_disabled
+        ]);
+
+        $status = $category->is_disabled ? 'disabled' : 'enabled';
+        return redirect()->back()->with('success', "Category has been $status.");
+    }
+
     public function destroy(Category $category)
     {
         $category->delete();

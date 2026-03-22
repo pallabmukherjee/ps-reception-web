@@ -64,4 +64,48 @@ class ComplaintsService {
       rethrow;
     }
   }
+
+  // Function to update the complaint in Laravel API
+  Future<Map<String, dynamic>> updateComplaint({
+    required int id,
+    required String name,
+    required String phone,
+    required String address,
+    required int subCategoryId,
+    String? description,
+    required int policeStationId,
+  }) async {
+    try {
+      final response = await ApiService.patch('complaints/$id', {
+        'complainant_name': name,
+        'phone': phone,
+        'address': address,
+        'sub_category_id': subCategoryId,
+        'description': description ?? '',
+        'police_station_id': policeStationId,
+      });
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception('Failed to update complaint: ${response.body}');
+      }
+    } catch (e) {
+      print('Error updating complaint: $e');
+      rethrow;
+    }
+  }
+
+  // Function to delete the complaint in Laravel API
+  Future<void> deleteComplaint(int id) async {
+    try {
+      final response = await ApiService.delete('complaints/$id');
+      if (response.statusCode != 200 && response.statusCode != 204) {
+        throw Exception('Failed to delete complaint: ${response.body}');
+      }
+    } catch (e) {
+      print('Error deleting complaint: $e');
+      rethrow;
+    }
+  }
 }

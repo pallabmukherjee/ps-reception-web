@@ -1,11 +1,12 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:kp_police/controllers/complaints_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../layout/app_bar.dart';
 import '../layout/custom_drawer.dart';
 
 class EditComplaintScreen extends StatefulWidget {
-  final DocumentSnapshot complaint;
+  final Map<String, dynamic> complaint;
 
   EditComplaintScreen({required this.complaint});
 
@@ -15,76 +16,81 @@ class EditComplaintScreen extends StatefulWidget {
 
 class _EditComplaintScreenState extends State<EditComplaintScreen> {
   final _formKey = GlobalKey<FormState>();
-  TextEditingController _nameController = TextEditingController();
-  TextEditingController _phoneController = TextEditingController();
-  TextEditingController _addressController = TextEditingController();
-  TextEditingController _complainTypeController = TextEditingController();
-  TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
 
-  List<String> _complainTypes = [];  // To hold complaint types
-  String? _selectedComplainType;
+  int? _selectedSubCategoryId;
+  int? _selectedStationId;
+  List<Map<String, dynamic>> _subCategories = [];
+  List<Map<String, dynamic>> _policeStations = [];
+  bool _isLoading = true;
+  String? _userRole;
+
+  final ComplaintsService _complaintsService = ComplaintsService();
 
   @override
   void initState() {
     super.initState();
-    _nameController.text = widget.complaint['name'] ?? '';
-    _phoneController.text = widget.complaint['phone'] ?? '';
-    _addressController.text = widget.complaint['address'] ?? '';
-    _complainTypeController.text = widget.complaint['complainType'] ?? '';
-    _descriptionController.text = widget.complaint['description'] ?? '';
-
-    // Fetch the complaint types from Firestore
-    _fetchComplaintTypes();
+    _initFields();
+    _loadMetadata();
   }
 
-  // Fetch complaint types from Firestore
-  Future<void> _fetchComplaintTypes() async {
-    try {
-      // Fetch categories (complain types) from Firestore
-      QuerySnapshot categorySnapshot = await FirebaseFirestore.instance
-          .collection('sub_category')
-          .get();
+  void _initFields() {
+    _nameController.text = widget.complaint['complainant_name'] ?? '';
+    _phoneController.text = widget.complaint['phone'] ?? '';
+    _addressController.text = widget.complaint['address'] ?? '';
+    _descriptionController.text = widget.complaint['description'] ?? '';
+    _selectedSubCategoryId = widget.complaint['sub_category_id'];
+    _selectedStationId = widget.complaint['police_station_id'];
+  }
 
-      List<String> categories = [];
-      for (var doc in categorySnapshot.docs) {
-        categories.add(doc['name']);
-      }
+  Future<void> _loadMetadata() async {
+    try {
+      final metadata = await _complaintsService.fetchMetadata();
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      _userRole = prefs.getString('user_role');
 
       setState(() {
-        _complainTypes = categories;
-        _selectedComplainType = widget.complaint['complainType'];  // Pre-select the complaint type
+        _subCategories = List<Map<String, dynamic>>.from(metadata['sub_categories']);
+        _policeStations = List<Map<String, dynamic>>.from(metadata['police_stations']);
+        _isLoading = false;
       });
     } catch (e) {
-      print('Error fetching complaint types: $e');
+      print('Error loading metadata: $e');
+      setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load complaint types.')),
+        SnackBar(content: Text('Failed to load metadata: $e')),
       );
     }
   }
 
-  // Update the complaint in Firestore
-  Future<void> _updateComplaint() async {
-    try {
-      await FirebaseFirestore.instance.collection('complaints').doc(widget.complaint.id).update({
-        'name': _nameController.text,
-        'phone': _phoneController.text,
-        'address': _addressController.text,
-        'complainType': _complainTypeController.text,
-        'description': _descriptionController.text,
-      });
+  void _submitForm() async {
+    if (_formKey.currentState?.validate() ?? false) {
+      setState(() => _isLoading = true);
+      try {
+        await _complaintsService.updateComplaint(
+          id: widget.complaint['id'],
+          name: _nameController.text,
+          phone: _phoneController.text,
+          address: _addressController.text,
+          subCategoryId: _selectedSubCategoryId!,
+          policeStationId: _selectedStationId!,
+          description: _descriptionController.text,
+        );
 
-      // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Complaint updated successfully.')),
-      );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Complaint updated successfully!')),
+        );
 
-      // Replace the current screen with the ComplaintListScreen
-      Navigator.pushReplacementNamed(context, '/list_complaint');  // Navigate to ComplaintListScreen
-    } catch (e) {
-      print('Error updating complaint: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update complaint.')),
-      );
+        Navigator.pop(context, true);
+      } catch (e) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update complaint: $e')),
+        );
+      }
     }
   }
 
@@ -93,7 +99,9 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
     return Scaffold(
       appBar: CustomAppBar(title: "Update Complaint", showBackButton: true),
       drawer: CustomDrawer(),
-      body: Padding(
+      body: _isLoading 
+        ? Center(child: CircularProgressIndicator())
+        : Padding(
         padding: EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
@@ -105,11 +113,8 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
                 decoration: InputDecoration(
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
                   label: Text("Name of Complaint"),
-                  hintText: "Enter Name of Complaint",
-                  labelStyle: TextStyle(color: Colors.black, fontSize: 18),
-                  hintStyle: TextStyle(color: Colors.black54, fontSize: 17),
                 ),
-                validator: (value) => value!.isEmpty ? 'Please enter the name of the complaint' : null,
+                validator: (value) => value!.isEmpty ? 'Please enter name' : null,
               ),
               SizedBox(height: 20),
               TextFormField(
@@ -117,11 +122,9 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
                 decoration: InputDecoration(
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
                   label: Text("Phone No"),
-                  hintText: "Enter Phone No",
-                  labelStyle: TextStyle(color: Colors.black, fontSize: 18),
-                  hintStyle: TextStyle(color: Colors.black54, fontSize: 17),
                 ),
-                validator: (value) => value!.isEmpty ? 'Please enter the Phone No' : null,
+                keyboardType: TextInputType.phone,
+                validator: (value) => value!.isEmpty ? 'Please enter phone' : null,
               ),
               SizedBox(height: 20),
               TextFormField(
@@ -129,45 +132,8 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
                 decoration: InputDecoration(
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
                   label: Text("Address"),
-                  hintText: "Enter Address",
-                  labelStyle: TextStyle(color: Colors.black, fontSize: 18),
-                  hintStyle: TextStyle(color: Colors.black54, fontSize: 17),
                 ),
-                validator: (value) => value!.isEmpty ? 'Please enter the Address' : null,
-              ),
-              SizedBox(height: 20),
-              // Complaint Type Dropdown
-              _complainTypes.isEmpty
-                  ? Center(child: CircularProgressIndicator())  // Show loading indicator while fetching data
-                  : DropdownButtonFormField<String>(
-                value: _selectedComplainType,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
-                  label: Text("Complain Type"),
-                  hintText: "Complain Type",
-                  labelStyle: TextStyle(color: Colors.black, fontSize: 18),
-                  hintStyle: TextStyle(color: Colors.black54, fontSize: 17),
-                ),
-                items: _complainTypes.map((complainType) {
-                  return DropdownMenuItem<String>(
-                    value: complainType,
-                    child: Text(
-                      complainType,
-                      overflow: TextOverflow.ellipsis, // Prevent overflow with ellipsis
-                      maxLines: 1, // Limit to one line
-                    ),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _complainTypeController.text = value ?? '';
-                    _selectedComplainType = value;
-                  });
-                },
-                validator: (value) => value == null || value.isEmpty
-                    ? 'Please select the complain type'
-                    : null,
-                isExpanded: true,
+                validator: (value) => value!.isEmpty ? 'Please enter address' : null,
               ),
               SizedBox(height: 20),
               TextFormField(
@@ -175,24 +141,55 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
                 decoration: InputDecoration(
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
                   label: Text("Description (Optional)"),
-                  hintText: "Enter Description",
-                  labelStyle: TextStyle(color: Colors.black, fontSize: 18),
-                  hintStyle: TextStyle(color: Colors.black54, fontSize: 17),
                 ),
                 maxLines: 4,
               ),
               SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    _updateComplaint();
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFFa3d95d),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+              DropdownButtonFormField<int>(
+                value: _selectedSubCategoryId,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
+                  label: Text("Complain Type"),
                 ),
-                child: Text("Update Complaint", style: TextStyle(fontSize: 18, color: Colors.black)),
+                items: _subCategories.map((sub) {
+                  return DropdownMenuItem<int>(
+                    value: int.tryParse(sub['id'].toString()),
+                    child: Text(sub['name']),
+                  );
+                }).toList(),
+                onChanged: (val) => setState(() => _selectedSubCategoryId = val),
+                validator: (val) => val == null ? 'Please select type' : null,
+              ),
+              SizedBox(height: 20),
+              DropdownButtonFormField<int>(
+                value: _selectedStationId,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
+                  label: Text("Police Station"),
+                ),
+                items: _policeStations.map((station) {
+                  return DropdownMenuItem<int>(
+                    value: int.tryParse(station['id'].toString()),
+                    child: Text(station['name']),
+                  );
+                }).toList(),
+                onChanged: (_userRole == 'admin' || _userRole == 'super') 
+                  ? (val) => setState(() => _selectedStationId = val) 
+                  : null,
+                validator: (val) => val == null ? 'Please select station' : null,
+              ),
+              SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: _submitForm,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFFa3d95d),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                  ),
+                  child: Text("Update Complaint", style: TextStyle(fontSize: 18, color: Colors.black)),
+                ),
               ),
             ],
           ),

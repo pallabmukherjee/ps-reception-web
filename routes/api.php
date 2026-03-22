@@ -23,5 +23,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Complaint APIs
     Route::post('complaints', [ComplaintApiController::class, 'store']);
+    Route::patch('complaints/{complaint}', [ComplaintApiController::class, 'update']);
+    Route::delete('complaints/{complaint}', [ComplaintApiController::class, 'destroy']);
     Route::get('my-complaints', [ComplaintApiController::class, 'myComplaints']);
 });

@@ -75,6 +75,7 @@
                     <th class="p-3 text-sm font-bold text-gray-700">Category Name</th>
                     <th class="p-3 text-sm font-bold text-gray-700">Notifications</th>
                     <th class="p-3 text-sm font-bold text-gray-700">Priority</th>
+                    <th class="p-3 text-sm font-bold text-gray-700">Status</th>
                     <th class="p-3 text-sm font-bold text-gray-700 text-center">Actions</th>
                 </tr>
             </thead>
@@ -90,6 +91,13 @@
                             @endif
                         </td>
                         <td class="p-3 text-sm text-gray-600">{{ $category->priority }}</td>
+                        <td class="p-3 text-sm">
+                            @if($category->is_disabled)
+                                <span class="px-2 py-1 rounded-full text-xs font-bold bg-red-100 text-red-800">Disabled</span>
+                            @else
+                                <span class="px-2 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800">Enabled</span>
+                            @endif
+                        </td>
                         <td class="p-3 text-sm flex justify-center space-x-2">
                             <button onclick="openEditModal({{ json_encode($category) }})" class="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 font-bold">
                                 Edit
@@ -99,6 +107,13 @@
                                 @method('DELETE')
                                 <button type="submit" class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 font-bold">
                                     Delete
+                                </button>
+                            </form>
+                            <form action="{{ route('categories.toggle', $category) }}" method="POST">
+                                @csrf
+                                @method('PATCH')
+                                <button type="submit" class="px-3 py-1 {{ $category->is_disabled ? 'bg-green-600' : 'bg-yellow-500' }} text-white rounded font-bold">
+                                    {{ $category->is_disabled ? 'Enable' : 'Disable' }}
                                 </button>
                             </form>
                         </td>

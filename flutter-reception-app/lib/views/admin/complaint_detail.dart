@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:kp_police/controllers/complaints_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../layout/app_bar.dart';
 import '../layout/custom_bottom_nav.dart';
@@ -16,11 +18,53 @@ class ComplaintDetailScreen extends StatefulWidget {
 
 class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
   int _selectedIndex = 2;
+  String? _userRole;
+  final ComplaintsService _complaintsService = ComplaintsService();
+  bool _isDeleting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserRole();
+  }
+
+  Future<void> _loadUserRole() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _userRole = prefs.getString('user_role');
+    });
+  }
 
   void _onTabSelected(int index) {
     setState(() {
       _selectedIndex = index;
     });
+  }
+
+  void _deleteComplaint() async {
+    bool confirm = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Delete Complaint'),
+        content: Text('Are you sure you want to delete this complaint?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text('Delete', style: TextStyle(color: Colors.red))),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      setState(() => _isDeleting = true);
+      try {
+        await _complaintsService.deleteComplaint(widget.complaint['id']);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Complaint deleted successfully')));
+        Navigator.pop(context, true); 
+      } catch (e) {
+        setState(() => _isDeleting = false);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to delete: $e')));
+      }
+    }
   }
 
   String formatTimestamp(String? timestamp) {
@@ -94,6 +138,47 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
               _buildComplaintField('Police Station', widget.complaint['police_station']?['name']),
               SizedBox(height: 7),
               _buildComplaintField('Date & Time', formatTimestamp(widget.complaint['created_at'])),
+              SizedBox(height: 20),
+              if (widget.complaint['is_editable'] == true || _userRole == 'admin' || _userRole == 'super') ...[
+                if (_isDeleting)
+                  Center(child: CircularProgressIndicator())
+                else ...[
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        final result = await Navigator.pushNamed(
+                          context,
+                          '/edit_complaint',
+                          arguments: widget.complaint,
+                        );
+                        if (result == true) {
+                          Navigator.pop(context, true); // Refresh list
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFFa3d95d),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                      ),
+                      child: Text("Edit Complaint", style: TextStyle(fontSize: 18, color: Colors.black)),
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: _deleteComplaint,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                      ),
+                      child: Text("Delete Complaint", style: TextStyle(fontSize: 18, color: Colors.white)),
+                    ),
+                  ),
+                ]
+              ]
             ],
           ),
         ),

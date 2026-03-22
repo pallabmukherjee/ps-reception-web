@@ -23,6 +23,18 @@ class ApiService {
     return await http.post(url, headers: headers, body: jsonEncode(data));
   }
 
+  static Future<http.Response> patch(String endpoint, Map<String, dynamic> data) async {
+    final url = Uri.parse("$baseUrl/api/$endpoint");
+    final headers = await getHeaders();
+    return await http.patch(url, headers: headers, body: jsonEncode(data));
+  }
+
+  static Future<http.Response> delete(String endpoint) async {
+    final url = Uri.parse("$baseUrl/api/$endpoint");
+    final headers = await getHeaders();
+    return await http.delete(url, headers: headers);
+  }
+
   static Future<http.Response> get(String endpoint) async {
     final url = Uri.parse("$baseUrl/api/$endpoint");
     final headers = await getHeaders();
