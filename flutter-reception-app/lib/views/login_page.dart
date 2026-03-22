@@ -1,7 +1,6 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:kp_police/controllers/auth_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -140,22 +139,16 @@ class _LoginPageState extends State<LoginPage> {
                               String loginMessage = await AuthService.loginWithEmail(
                                   emailController.text, passwordController.text);
                               if (loginMessage == "Login Successfully") {
-                                User? user = FirebaseAuth.instance.currentUser;
-                                if (user != null) {
-                                  DocumentSnapshot userDoc = await FirebaseFirestore.instance
-                                      .collection("user_data")
-                                      .doc(user.uid)
-                                      .get();
-
-                                  String role = userDoc['role'];
-                                  if (role == "admin") {
-                                    Navigator.pushReplacementNamed(context, "/adminhome");
-                                  } else if(role == "superior") {
-                                    Navigator.pushReplacementNamed(context, "/superiorhome");
-                                  }
-                                  else {
-                                    Navigator.pushReplacementNamed(context, "/home");
-                                  }
+                                SharedPreferences prefs = await SharedPreferences.getInstance();
+                                String? role = prefs.getString('user_role');
+                                
+                                if (role == "admin") {
+                                  Navigator.pushReplacementNamed(context, "/adminhome");
+                                } else if(role == "superior") {
+                                  Navigator.pushReplacementNamed(context, "/superiorhome");
+                                }
+                                else {
+                                  Navigator.pushReplacementNamed(context, "/home");
                                 }
                               } else {
                                 ScaffoldMessenger.of(context).showSnackBar(
