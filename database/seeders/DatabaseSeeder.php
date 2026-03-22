@@ -14,15 +14,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Define guards
-        $guards = ['web', 'api'];
-
-        foreach ($guards as $guard) {
-            Role::firstOrCreate(['name' => 'super', 'guard_name' => $guard]);
-            Role::firstOrCreate(['name' => 'admin', 'guard_name' => $guard]);
-            Role::firstOrCreate(['name' => 'superior', 'guard_name' => $guard]);
-            Role::firstOrCreate(['name' => 'user', 'guard_name' => $guard]);
-        }
+        // Run RoleSeeder
+        $this->call(RoleSeeder::class);
 
         // Create or Update Super Admin
         $superAdmin = User::updateOrCreate(
@@ -34,6 +27,7 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
+        // Assign super role for web guard
         if (!$superAdmin->hasRole('super', 'web')) {
             $superAdmin->assignRole('super');
         }
