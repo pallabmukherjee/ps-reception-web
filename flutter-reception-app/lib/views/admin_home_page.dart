@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:kp_police/controllers/notification_service.dart';
 
 import 'layout/app_bar.dart';
 import 'layout/custom_drawer.dart';
@@ -26,50 +23,28 @@ class _AdminHomePageState extends State<AdminHomePage> {
     super.initState();
     _fetchUserName();
     _checkDataExists();
-    PushNotifications.getDeviceToken();
   }
 
-  // Function to fetch the user's name from Firestore
+  // Function to fetch the user's name from SharedPreferences
   Future<void> _fetchUserName() async {
-    User? user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      String email = user.email ?? '';
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String userName = prefs.getString('user_name') ?? '';
 
-      try {
-        // Fetch the user document from Firestore
-        QuerySnapshot userQuery = await FirebaseFirestore.instance
-            .collection('user_data')
-            .where('email', isEqualTo: email)
-            .limit(1)
-            .get();
-
-        if (userQuery.docs.isEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('No user data found for the logged-in email.')),
-          );
-          return;
-        }
-
-        DocumentSnapshot userDoc = userQuery.docs.first;
-
-        // Fetch user name from Firestore
-        String userName = userDoc['full_name'] ?? '';
-
-        if (userName.isEmpty) {
-          setState(() {
-            _isProfileComplete = false;
-          });
-        } else {
-          setState(() {
-            _userName = userName;
-            _isProfileComplete = true;
-          });
-        }
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to fetch user data: $e')),
-        );
+      if (userName.isEmpty) {
+        setState(() {
+          _isProfileComplete = false;
+        });
+      } else {
+        setState(() {
+          _userName = userName;
+          _isProfileComplete = true;
+        });
       }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to fetch user data: $e')),
+      );
     }
   }
 
@@ -85,9 +60,10 @@ class _AdminHomePageState extends State<AdminHomePage> {
   Future<void> _toggleData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     if (_dataExists) {
-      await prefs.clear();
+      await prefs.remove('receptionist_name');
+      await prefs.remove('receptionist_mobile');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Data removed successfully!')),
+        SnackBar(content: Text('Duty ended successfully!')),
       );
     } else {
       Navigator.pushReplacementNamed(context, '/receptionist');

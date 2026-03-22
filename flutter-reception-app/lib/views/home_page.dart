@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:kp_police/controllers/notification_service.dart';
 
 import 'layout/app_bar.dart';
 import 'layout/custom_drawer.dart';
@@ -15,7 +14,6 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   @override
   void initState() {
-    PushNotifications.getDeviceToken();
     super.initState();
   }
   @override
