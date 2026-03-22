@@ -10,7 +10,7 @@ class ComplaintsService {
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       } else {
-        throw Exception('Failed to load metadata');
+        throw Exception('Failed to load metadata: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
       print('Error fetching metadata: $e');

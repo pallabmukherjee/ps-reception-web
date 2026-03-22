@@ -11,6 +11,9 @@ Route::get('login', function() {
 
 Route::post('login', [AuthController::class, 'login']);
 
+// Complaint Metadata (Publicly accessible)
+Route::get('metadata', [ComplaintApiController::class, 'getMetadata']);
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('user', function (Request $request) {
         return $request->user();
@@ -19,7 +22,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('logout', [AuthController::class, 'logout']);
 
     // Complaint APIs
-    Route::get('metadata', [ComplaintApiController::class, 'getMetadata']);
     Route::post('complaints', [ComplaintApiController::class, 'store']);
     Route::get('my-complaints', [ComplaintApiController::class, 'myComplaints']);
 });

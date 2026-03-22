@@ -51,10 +51,12 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
         _policeStations = List<Map<String, dynamic>>.from(metadata['police_stations']);
         
         if (userPsId != null) {
-          int psId = int.parse(userPsId);
-          // Check if the psId exists in the loaded police stations
-          if (_policeStations.any((element) => element['id'] == psId)) {
-            _selectedStationId = psId;
+          int? psId = int.tryParse(userPsId);
+          if (psId != null) {
+            // Check if the psId exists in the loaded police stations
+            if (_policeStations.any((element) => (int.tryParse(element['id'].toString()) ?? -1) == psId)) {
+              _selectedStationId = psId;
+            }
           }
         }
         
@@ -159,7 +161,7 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
                 ),
                 items: _subCategories.map((sub) {
                   return DropdownMenuItem<int>(
-                    value: sub['id'],
+                    value: int.tryParse(sub['id'].toString()),
                     child: Text(sub['name']),
                   );
                 }).toList(),
@@ -175,7 +177,7 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
                 ),
                 items: _policeStations.map((station) {
                   return DropdownMenuItem<int>(
-                    value: station['id'],
+                    value: int.tryParse(station['id'].toString()),
                     child: Text(station['name']),
                   );
                 }).toList(),
