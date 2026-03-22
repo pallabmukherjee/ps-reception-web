@@ -70,8 +70,10 @@ class DatabaseSeeder extends Seeder
         ];
 
         // Clear existing sub-categories and categories to avoid duplicates and remove old ones
+        \Illuminate\Support\Facades\Schema::disableForeignKeyConstraints();
         \App\Models\SubCategory::truncate();
         \App\Models\Category::truncate();
+        \Illuminate\Support\Facades\Schema::enableForeignKeyConstraints();
 
         foreach ($data as $catName => $subs) {
             $category = \App\Models\Category::create(['name' => $catName]);
