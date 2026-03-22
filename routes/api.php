@@ -30,4 +30,5 @@ Route::middleware('auth:sanctum')->group(function () {
     // Notification APIs
     Route::get('notifications', [ComplaintApiController::class, 'notifications']);
     Route::post('notifications/mark-read', [ComplaintApiController::class, 'markNotificationsRead']);
+    Route::post('notifications/test', [ComplaintApiController::class, 'triggerTestNotification']);
 });

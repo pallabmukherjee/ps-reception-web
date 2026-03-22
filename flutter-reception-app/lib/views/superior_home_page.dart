@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kp_police/controllers/auth_service.dart';
+import 'package:kp_police/controllers/complaints_service.dart';
 import 'package:kp_police/controllers/notification_polling_service.dart';
 import 'package:kp_police/controllers/notification_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -54,6 +55,11 @@ class _SuperiorHomePageState extends State<SuperiorHomePage> {
     setState(() {
       _selectedIndex = index;
     });
+  }
+
+  void _triggerTest() async {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Triggering test alert...')));
+    await ComplaintsService().triggerTestNotification();
   }
 
 
@@ -145,6 +151,11 @@ class _SuperiorHomePageState extends State<SuperiorHomePage> {
                     ),
                   ],
                 ),
+              ),
+              SizedBox(height: 30),
+              TextButton(
+                onPressed: _triggerTest,
+                child: Text("Debug Notifications", style: TextStyle(color: Colors.grey)),
               ),
               // ElevatedButton(
               //   onPressed: _navigateToReportPage,

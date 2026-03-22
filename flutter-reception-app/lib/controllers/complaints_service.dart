@@ -136,4 +136,13 @@ class ComplaintsService {
       rethrow;
     }
   }
+
+  // Function to trigger a test notification (Debug only)
+  Future<void> triggerTestNotification() async {
+    try {
+      await ApiService.post('notifications/test', {});
+    } catch (e) {
+      print('Error triggering test notification: $e');
+    }
+  }
 }
