@@ -58,26 +58,18 @@ class ComplaintApiController extends Controller
                 $isNotificationEnabled = $category->notification_enabled ?? false;
                 $categoryId = $category->id;
 
-                \Log::info("Checking notification for Category ID: $categoryId, Priority: $priority, Enabled: $isNotificationEnabled");
-                
-                // Flexible check: Either priority string matches OR it's a specific "Red" category ID (1, 5)
-                // Also added ID 9 for temporary testing since all current subs are ID 9
+                // Priority check: Matches High Priority string or specific Red category IDs (1, 5). Keeping 9 for testing.
                 $isHighPriority = (strcasecmp(trim($priority), 'High Priority') === 0) || 
                                  in_array($categoryId, [1, 5, 9]);
 
                 if ($isHighPriority && $isNotificationEnabled) {
-                    \Log::info("Triggering notification for station: " . $request->police_station_id);
-                    
                     // Find all superiors in this station
                     $superiors = User::role('superior')
                         ->where('police_station_id', $request->police_station_id)
                         ->get();
 
-                    \Log::info("Found " . $superiors->count() . " superiors");
-
                     if ($superiors->isNotEmpty()) {
                         Notification::send($superiors, new HighPriorityComplaint($complaint));
-                        \Log::info("Laravel Notification queued for superiors.");
                     }
                 }
             }
@@ -184,22 +176,5 @@ class ComplaintApiController extends Controller
     {
         auth()->user()->unreadNotifications->markAsRead();
         return response()->json(['message' => 'Notifications marked as read']);
-    }
-
-    // DEBUG ENDPOINT: Trigger a test notification for the logged-in user
-    public function triggerTestNotification()
-    {
-        $user = auth()->user();
-        \Log::info("Triggering test notification for User: {$user->id}");
-        
-        $complaint = Complaint::first(); // Just pick any existing complaint for the data
-        
-        if (!$complaint) {
-            return response()->json(['message' => 'No complaints found to use for test data.'], 404);
-        }
-
-        $user->notify(new HighPriorityComplaint($complaint));
-        
-        return response()->json(['message' => 'Test notification triggered for User ID: ' . $user->id]);
     }
 }

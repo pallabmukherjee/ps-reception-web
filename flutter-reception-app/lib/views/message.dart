@@ -18,7 +18,6 @@ class _MessageState extends State<Message> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Extract the payload from the arguments
     _extractPayload();
   }
 
@@ -27,14 +26,10 @@ class _MessageState extends State<Message> {
 
     if (data is NotificationResponse) {
       try {
-        // The payload is a string representation of the data Map
-        // We need to parse it back to a Map
         String payloadStr = data.payload ?? '{}';
-        // Handle potentially malformed JSON or string representation
         if (payloadStr.startsWith('{')) {
           payload = Map<String, dynamic>.from(jsonDecode(payloadStr));
         } else {
-          // If it's not a JSON string, it might be just a plain string message
           payload = {'message': payloadStr};
         }
       } catch (e) {
@@ -43,61 +38,136 @@ class _MessageState extends State<Message> {
       }
     }
 
-    // Print the payload for debugging
     print('Payload: $payload');
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: "Notification Details", showBackButton: false),
+      appBar: CustomAppBar(title: "Alert Details", showBackButton: true),
       drawer: CustomDrawer(),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (payload.isNotEmpty)
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: EdgeInsets.all(15),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(20),
+        child: payload.isNotEmpty
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // High Alert Header
+                  Text(
+                    payload['title'] ?? '🚨 HIGH ALERT 🚨',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.red[900],
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  
+                  // Category Name in Red
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                    decoration: BoxDecoration(
+                      color: Colors.red[50],
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: Colors.red, width: 2),
+                    ),
+                    child: Column(
+                      children: [
+                        Text(
+                          "CATEGORY",
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey[700]),
+                        ),
+                        Text(
+                          '${payload['category_name'] ?? payload['sub_category_name'] ?? 'CRITICAL CASE'}',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.red,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  SizedBox(height: 30),
+
+                  // Complainant Details Card
+                  Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                    child: Padding(
+                      padding: EdgeInsets.all(20),
+                      child: Column(
+                        children: [
+                          _buildDetailRow(Icons.person, "Complainant", payload['complainant_name'] ?? 'N/A'),
+                          Divider(height: 30),
+                          _buildDetailRow(Icons.phone, "Phone No.", payload['phone'] ?? 'N/A'),
+                          Divider(height: 30),
+                          _buildDetailRow(Icons.description, "Details", payload['message'] ?? 'New critical complaint registered.'),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  SizedBox(height: 40),
+
+                  // Action Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 55,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.pushReplacementNamed(context, '/superior-list-complaint');
+                      },
+                      icon: Icon(Icons.list_alt, color: Colors.black),
+                      label: Text("VIEW ALL COMPLAINTS", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFFa3d95d),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                      ),
+                    ),
+                  ),
+                ],
+              )
+            : Center(
+                child: Padding(
+                  padding: EdgeInsets.all(20.0),
                   child: Text(
-                    '${payload['message'] ?? payload['title'] ?? 'New High Priority Complaint Registered'}',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
+                    'No notification data available.',
+                    style: TextStyle(fontSize: 18),
                   ),
-                ),
-                SizedBox(height: 30),
-                Center(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pushReplacementNamed(context, '/superior-list-complaint');
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFFa3d95d),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                    ),
-                    child: Text("Check All Complaints", style: TextStyle(fontSize: 16, color: Colors.black)),
-                  ),
-                ),
-              ],
-            )
-          else
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.all(20.0),
-                child: Text(
-                  'No notification data available.',
-                  style: TextStyle(fontSize: 18),
                 ),
               ),
-            ),
-        ],
       ),
+    );
+  }
 
+  Widget _buildDetailRow(IconData icon, String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, color: Color(0xFF00137F), size: 28),
+        SizedBox(width: 15),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label.toUpperCase(),
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey[600]),
+              ),
+              SizedBox(height: 4),
+              Text(
+                value,
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: Colors.black87),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

@@ -4,8 +4,6 @@ namespace App\Notifications;
 
 use App\Models\Complaint;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class HighPriorityComplaint extends Notification
@@ -39,11 +37,17 @@ class HighPriorityComplaint extends Notification
      */
     public function toArray(object $notifiable): array
     {
+        // Ensure sub-category and category relations are loaded
+        $this->complaint->loadMissing('subCategory.category');
+        
         return [
             'complaint_id' => $this->complaint->id,
             'complainant_name' => $this->complaint->complainant_name,
-            'title' => 'High Alert: New Complaint',
-            'message' => "A High Priority complaint has been registered: {$this->complaint->complainant_name}",
+            'phone' => $this->complaint->phone,
+            'category_name' => $this->complaint->subCategory->category->name ?? 'Unknown',
+            'sub_category_name' => $this->complaint->subCategory->name ?? 'Unknown',
+            'title' => '🚨 EMERGENCY HIGH ALERT 🚨',
+            'message' => "New {$this->complaint->subCategory->name} registered.",
             'type' => 'high_priority',
         ];
     }

@@ -57,15 +57,6 @@ class _SuperiorHomePageState extends State<SuperiorHomePage> {
     });
   }
 
-  void _triggerTest() async {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Triggering test alert...')));
-    try {
-      await ComplaintsService().triggerTestNotification();
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
-    }
-  }
-
 
 
   @override
@@ -156,21 +147,6 @@ class _SuperiorHomePageState extends State<SuperiorHomePage> {
                   ],
                 ),
               ),
-              SizedBox(height: 30),
-              TextButton(
-                onPressed: _triggerTest,
-                child: Text("Debug Notifications", style: TextStyle(color: Colors.grey)),
-              ),
-              // ElevatedButton(
-              //   onPressed: _navigateToReportPage,
-              //   child: Text(
-              //     "Go to Report Page",
-              //     style: TextStyle(
-              //       fontSize: 18,
-              //       color: Colors.white,
-              //     ),
-              //   ),
-              // ),
             ],
           ),
         ),
