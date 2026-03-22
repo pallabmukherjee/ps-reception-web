@@ -58,8 +58,8 @@ class PushNotifications {
     required String payload,
   }) async {
     const AndroidNotificationDetails androidNotificationDetails =
-    AndroidNotificationDetails('your channel id', 'your channel name',
-        channelDescription: 'your channel description',
+    AndroidNotificationDetails('your_channel_id', 'your_channel_name',
+        channelDescription: 'your_channel_description',
         importance: Importance.max,
         priority: Priority.high,
         ticker: 'ticker',

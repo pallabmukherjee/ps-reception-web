@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'api_service.dart';
+import 'notification_polling_service.dart';
 
 class AuthService {
   // User register function (Optional: can be added if needed in Laravel)
@@ -23,11 +24,12 @@ class AuthService {
         await prefs.setString('auth_token', data['token']);
         await prefs.setString('user_role', data['user']['role']);
         await prefs.setString('user_name', data['user']['name']);
-        if (data['user']['police_station_id'] != null) {
-          await prefs.setString('user_ps_id', data['user']['police_station_id'].toString());
-        }
         if (data['user']['police_station_notification_id'] != null) {
           await prefs.setString('user_ps_notification_id', data['user']['police_station_notification_id']);
+        }
+
+        if (data['user']['role'] == 'superior') {
+          NotificationPollingService.startPolling();
         }
         
         return "Login Successfully";
@@ -42,6 +44,7 @@ class AuthService {
 
   // user logout function
   static Future logout() async {
+    NotificationPollingService.stopPolling();
     try {
       await ApiService.post('logout', {});
     } catch (e) {

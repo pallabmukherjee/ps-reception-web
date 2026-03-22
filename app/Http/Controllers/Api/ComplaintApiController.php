@@ -51,19 +51,30 @@ class ComplaintApiController extends Controller
         // Trigger Notification for High Priority categories
         try {
             $subCategory = SubCategory::with('category')->find($request->sub_category_id);
-            if ($subCategory && $subCategory->category && $subCategory->category->priority === 'High Priority') {
+            \Log::info("Checking notification for category: " . ($subCategory->category->name ?? 'N/A') . " with priority: " . ($subCategory->category->priority ?? 'N/A'));
+            
+            if ($subCategory && $subCategory->category && 
+                $subCategory->category->priority === 'High Priority' && 
+                $subCategory->category->notification_enabled) {
+                
+                \Log::info("Priority is High and notifications enabled, searching for superiors in station: " . $request->police_station_id);
+                
                 // Find all superiors in this station
                 $superiors = User::role('superior')
                     ->where('police_station_id', $request->police_station_id)
                     ->get();
 
+                \Log::info("Found " . $superiors->count() . " superiors");
+
                 if ($superiors->isNotEmpty()) {
                     Notification::send($superiors, new HighPriorityComplaint($complaint));
                     \Log::info("Laravel Notification sent to " . $superiors->count() . " superiors");
+                } else {
+                    \Log::warning("No superiors found for police station ID: " . $request->police_station_id);
                 }
             }
         } catch (\Exception $e) {
-            \Log::error("Notification failed: " . $e->getMessage());
+            \Log::error("Notification triggering failed: " . $e->getMessage());
         }
 
         return response()->json([

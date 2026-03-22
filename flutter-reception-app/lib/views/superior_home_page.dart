@@ -24,13 +24,6 @@ class _SuperiorHomePageState extends State<SuperiorHomePage> {
   void initState() {
     super.initState();
     _fetchUserName(); // Fetch the user name when the page loads
-    NotificationPollingService.startPolling(); // Start polling Laravel API for notifications
-  }
-
-  @override
-  void dispose() {
-    NotificationPollingService.stopPolling();
-    super.dispose();
   }
 
   // Function to fetch the user's name from SharedPreferences

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:kp_police/controllers/auth_service.dart';
+import 'package:kp_police/controllers/notification_polling_service.dart';
 import 'package:kp_police/controllers/notification_service.dart';
 import 'package:kp_police/views/admin/complaint_detail.dart';
 import 'package:kp_police/views/admin/complaint_list.dart';
@@ -103,7 +104,8 @@ class _CheckUserState extends State<CheckUser> {
             print("User is an admin, navigating to /adminhome");
             Navigator.pushReplacementNamed(context, "/adminhome");
           } else if (role == "superior") {
-            print("User is a superior, navigating to /superiorhome");
+            print("User is a superior, starting polling and navigating to /superiorhome");
+            NotificationPollingService.startPolling();
             Navigator.pushReplacementNamed(context, "/superiorhome");
           } else {
             print("User is a regular user, navigating to /home");
