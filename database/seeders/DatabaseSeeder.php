@@ -34,29 +34,53 @@ class DatabaseSeeder extends Seeder
 
         // Seed Categories and Sub-categories
         $data = [
-            'Normal' => [
-                'Enquiry',
-                'Report for GD',
-                'Passport Related',
-                'Character Antecedents',
-                'Others',
+            'Green' => [
+                'Male Missing (পুরুষ নিরুদ্দেশ)',
+                'Passport Verification (পাসপোর্ট যাচাই)',
+                'CA Verification',
+                'Mob Linching (গণ পিটুনি)',
+                'Permission - Political Rally/Festival/Fair/Idol immersion',
+                'Arms License - New/Renewal (অস্ত্র ছাড়পত্র - নূতন/পুনর্নবিকরণ)',
+                'Physical Assault(শারীরিক ভাবে আঘাত করা)',
+                'Meeting with IO/Officer (অফিসারের সঙ্গে দেখা করা)',
+                'Other Cyber Fraud - অন্যান্য সাইবার সংক্রান্ত প্রতারণা',
+                'Money fraud - আর্থিক জালিয়াতি',
+                'Other - অন্যান্য',
+                'Mobile/SIM card missing - মোবাইল/সিম কার্ড হারানো',
+                'Dacoity - ডাকাতি',
+                'Hazira - হাজিরা',
+                'Theft - চুরি',
+                'Threat - হুমকি',
+                'Documents missing (Addhar, Pan, Deed etc) - নথিপত্র হারানো',
+                'Female Missing - মহিলা নিরুদ্দেশ',
+                'Domestic violence - পারিবারিক হিংসা',
+                'Land dispute - জমি সংক্রান্ত সমস্যা',
+                'Political clash - রাজনৈতিক সংঘাত',
             ],
-            'Critical' => [
-                'Accident',
-                'Theft/Burglary',
-                'Missing/Kidnapping',
-                'Crime Against Women',
-                'Violence/Clash',
-                'Cyber Crime',
+            'Red' => [
+                'Minor Girl / Boy missing - শিশু কন্যা / পুত্র নিখোঁজ',
+                'Dowry death - পণ এর জন্য হত্যা',
+                'Murder - খুন',
+                'Sexual harrassment - যৌন নির্যাতন',
+                'Communal clash - সাম্প্রদায়িক অশান্তি',
+                'Acid attack - অ্যাসিড হামলা',
+                'Rape/Gang Rape - ধর্ষণ/গণ ধর্ষণ',
+                'POCSO - পকসো',
             ]
         ];
 
+        // Clear existing sub-categories and categories to avoid duplicates and remove old ones
+        \App\Models\SubCategory::truncate();
+        \App\Models\Category::truncate();
+
         foreach ($data as $catName => $subs) {
-            $category = \App\Models\Category::firstOrCreate(['name' => $catName]);
+            $category = \App\Models\Category::create(['name' => $catName]);
             foreach ($subs as $subName) {
-                \App\Models\SubCategory::firstOrCreate([
+                $isDisabled = ($subName === 'Other - অন্যান্য');
+                \App\Models\SubCategory::create([
                     'category_id' => $category->id,
-                    'name' => $subName
+                    'name' => $subName,
+                    'is_disabled' => $isDisabled
                 ]);
             }
         }

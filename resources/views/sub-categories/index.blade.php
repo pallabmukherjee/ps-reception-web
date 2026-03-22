@@ -74,20 +74,27 @@
                         <td class="p-3 text-sm text-gray-600">{{ $sub->category->name }}</td>
                         <td class="p-3 text-sm">
                             @if($sub->is_disabled)
-                                <span class="text-red-600 font-bold">Disabled</span>
+                                <span class="px-2 py-1 rounded-full text-xs font-bold bg-red-100 text-red-800">Disabled</span>
                             @else
-                                <span class="text-green-600 font-bold">Active</span>
+                                <span class="px-2 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800">Enabled</span>
                             @endif
                         </td>
                         <td class="p-3 text-sm flex justify-center space-x-2">
-                            <button onclick="openEditModal({{ json_encode($sub) }})" class="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 font-bold">
+                            <button onclick="openEditModal({{ json_encode($sub) }})" class="px-3 py-1 bg-blue-500 text-white rounded font-bold">
                                 Edit
                             </button>
                             <form action="{{ route('sub-categories.destroy', $sub) }}" method="POST" onsubmit="return confirm('Are you sure?')">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 font-bold">
+                                <button type="submit" class="px-3 py-1 bg-red-600 text-white rounded font-bold">
                                     Delete
+                                </button>
+                            </form>
+                            <form action="{{ route('sub-categories.toggle', $sub) }}" method="POST">
+                                @csrf
+                                @method('PATCH')
+                                <button type="submit" class="px-3 py-1 {{ $sub->is_disabled ? 'bg-green-600' : 'bg-yellow-500' }} text-white rounded font-bold">
+                                    {{ $sub->is_disabled ? 'Enable' : 'Disable' }}
                                 </button>
                             </form>
                         </td>

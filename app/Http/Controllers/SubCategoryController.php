@@ -35,16 +35,24 @@ class SubCategoryController extends Controller
         $request->validate([
             'category_id' => 'required|exists:categories,id',
             'name' => 'required|string|max:255',
-            'is_disabled' => 'boolean',
         ]);
 
         $subCategory->update([
             'category_id' => $request->category_id,
             'name' => $request->name,
-            'is_disabled' => $request->has('is_disabled'),
         ]);
 
         return redirect()->back()->with('success', 'Sub-Category updated successfully.');
+    }
+
+    public function toggleStatus(SubCategory $subCategory)
+    {
+        $subCategory->update([
+            'is_disabled' => !$subCategory->is_disabled
+        ]);
+
+        $status = $subCategory->is_disabled ? 'disabled' : 'enabled';
+        return redirect()->back()->with('success', "Sub-Category has been $status.");
     }
 
     public function destroy(SubCategory $subCategory)
