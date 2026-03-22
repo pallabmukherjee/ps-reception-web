@@ -70,9 +70,15 @@
                         <td class="p-3 text-sm text-gray-800">{{ $user->name }}</td>
                         <td class="p-3 text-sm text-gray-600">{{ $user->email }}</td>
                         <td class="p-3 text-sm capitalize">
-                            <span class="px-2 py-1 rounded-full text-xs font-bold {{ $user->hasRole('super') ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800' }}">
-                                {{ $user->roles->pluck('name')->first() }}
-                            </span>
+                            @if($user->roles->isNotEmpty())
+                                <span class="px-2 py-1 rounded-full text-xs font-bold {{ $user->hasRole('super') ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800' }}">
+                                    {{ $user->roles->pluck('name')->first() }}
+                                </span>
+                            @else
+                                <span class="px-2 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-800">
+                                    No Role
+                                </span>
+                            @endif
                         </td>
                         <td class="p-3 text-sm text-gray-600">{{ $user->policeStation->name ?? 'N/A' }}</td>
                         <td class="p-3 text-sm flex justify-center space-x-2">
@@ -88,12 +94,12 @@
         </table>
     </div>
 
-    <!-- Edit Modal (Simplified for brevity, similar structure to previous ones) -->
+    <!-- Edit Modal -->
     <div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
         <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
             <h3 class="text-xl font-bold mb-4 font-mono">Edit User</h3>
             <form id="editForm" method="POST">
-                @csrf @method('PATCH')
+                @csrf @method('PUT')
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 font-mono">Full Name</label>
                     <input type="text" id="edit_name" name="name" required class="mt-1 p-2 w-full border rounded-md font-mono" />
@@ -104,11 +110,12 @@
                 </div>
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 font-mono">New Password (Optional)</label>
-                    <input type="password" name="password" class="mt-1 p-2 w-full border rounded-md font-mono" />
+                    <input type="password" name="password" class="mt-1 p-2 w-full border rounded-md font-mono" placeholder="Leave blank to keep current" />
                 </div>
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 font-mono">Role</label>
                     <select id="edit_role" name="role" required class="mt-1 p-2 w-full border rounded-md font-mono">
+                        <option value="">Select Role</option>
                         @foreach($roles as $role)
                             <option value="{{ $role->name }}">{{ ucfirst($role->name) }}</option>
                         @endforeach
@@ -135,7 +142,14 @@
         function openEditModal(user) {
             document.getElementById('edit_name').value = user.name;
             document.getElementById('edit_email').value = user.email;
-            document.getElementById('edit_role').value = user.roles[0].name;
+            
+            // Safe check for roles
+            if (user.roles && user.roles.length > 0) {
+                document.getElementById('edit_role').value = user.roles[0].name;
+            } else {
+                document.getElementById('edit_role').value = '';
+            }
+
             document.getElementById('edit_police_station').value = user.police_station_id || '';
             document.getElementById('editForm').action = `/users/${user.id}`;
             document.getElementById('editModal').classList.remove('hidden');
