@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kp_police/controllers/auth_service.dart';
+import 'package:kp_police/controllers/notification_polling_service.dart';
 import 'package:kp_police/controllers/notification_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'layout/app_bar.dart';
@@ -23,20 +24,13 @@ class _SuperiorHomePageState extends State<SuperiorHomePage> {
   void initState() {
     super.initState();
     _fetchUserName(); // Fetch the user name when the page loads
-    PushNotifications.getDeviceToken();  // For push notifications
-    _subscribeToStationTopic();
+    NotificationPollingService.startPolling(); // Start polling Laravel API for notifications
   }
 
-  // Subscribe to station-specific topic for high alerts
-  Future<void> _subscribeToStationTopic() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? notificationId = prefs.getString('user_ps_notification_id');
-    if (notificationId != null && notificationId.isNotEmpty) {
-      print("Superior: Subscribing to station topic: $notificationId");
-      await PushNotifications.subscribeToTopic(notificationId);
-    } else {
-      print("Superior: No station notification ID found for subscription");
-    }
+  @override
+  void dispose() {
+    NotificationPollingService.stopPolling();
+    super.dispose();
   }
 
   // Function to fetch the user's name from SharedPreferences

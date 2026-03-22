@@ -26,4 +26,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('complaints/{complaint}', [ComplaintApiController::class, 'update']);
     Route::delete('complaints/{complaint}', [ComplaintApiController::class, 'destroy']);
     Route::get('my-complaints', [ComplaintApiController::class, 'myComplaints']);
+
+    // Notification APIs
+    Route::get('notifications', [ComplaintApiController::class, 'notifications']);
+    Route::post('notifications/mark-read', [ComplaintApiController::class, 'markNotificationsRead']);
 });

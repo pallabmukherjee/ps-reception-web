@@ -6,9 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Complaint;
 use App\Models\PoliceStation;
 use App\Models\SubCategory;
+use App\Models\User;
+use App\Notifications\HighPriorityComplaint;
 use Illuminate\Http\Request;
-use Kreait\Firebase\Messaging\CloudMessage;
-use Kreait\Firebase\Messaging\Notification;
+use Illuminate\Support\Facades\Notification;
 
 class ComplaintApiController extends Controller
 {
@@ -51,27 +52,18 @@ class ComplaintApiController extends Controller
         try {
             $subCategory = SubCategory::with('category')->find($request->sub_category_id);
             if ($subCategory && $subCategory->category && $subCategory->category->priority === 'High Priority') {
-                $station = PoliceStation::find($request->police_station_id);
-                if ($station && $station->notification_id) {
-                    $messaging = app('firebase.messaging');
-                    
-                    $message = CloudMessage::withTarget('topic', $station->notification_id)
-                        ->withNotification(Notification::create(
-                            'High Alert: New Complaint',
-                            "A High Priority complaint has been registered: {$complaint->complainant_name}"
-                        ))
-                        ->withData([
-                            'complaint_id' => (string)$complaint->id,
-                            'type' => 'high_priority',
-                            'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
-                        ]);
+                // Find all superiors in this station
+                $superiors = User::role('superior')
+                    ->where('police_station_id', $request->police_station_id)
+                    ->get();
 
-                    $messaging->send($message);
-                    \Log::info("FCM Notification sent to topic: {$station->notification_id}");
+                if ($superiors->isNotEmpty()) {
+                    Notification::send($superiors, new HighPriorityComplaint($complaint));
+                    \Log::info("Laravel Notification sent to " . $superiors->count() . " superiors");
                 }
             }
         } catch (\Exception $e) {
-            \Log::error("FCM Notification failed: " . $e->getMessage());
+            \Log::error("Notification failed: " . $e->getMessage());
         }
 
         return response()->json([
@@ -160,5 +152,16 @@ class ComplaintApiController extends Controller
         $complaint->delete();
 
         return response()->json(['message' => 'Complaint deleted successfully']);
+    }
+
+    public function notifications()
+    {
+        return response()->json(auth()->user()->unreadNotifications);
+    }
+
+    public function markNotificationsRead()
+    {
+        auth()->user()->unreadNotifications->markAsRead();
+        return response()->json(['message' => 'Notifications marked as read']);
     }
 }
