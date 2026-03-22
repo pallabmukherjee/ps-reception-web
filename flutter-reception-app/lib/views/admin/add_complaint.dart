@@ -25,6 +25,7 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
   List<Map<String, dynamic>> _subCategories = [];
   List<Map<String, dynamic>> _policeStations = [];
   bool _isLoading = true;
+  String? _userRole;
 
   final ComplaintsService _complaintsService = ComplaintsService();
 
@@ -45,7 +46,11 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
       final metadata = await _complaintsService.fetchMetadata();
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? userPsId = prefs.getString('user_ps_id');
+      _userRole = prefs.getString('user_role');
       
+      print('DEBUG: user_ps_id from prefs: $userPsId');
+      print('DEBUG: user_role from prefs: $_userRole');
+
       setState(() {
         _subCategories = List<Map<String, dynamic>>.from(metadata['sub_categories']);
         _policeStations = List<Map<String, dynamic>>.from(metadata['police_stations']);
@@ -53,9 +58,13 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
         if (userPsId != null) {
           int? psId = int.tryParse(userPsId);
           if (psId != null) {
+            print('DEBUG: Attempting to autoselect psId: $psId');
             // Check if the psId exists in the loaded police stations
-            if (_policeStations.any((element) => (int.tryParse(element['id'].toString()) ?? -1) == psId)) {
+            bool exists = _policeStations.any((element) => (int.tryParse(element['id'].toString()) ?? -1) == psId);
+            print('DEBUG: psId exists in list: $exists');
+            if (exists) {
               _selectedStationId = psId;
+              print('DEBUG: Autoselected _selectedStationId: $_selectedStationId');
             }
           }
         }
@@ -181,7 +190,9 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
                     child: Text(station['name']),
                   );
                 }).toList(),
-                onChanged: (val) => setState(() => _selectedStationId = val),
+                onChanged: (_userRole == 'admin' || _userRole == 'super') 
+                  ? (val) => setState(() => _selectedStationId = val) 
+                  : null, // Lock for regular users
                 validator: (val) => val == null ? 'Please select station' : null,
               ),
               SizedBox(height: 20),
