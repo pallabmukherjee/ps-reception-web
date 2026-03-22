@@ -7,6 +7,8 @@ use App\Models\Complaint;
 use App\Models\PoliceStation;
 use App\Models\SubCategory;
 use Illuminate\Http\Request;
+use Kreait\Firebase\Messaging\CloudMessage;
+use Kreait\Firebase\Messaging\Notification;
 
 class ComplaintApiController extends Controller
 {
@@ -44,6 +46,33 @@ class ComplaintApiController extends Controller
             'receptionist_id' => auth()->id(),
             'is_editable' => true,
         ]);
+
+        // Trigger Notification for High Priority categories
+        try {
+            $subCategory = SubCategory::with('category')->find($request->sub_category_id);
+            if ($subCategory && $subCategory->category && $subCategory->category->priority === 'High Priority') {
+                $station = PoliceStation::find($request->police_station_id);
+                if ($station && $station->notification_id) {
+                    $messaging = app('firebase.messaging');
+                    
+                    $message = CloudMessage::withTarget('topic', $station->notification_id)
+                        ->withNotification(Notification::create(
+                            'High Alert: New Complaint',
+                            "A High Priority complaint has been registered: {$complaint->complainant_name}"
+                        ))
+                        ->withData([
+                            'complaint_id' => (string)$complaint->id,
+                            'type' => 'high_priority',
+                            'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
+                        ]);
+
+                    $messaging->send($message);
+                    \Log::info("FCM Notification sent to topic: {$station->notification_id}");
+                }
+            }
+        } catch (\Exception $e) {
+            \Log::error("FCM Notification failed: " . $e->getMessage());
+        }
 
         return response()->json([
             'message' => 'Complaint stored successfully',

@@ -51,19 +51,11 @@ class PushNotifications {
     final String? token = await _firebaseMessaging.getToken();
     print("Device token: $token");
 
-    bool isUserLoggedin = await AuthService.isLoggedIn();
-    if (isUserLoggedin) {
-      await CRUDService.saveUserToken(token!);
-      print("Token Saved on firestore");
-    }
-
-    // if token is changed
-    _firebaseMessaging.onTokenRefresh.listen((event) async {
-      if (isUserLoggedin) {
-        await CRUDService.saveUserToken(token!);
-        print("Token Saved on firestore");
-      }
-    });
+    // Optional: Send token to your Laravel backend if you want to target specific users
+    // bool isUserLoggedin = await AuthService.isLoggedIn();
+    // if (isUserLoggedin) {
+    //   await ApiService.post('save-token', {'token': token});
+    // }
   }
 
   // Initialize Flutter local notifications
@@ -165,5 +157,25 @@ class PushNotifications {
     NotificationDetails(android: androidNotificationDetails);
     await _flutterLocalNotificationsPlugin
         .show(0, title, body, notificationDetails, payload: payload);
+  }
+
+  // Subscribe to a topic
+  static Future<void> subscribeToTopic(String topic) async {
+    try {
+      await _firebaseMessaging.subscribeToTopic(topic);
+      print("Subscribed to topic: $topic");
+    } catch (e) {
+      print("Error subscribing to topic: $e");
+    }
+  }
+
+  // Unsubscribe from a topic
+  static Future<void> unsubscribeFromTopic(String topic) async {
+    try {
+      await _firebaseMessaging.unsubscribeFromTopic(topic);
+      print("Unsubscribed from topic: $topic");
+    } catch (e) {
+      print("Error unsubscribing from topic: $e");
+    }
   }
 }

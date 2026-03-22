@@ -40,6 +40,7 @@ class AuthController extends Controller
                 'role' => $user->roles()->where('guard_name', 'web')->pluck('name')->first(),
                 'police_station' => $user->policeStation->name ?? 'N/A',
                 'police_station_id' => $user->police_station_id,
+                'police_station_notification_id' => $user->policeStation->notification_id ?? null,
             ]
         ]);
     }

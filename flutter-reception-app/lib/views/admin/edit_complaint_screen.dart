@@ -173,9 +173,7 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
                     child: Text(station['name']),
                   );
                 }).toList(),
-                onChanged: (_userRole == 'admin' || _userRole == 'super') 
-                  ? (val) => setState(() => _selectedStationId = val) 
-                  : null,
+                onChanged: null, // Always locked as per request
                 validator: (val) => val == null ? 'Please select station' : null,
               ),
               SizedBox(height: 20),

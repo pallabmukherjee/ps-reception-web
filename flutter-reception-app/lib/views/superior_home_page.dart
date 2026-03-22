@@ -24,6 +24,19 @@ class _SuperiorHomePageState extends State<SuperiorHomePage> {
     super.initState();
     _fetchUserName(); // Fetch the user name when the page loads
     PushNotifications.getDeviceToken();  // For push notifications
+    _subscribeToStationTopic();
+  }
+
+  // Subscribe to station-specific topic for high alerts
+  Future<void> _subscribeToStationTopic() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? notificationId = prefs.getString('user_ps_notification_id');
+    if (notificationId != null && notificationId.isNotEmpty) {
+      print("Superior: Subscribing to station topic: $notificationId");
+      await PushNotifications.subscribeToTopic(notificationId);
+    } else {
+      print("Superior: No station notification ID found for subscription");
+    }
   }
 
   // Function to fetch the user's name from SharedPreferences

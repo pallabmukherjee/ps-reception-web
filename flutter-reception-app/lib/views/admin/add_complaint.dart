@@ -202,9 +202,7 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
                     child: Text(station['name']),
                   );
                 }).toList(),
-                onChanged: (_userRole == 'admin' || _userRole == 'super') 
-                  ? (val) => setState(() => _selectedStationId = val) 
-                  : null, // Lock for regular users
+                onChanged: null, // Always locked for all users as per request
                 validator: (val) => val == null ? 'Please select station' : null,
               ),
               SizedBox(height: 20),

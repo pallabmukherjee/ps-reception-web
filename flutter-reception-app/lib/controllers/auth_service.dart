@@ -26,6 +26,9 @@ class AuthService {
         if (data['user']['police_station_id'] != null) {
           await prefs.setString('user_ps_id', data['user']['police_station_id'].toString());
         }
+        if (data['user']['police_station_notification_id'] != null) {
+          await prefs.setString('user_ps_notification_id', data['user']['police_station_notification_id']);
+        }
         
         return "Login Successfully";
       } else {
@@ -41,13 +44,16 @@ class AuthService {
   static Future logout() async {
     try {
       await ApiService.post('logout', {});
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.remove('auth_token');
-      await prefs.remove('user_role');
-      await prefs.remove('user_name');
     } catch (e) {
-      print('Error logging out: $e');
+      print('Error calling logout API: $e');
     }
+    
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove('auth_token');
+    await prefs.remove('user_role');
+    await prefs.remove('user_name');
+    await prefs.remove('user_ps_id');
+    await prefs.remove('user_ps_notification_id');
   }
 
   // check user login in or not
