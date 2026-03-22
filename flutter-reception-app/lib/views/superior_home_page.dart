@@ -59,7 +59,11 @@ class _SuperiorHomePageState extends State<SuperiorHomePage> {
 
   void _triggerTest() async {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Triggering test alert...')));
-    await ComplaintsService().triggerTestNotification();
+    try {
+      await ComplaintsService().triggerTestNotification();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
   }
 
 

@@ -140,9 +140,13 @@ class ComplaintsService {
   // Function to trigger a test notification (Debug only)
   Future<void> triggerTestNotification() async {
     try {
-      await ApiService.post('notifications/test', {});
+      final response = await ApiService.post('notifications/test', {});
+      if (response.statusCode != 200) {
+        throw Exception('Failed to trigger: ${response.statusCode} - ${response.body}');
+      }
     } catch (e) {
       print('Error triggering test notification: $e');
+      rethrow;
     }
   }
 }

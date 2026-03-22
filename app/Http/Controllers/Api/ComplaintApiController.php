@@ -190,6 +190,8 @@ class ComplaintApiController extends Controller
     public function triggerTestNotification()
     {
         $user = auth()->user();
+        \Log::info("Triggering test notification for User: {$user->id}");
+        
         $complaint = Complaint::first(); // Just pick any existing complaint for the data
         
         if (!$complaint) {
