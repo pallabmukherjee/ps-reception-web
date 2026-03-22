@@ -51,11 +51,16 @@ class ComplaintApiController extends Controller
         // Trigger Notification for High Priority categories
         try {
             $subCategory = SubCategory::with('category')->find($request->sub_category_id);
-            \Log::info("Checking notification for category: " . ($subCategory->category->name ?? 'N/A') . " with priority: " . ($subCategory->category->priority ?? 'N/A'));
+            $priority = $subCategory->category->priority ?? 'none';
+            $catName = $subCategory->category->name ?? 'N/A';
+            $isNotificationEnabled = $subCategory->category->notification_enabled ?? false;
+
+            \Log::info("Checking notification for category: $catName with priority: $priority, Enabled: $isNotificationEnabled");
             
+            // Flexible check for High Priority (case-insensitive and trimmed)
             if ($subCategory && $subCategory->category && 
-                $subCategory->category->priority === 'High Priority' && 
-                $subCategory->category->notification_enabled) {
+                (strcasecmp(trim($priority), 'High Priority') === 0) && 
+                $isNotificationEnabled) {
                 
                 \Log::info("Priority is High and notifications enabled, searching for superiors in station: " . $request->police_station_id);
                 
@@ -68,7 +73,7 @@ class ComplaintApiController extends Controller
 
                 if ($superiors->isNotEmpty()) {
                     Notification::send($superiors, new HighPriorityComplaint($complaint));
-                    \Log::info("Laravel Notification sent to " . $superiors->count() . " superiors");
+                    \Log::info("Laravel Notification queued for " . $superiors->count() . " superiors");
                 } else {
                     \Log::warning("No superiors found for police station ID: " . $request->police_station_id);
                 }
@@ -167,7 +172,10 @@ class ComplaintApiController extends Controller
 
     public function notifications()
     {
-        return response()->json(auth()->user()->unreadNotifications);
+        $user = auth()->user();
+        $notifications = $user->unreadNotifications;
+        \Log::info("User {$user->id} fetching notifications. Count: " . $notifications->count());
+        return response()->json($notifications);
     }
 
     public function markNotificationsRead()
