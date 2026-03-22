@@ -1,8 +1,7 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:kp_police/controllers/auth_service.dart';
 import 'package:kp_police/controllers/notification_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'layout/app_bar.dart';
 import 'layout/custom_drawer.dart';
 import 'layout/superior_custom_bottom_nav.dart';
@@ -27,47 +26,26 @@ class _SuperiorHomePageState extends State<SuperiorHomePage> {
     PushNotifications.getDeviceToken();  // For push notifications
   }
 
-  // Function to fetch the user's name from Firestore
+  // Function to fetch the user's name from SharedPreferences
   Future<void> _fetchUserName() async {
-    User? user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      String email = user.email ?? '';
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String userName = prefs.getString('user_name') ?? '';
 
-      try {
-        // Fetch the user document from Firestore
-        QuerySnapshot userQuery = await FirebaseFirestore.instance
-            .collection('user_data')
-            .where('email', isEqualTo: email)
-            .limit(1)
-            .get();
-
-        if (userQuery.docs.isEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('No user data found for the logged-in email.')),
-          );
-          return;
-        }
-
-        DocumentSnapshot userDoc = userQuery.docs.first;
-
-        // Fetch user name from Firestore
-        String userName = userDoc['full_name'] ?? ''; // Default to empty if name is not found
-
-        if (userName.isEmpty) {
-          setState(() {
-            _isProfileComplete = false; // If name is empty, mark profile as incomplete
-          });
-        } else {
-          setState(() {
-            _userName = userName;
-            _isProfileComplete = true; // Profile is complete if name is found
-          });
-        }
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to fetch user data: $e')),
-        );
+      if (userName.isEmpty) {
+        setState(() {
+          _isProfileComplete = false; 
+        });
+      } else {
+        setState(() {
+          _userName = userName;
+          _isProfileComplete = true; 
+        });
       }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to fetch user data: $e')),
+      );
     }
   }
 

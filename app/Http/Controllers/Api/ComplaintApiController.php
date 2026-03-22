@@ -48,10 +48,20 @@ class ComplaintApiController extends Controller
 
     public function myComplaints()
     {
-        $complaints = Complaint::with(['subCategory.category', 'policeStation'])
-            ->where('receptionist_id', auth()->id())
-            ->latest()
-            ->get();
+        $user = auth()->user();
+        $query = Complaint::with(['subCategory.category', 'policeStation']);
+
+        if ($user->hasRole(['super', 'admin'])) {
+            // Admins and super users see all complaints
+        } elseif ($user->hasRole('superior')) {
+            // Superiors see all complaints in their police station
+            $query->where('police_station_id', $user->police_station_id);
+        } else {
+            // Regular users (receptionists) see only their own complaints
+            $query->where('receptionist_id', $user->id);
+        }
+
+        $complaints = $query->latest()->get();
 
         return response()->json($complaints);
     }
