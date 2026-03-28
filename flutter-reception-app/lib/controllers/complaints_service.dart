@@ -23,6 +23,7 @@ class ComplaintsService {
     String? search,
     String? startDate,
     String? endDate,
+    String? dutyStartTime,
     int page = 1,
     int perPage = 20,
   }) async {
@@ -37,6 +38,9 @@ class ComplaintsService {
       if (endDate != null && endDate.isNotEmpty) {
         url += '&end_date=$endDate';
       }
+      if (dutyStartTime != null && dutyStartTime.isNotEmpty) {
+        url += '&duty_start_time=$dutyStartTime';
+      }
 
       final response = await ApiService.get(url);
       if (response.statusCode == 200) {
@@ -46,6 +50,24 @@ class ComplaintsService {
       }
     } catch (e) {
       print('Error fetching my complaints: $e');
+      rethrow;
+    }
+  }
+
+  // Function to add a note to a complaint
+  Future<Map<String, dynamic>> addNote(int complaintId, String note) async {
+    try {
+      final response = await ApiService.post('complaints/$complaintId/note', {
+        'note': note,
+      });
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception('Failed to add note: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error adding note: $e');
       rethrow;
     }
   }

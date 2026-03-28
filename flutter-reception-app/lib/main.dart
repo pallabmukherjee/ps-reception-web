@@ -8,8 +8,8 @@ import 'package:kp_police/views/admin/complaint_detail.dart';
 import 'package:kp_police/views/admin/complaint_list.dart';
 import 'package:kp_police/views/profile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'controllers/ChangePasswordScreen.dart';
-import 'controllers/ForgotPasswordScreen.dart';
+import 'views/ChangePasswordScreen.dart';
+import 'views/ForgotPasswordScreen.dart';
 
 import 'views/admin/add_complaint.dart';
 import 'views/admin/edit_complaint_screen.dart';

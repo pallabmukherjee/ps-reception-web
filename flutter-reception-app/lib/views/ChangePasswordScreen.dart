@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:kp_police/controllers/api_service.dart';
+import 'dart:convert';
 
 import '../views/layout/app_bar.dart';
 import '../views/layout/custom_drawer.dart';
@@ -13,7 +14,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   final _currentPasswordController = TextEditingController();
   final _newPasswordController = TextEditingController();
   final _confirmNewPasswordController = TextEditingController();
-  final _auth = FirebaseAuth.instance;
   bool _isLoading = false;
 
   @override
@@ -40,29 +40,33 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     }
 
     setState(() => _isLoading = true);
-    User? user = _auth.currentUser;
 
-    if (user != null) {
-      try {
-        AuthCredential credential = EmailAuthProvider.credential(
-          email: user.email!,
-          password: currentPassword,
-        );
+    try {
+      final response = await ApiService.post('change-password', {
+        'current_password': currentPassword,
+        'password': newPassword,
+        'password_confirmation': confirmNewPassword,
+      });
 
-        await user.reauthenticateWithCredential(credential);
-        await user.updatePassword(newPassword);
-
+      if (response.statusCode == 200) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Credentials updated successfully')));
           Navigator.pop(context);
         }
-      } catch (e) {
-        setState(() => _isLoading = false);
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Modification failed: $e'), backgroundColor: Colors.red.shade600),
-          );
+      } else {
+        final errorData = jsonDecode(response.body);
+        String message = errorData['message'] ?? 'Modification failed';
+        if (errorData['errors'] != null) {
+          message = errorData['errors'].toString();
         }
+        throw Exception(message);
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString().replaceAll('Exception: ', '')), backgroundColor: Colors.red.shade600),
+        );
       }
     }
   }

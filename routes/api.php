@@ -33,4 +33,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Statistics API
     Route::get('statistics', [ComplaintApiController::class, 'getStatistics']);
+
+    // Profile APIs
+    Route::get('profile', [\App\Http\Controllers\Api\ProfileApiController::class, 'getProfile']);
+    Route::post('profile', [\App\Http\Controllers\Api\ProfileApiController::class, 'updateProfile']);
+    Route::post('change-password', [\App\Http\Controllers\Api\ProfileApiController::class, 'changePassword']);
+
+    // Note API
+    Route::post('complaints/{complaint}/note', [ComplaintApiController::class, 'addNote']);
 });

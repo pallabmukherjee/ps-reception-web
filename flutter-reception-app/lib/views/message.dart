@@ -60,7 +60,7 @@ class _MessageState extends State<Message> {
                   ElevatedButton.icon(
                     onPressed: () => Navigator.pushReplacementNamed(context, '/superior-list-complaint'),
                     icon: const Icon(Icons.format_list_bulleted_rounded),
-                    label: const Text("ACCESS CASE DIRECTORY"),
+                    label: const Text("ACCESS COMPLAIN DIRECTORY"),
                     style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00137F), foregroundColor: Colors.white),
                   ),
                 ],

@@ -22,6 +22,8 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
   String? _userRole;
   final ComplaintsService _complaintsService = ComplaintsService();
   bool _isDeleting = false;
+  final TextEditingController _noteController = TextEditingController();
+  bool _isAddingNote = false;
 
   @override
   void initState() {
@@ -71,6 +73,23 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
     }
   }
 
+  Future<void> _submitNote() async {
+    if (_noteController.text.isEmpty) return;
+    setState(() => _isAddingNote = true);
+    try {
+      await _complaintsService.addNote(widget.complaint['id'], _noteController.text);
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Note added successfully')));
+      setState(() {
+        widget.complaint['note'] = _noteController.text;
+        _isAddingNote = false;
+        _noteController.clear();
+      });
+    } catch (e) {
+      setState(() => _isAddingNote = false);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add note: $e')));
+    }
+  }
+
   String formatTimestamp(String? timestamp) {
     if (timestamp == null) return 'N/A';
     try {
@@ -91,9 +110,10 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
   @override
   Widget build(BuildContext context) {
     bool canManage = widget.complaint['is_editable'] == true || _userRole == 'admin' || _userRole == 'super';
+    bool canAddNote = _userRole == 'superior' || _userRole == 'admin' || _userRole == 'super';
 
     return Scaffold(
-      appBar: CustomAppBar(title: "Case Details", showBackButton: true),
+      appBar: CustomAppBar(title: "Complain Details", showBackButton: true),
       drawer: CustomDrawer(),
       body: Container(
         color: const Color(0xFFF8FAFC),
@@ -105,6 +125,14 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
               _buildHeaderSection(),
               const SizedBox(height: 32),
               _buildDetailCard(),
+              if (widget.complaint['note'] != null) ...[
+                const SizedBox(height: 24),
+                _buildNoteSection(),
+              ],
+              if (canAddNote) ...[
+                const SizedBox(height: 24),
+                _buildAddNoteField(),
+              ],
               const SizedBox(height: 32),
               if (canManage) _buildActionButtons(),
               const SizedBox(height: 40),
@@ -130,7 +158,7 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
             borderRadius: BorderRadius.circular(10),
           ),
           child: Text(
-            "CASE ID: #${widget.complaint['id']}",
+            "COMPLAIN ID: #${widget.complaint['id']}",
             style: const TextStyle(color: Color(0xFF00137F), fontWeight: FontWeight.w900, fontSize: 12, letterSpacing: 1),
           ),
         ),
@@ -172,7 +200,10 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
           _buildDivider(),
           _buildInfoRow(Icons.shield_outlined, "Complain Category", widget.complaint['sub_category']?['name']),
           _buildDivider(),
-          _buildInfoRow(Icons.description_outlined, "Incident Description", widget.complaint['description'], isLongText: true),
+          _buildInfoRow(Icons.description_outlined, "Complain Description", widget.complaint['description'], isLongText: true),
+          _buildDivider(),
+          _buildInfoRow(Icons.person_pin_rounded, "Receptionist Info", 
+            "${widget.complaint['receptionist']?['name'] ?? 'N/A'}\n${widget.complaint['receptionist']?['phone_number'] ?? ''}", isLongText: true),
           _buildDivider(),
           _buildInfoRow(Icons.event_available_rounded, "Registration Date", formatTimestamp(widget.complaint['created_at'])),
           _buildDivider(),
@@ -182,7 +213,63 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
     );
   }
 
+  Widget _buildNoteSection() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.amber.shade50,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.amber.shade100),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.notes_rounded, color: Colors.amber.shade900, size: 18),
+              const SizedBox(width: 8),
+              Text("SUPERIOR NOTE", style: TextStyle(fontWeight: FontWeight.w900, color: Colors.amber.shade900, fontSize: 11, letterSpacing: 1)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            widget.complaint['note'] ?? '',
+            style: const TextStyle(fontSize: 14, color: Color(0xFF334155), height: 1.5, fontWeight: FontWeight.w600),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAddNoteField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text("ADD OFFICIAL NOTE", style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.blueGrey, letterSpacing: 1)),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _noteController,
+          maxLines: 3,
+          decoration: InputDecoration(
+            hintText: "Enter official remarks or instructions...",
+            fillColor: Colors.white,
+            suffixIcon: IconButton(
+              icon: _isAddingNote ? const CircularProgressIndicator() : const Icon(Icons.send_rounded, color: Color(0xFF00137F)),
+              onPressed: _isAddingNote ? null : _submitNote,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildInfoRow(IconData icon, String label, String? value, {bool isPhone = false, bool isLongText = false, bool isStatus = false}) {
+    // Hide Pending status
+    if (isStatus && (value == null || value.toLowerCase() == 'pending')) {
+      return const SizedBox.shrink();
+    }
+
     return Padding(
       padding: const EdgeInsets.all(20),
       child: Row(
@@ -206,7 +293,7 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
                     child: Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Color(0xFF00137F), decoration: TextDecoration.underline)),
                   )
                 else if (isStatus)
-                  _buildStatusBadge(value ?? 'PENDING')
+                  _buildStatusBadge(value ?? '')
                 else
                   Text(value ?? 'N/A', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: const Color(0xFF1E293B), height: isLongText ? 1.5 : 1.2)),
               ],
@@ -218,6 +305,7 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
   }
 
   Widget _buildStatusBadge(String status) {
+    if (status.isEmpty) return const SizedBox.shrink();
     Color color;
     switch (status.toLowerCase()) {
       case 'resolved': color = Colors.green; break;
@@ -242,7 +330,7 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
         else ...[
           ElevatedButton.icon(
             icon: const Icon(Icons.edit_note_rounded),
-            label: const Text("MODIFY RECORD"),
+            label: const Text("MODIFY COMPLAIN"),
             onPressed: () async {
               final result = await Navigator.pushNamed(context, '/edit_complaint', arguments: widget.complaint);
               if (result == true) Navigator.pop(context, true);

@@ -50,6 +50,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
     if (_dataExists) {
       await prefs.remove('receptionist_name');
       await prefs.remove('receptionist_mobile');
+      await prefs.remove('duty_start_time');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Duty ended successfully!')),
       );
@@ -65,78 +66,89 @@ class _AdminHomePageState extends State<AdminHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CustomAppBar(title: "Dashboard", showBackButton: false),
-      drawer: CustomDrawer(),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            _buildHeroSection(),
-            Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "QUICK ACCESS",
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.5,
-                      color: Colors.blueGrey,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, dynamic result) {
+        if (didPop) return;
+        // Logic to prevent app exit or handle back to dashboard if needed
+      },
+      child: Scaffold(
+        appBar: CustomAppBar(title: "Dashboard", showBackButton: false),
+        drawer: CustomDrawer(),
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              _buildHeroSection(),
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "OFFICIAL SERVICES",
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.5,
+                        color: Colors.blueGrey,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  GridView.count(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                    children: [
-                      _buildPremiumCard(
-                        context,
-                        title: "Add Complaint",
-                        subtitle: "Register new case",
-                        icon: Icons.add_moderator_outlined,
-                        color: const Color(0xFF00137F),
-                        onTap: () => Navigator.pushNamed(context, '/add_complaint'),
-                      ),
-                      _buildPremiumCard(
-                        context,
-                        title: "Case Records",
-                        subtitle: "View all history",
-                        icon: Icons.assignment_outlined,
-                        color: const Color(0xFFFF0000),
-                        onTap: () => Navigator.pushNamed(context, '/list_complaint'),
-                      ),
-                      _buildPremiumCard(
-                        context,
-                        title: "My Profile",
-                        subtitle: "Account settings",
-                        icon: Icons.account_circle_outlined,
-                        color: Colors.green,
-                        onTap: () => Navigator.pushNamed(context, '/profile'),
-                      ),
-                      _buildPremiumCard(
-                        context,
-                        title: _dataExists ? "End Duty" : "Join Duty",
-                        subtitle: _dataExists ? "Finish session" : "Start session",
-                        icon: _dataExists ? Icons.logout_rounded : Icons.login_rounded,
-                        color: _dataExists ? Colors.orange : Colors.teal,
-                        onTap: _toggleData,
-                      ),
-                    ],
-                  ),
-                ],
+                    const SizedBox(height: 16),
+                    GridView.count(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      children: [
+                        _buildPremiumCard(
+                          context,
+                          title: "Add Complain",
+                          subtitle: "Register new report",
+                          icon: Icons.add_moderator_rounded,
+                          color: const Color(0xFF00137F),
+                          bgColor: const Color(0xFFE8EAF6),
+                          onTap: () => Navigator.pushNamed(context, '/add_complaint'),
+                        ),
+                        _buildPremiumCard(
+                          context,
+                          title: "Complain Records",
+                          subtitle: "Review history",
+                          icon: Icons.assignment_rounded,
+                          color: const Color(0xFFFF0000),
+                          bgColor: const Color(0xFFFFEBEE),
+                          onTap: () => Navigator.pushNamed(context, '/list_complaint'),
+                        ),
+                        _buildPremiumCard(
+                          context,
+                          title: "Profile",
+                          subtitle: "Officer details",
+                          icon: Icons.account_circle_rounded,
+                          color: Colors.green.shade700,
+                          bgColor: Colors.green.shade50,
+                          onTap: () => Navigator.pushNamed(context, '/profile'),
+                        ),
+                        _buildPremiumCard(
+                          context,
+                          title: _dataExists ? "End Duty" : "Join Duty",
+                          subtitle: _dataExists ? "Logout shift" : "Authenticate shift",
+                          icon: _dataExists ? Icons.logout_rounded : Icons.login_rounded,
+                          color: _dataExists ? Colors.orange.shade800 : Colors.teal.shade700,
+                          bgColor: _dataExists ? Colors.orange.shade50 : Colors.teal.shade50,
+                          onTap: _toggleData,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-      bottomNavigationBar: CustomBottomNavigationBar(
-        onTabSelected: _onTabSelected,
-        selectedIndex: _selectedIndex,
+        bottomNavigationBar: CustomBottomNavigationBar(
+          onTabSelected: _onTabSelected,
+          selectedIndex: _selectedIndex,
+        ),
       ),
     );
   }
@@ -216,7 +228,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
                         style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       Text(
-                        _isProfileComplete ? 'Logged in as Receptionist' : 'Please update your details',
+                        _isProfileComplete ? 'Official Receptionist Personnel' : 'Please update your details',
                         style: const TextStyle(color: Colors.white70, fontSize: 12),
                       ),
                     ],
@@ -235,6 +247,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
     required String subtitle,
     required IconData icon,
     required Color color,
+    required Color bgColor,
     required VoidCallback onTap,
   }) {
     return InkWell(
@@ -243,16 +256,16 @@ class _AdminHomePageState extends State<AdminHomePage> {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: bgColor,
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: color.withOpacity(0.1),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
+              color: color.withOpacity(0.05),
+              blurRadius: 15,
+              offset: const Offset(0, 8),
             ),
           ],
-          border: Border.all(color: Colors.grey.shade100),
+          border: Border.all(color: Colors.white, width: 2),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -260,8 +273,11 @@ class _AdminHomePageState extends State<AdminHomePage> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(color: color.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 4))
+                ]
               ),
               child: Icon(icon, color: color, size: 28),
             ),
@@ -269,17 +285,18 @@ class _AdminHomePageState extends State<AdminHomePage> {
             Text(
               title,
               style: const TextStyle(
-                fontSize: 16,
+                fontSize: 15,
                 fontWeight: FontWeight.w900,
                 color: Color(0xFF1E293B),
+                letterSpacing: -0.5,
               ),
             ),
             Text(
               subtitle,
               style: TextStyle(
-                fontSize: 11,
+                fontSize: 10,
                 fontWeight: FontWeight.bold,
-                color: Colors.grey.shade500,
+                color: Colors.blueGrey.shade400,
               ),
             ),
           ],

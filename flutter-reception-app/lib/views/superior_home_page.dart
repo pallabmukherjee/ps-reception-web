@@ -46,78 +46,88 @@ class _SuperiorHomePageState extends State<SuperiorHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CustomAppBar(title: "Superior Panel", showBackButton: false),
-      drawer: CustomDrawer(),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            _buildHeroSection(),
-            Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "COMMAND CENTER",
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.5,
-                      color: Colors.blueGrey,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  GridView.count(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                    children: [
-                      _buildPremiumCard(
-                        context,
-                        title: "Live Reports",
-                        subtitle: "Track all cases",
-                        icon: Icons.analytics_outlined,
-                        color: const Color(0xFF00137F),
-                        onTap: () => Navigator.pushNamed(context, '/superior-list-complaint'),
-                      ),
-                      _buildPremiumCard(
-                        context,
-                        title: "Statistics",
-                        subtitle: "Data insights",
-                        icon: Icons.bar_chart_rounded,
-                        color: const Color(0xFFFF0000),
-                        onTap: () => Navigator.pushNamed(context, '/superior-statistics'),
-                      ),
-                      _buildPremiumCard(
-                        context,
-                        title: "Police Profile",
-                        subtitle: "Official details",
-                        icon: Icons.admin_panel_settings_outlined,
-                        color: Colors.green,
-                        onTap: () => Navigator.pushNamed(context, '/profile'),
-                      ),
-                      _buildPremiumCard(
-                        context,
-                        title: "Security",
-                        subtitle: "Change access",
-                        icon: Icons.lock_reset_rounded,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, dynamic result) {
+        if (didPop) return;
+      },
+      child: Scaffold(
+        appBar: CustomAppBar(title: "Superior Panel", showBackButton: false),
+        drawer: CustomDrawer(),
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              _buildHeroSection(),
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "COMMAND CENTER",
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.5,
                         color: Colors.blueGrey,
-                        onTap: () => Navigator.pushNamed(context, '/change_password'),
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                    const SizedBox(height: 16),
+                    GridView.count(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      children: [
+                        _buildPremiumCard(
+                          context,
+                          title: "Live Reports",
+                          subtitle: "Track complaints",
+                          icon: Icons.analytics_outlined,
+                          color: const Color(0xFF00137F),
+                          bgColor: const Color(0xFFE8EAF6),
+                          onTap: () => Navigator.pushNamed(context, '/superior-list-complaint'),
+                        ),
+                        _buildPremiumCard(
+                          context,
+                          title: "Statistics",
+                          subtitle: "Data insights",
+                          icon: Icons.bar_chart_rounded,
+                          color: const Color(0xFFFF0000),
+                          bgColor: const Color(0xFFFFEBEE),
+                          onTap: () => Navigator.pushNamed(context, '/superior-statistics'),
+                        ),
+                        _buildPremiumCard(
+                          context,
+                          title: "Official Profile",
+                          subtitle: "Credential review",
+                          icon: Icons.admin_panel_settings_outlined,
+                          color: Colors.green.shade700,
+                          bgColor: Colors.green.shade50,
+                          onTap: () => Navigator.pushNamed(context, '/profile'),
+                        ),
+                        _buildPremiumCard(
+                          context,
+                          title: "Security",
+                          subtitle: "Access control",
+                          icon: Icons.lock_reset_rounded,
+                          color: Colors.blueGrey.shade700,
+                          bgColor: Colors.blueGrey.shade50,
+                          onTap: () => Navigator.pushNamed(context, '/change_password'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-      bottomNavigationBar: SuperiorCustomBottomNavigationBar(
-        onTabSelected: _onTabSelected,
-        selectedIndex: _selectedIndex,
+        bottomNavigationBar: SuperiorCustomBottomNavigationBar(
+          onTabSelected: _onTabSelected,
+          selectedIndex: _selectedIndex,
+        ),
       ),
     );
   }
@@ -207,7 +217,7 @@ class _SuperiorHomePageState extends State<SuperiorHomePage> {
                         style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       const Text(
-                        'Assigned Station Commander',
+                        'Jurisdictional Commanding Officer',
                         style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w500),
                       ),
                     ],
@@ -226,6 +236,7 @@ class _SuperiorHomePageState extends State<SuperiorHomePage> {
     required String subtitle,
     required IconData icon,
     required Color color,
+    required Color bgColor,
     required VoidCallback onTap,
   }) {
     return InkWell(
@@ -234,25 +245,28 @@ class _SuperiorHomePageState extends State<SuperiorHomePage> {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: bgColor,
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: color.withOpacity(0.08),
-              blurRadius: 24,
-              offset: const Offset(0, 12),
+              color: color.withOpacity(0.05),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
             ),
           ],
-          border: Border.all(color: Colors.grey.shade100),
+          border: Border.all(color: Colors.white, width: 2),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(16),
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(color: color.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 4))
+                ]
               ),
               child: Icon(icon, color: color, size: 24),
             ),
@@ -271,7 +285,7 @@ class _SuperiorHomePageState extends State<SuperiorHomePage> {
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.bold,
-                color: Colors.grey.shade500,
+                color: Colors.blueGrey.shade400,
               ),
             ),
           ],

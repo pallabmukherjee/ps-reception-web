@@ -32,7 +32,7 @@ class _SuperiorComplaintDetailScreenState extends State<SuperiorComplaintDetailS
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Confirm Official Deletion', style: TextStyle(fontWeight: FontWeight.bold)),
-        content: const Text('This action will permanently remove this case record from the jurisdictional database.'),
+        content: const Text('This action will permanently remove this Complain Record from the jurisdictional database.'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('CANCEL')),
           TextButton(
@@ -76,7 +76,7 @@ class _SuperiorComplaintDetailScreenState extends State<SuperiorComplaintDetailS
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: "Case Review", showBackButton: true),
+      appBar: CustomAppBar(title: "Complain Review", showBackButton: true),
       drawer: CustomDrawer(),
       body: Container(
         color: const Color(0xFFF1F5F9),

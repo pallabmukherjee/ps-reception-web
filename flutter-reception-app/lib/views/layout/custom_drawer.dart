@@ -43,7 +43,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 ),
                 _buildDrawerItem(
                   icon: Icons.assignment_rounded,
-                  title: 'Case Records',
+                  title: 'Complain Records',
                   onTap: () => Navigator.pushNamed(context, _userRole == 'SUPERIOR' ? '/superior-list-complaint' : '/list_complaint'),
                 ),
                 _buildDrawerItem(

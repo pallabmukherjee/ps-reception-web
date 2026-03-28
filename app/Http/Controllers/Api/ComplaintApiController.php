@@ -8,8 +8,11 @@ use App\Models\PoliceStation;
 use App\Models\SubCategory;
 use App\Models\User;
 use App\Notifications\HighPriorityComplaint;
+use App\Notifications\SuperiorNoteAdded;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules\Password;
 
 class ComplaintApiController extends Controller
 {
@@ -58,12 +61,10 @@ class ComplaintApiController extends Controller
                 $isNotificationEnabled = $category->notification_enabled ?? false;
                 $categoryId = $category->id;
 
-                // Priority check: Matches High Priority string or specific Red category IDs (1, 5). Keeping 9 for testing.
                 $isHighPriority = (strcasecmp(trim($priority), 'High Priority') === 0) || 
                                  in_array($categoryId, [1, 5, 9]);
 
                 if ($isHighPriority && $isNotificationEnabled) {
-                    // Find all superiors in this station
                     $superiors = User::role('superior')
                         ->where('police_station_id', $request->police_station_id)
                         ->get();
@@ -86,19 +87,21 @@ class ComplaintApiController extends Controller
     public function myComplaints(Request $request)
     {
         $user = auth()->user();
-        $query = Complaint::with(['subCategory.category', 'policeStation']);
+        $query = Complaint::with(['subCategory.category', 'policeStation', 'receptionist']);
 
         if ($user->hasRole(['super', 'admin'])) {
-            // Admins and super users see all complaints
+            // Full access
         } elseif ($user->hasRole('superior')) {
-            // Superiors see all complaints in their police station
             $query->where('police_station_id', $user->police_station_id);
         } else {
-            // Regular users (receptionists) see only their own complaints
+            // Receptionist: Only show complaints from current duty session if duty_start_time is provided
             $query->where('receptionist_id', $user->id);
+            
+            if ($request->filled('duty_start_time')) {
+                $query->where('created_at', '>=', $request->duty_start_time);
+            }
         }
 
-        // Search Filter
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
@@ -111,7 +114,6 @@ class ComplaintApiController extends Controller
             });
         }
 
-        // Date Filters
         if ($request->filled('start_date')) {
             $query->whereDate('created_at', '>=', $request->start_date);
         }
@@ -125,17 +127,38 @@ class ComplaintApiController extends Controller
         return response()->json($complaints);
     }
 
+    public function addNote(Request $request, Complaint $complaint)
+    {
+        $user = auth()->user();
+        if (!$user->hasRole(['super', 'admin', 'superior'])) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $request->validate([
+            'note' => 'required|string',
+        ]);
+
+        $complaint->update([
+            'note' => $request->note,
+            'note_updated_at' => now(),
+        ]);
+
+        // Notify receptionist
+        try {
+            $receptionist = $complaint->receptionist;
+            if ($receptionist) {
+                $receptionist->notify(new SuperiorNoteAdded($complaint));
+            }
+        } catch (\Exception $e) {
+            \Log::error("Note notification failed: " . $e->getMessage());
+        }
+
+        return response()->json(['message' => 'Note added successfully', 'note' => $complaint->note]);
+    }
+
     public function update(Request $request, Complaint $complaint)
     {
         $user = auth()->user();
-        
-        \Log::info('Complaint Update Request:', [
-            'complaint_id' => $complaint->id,
-            'user_id' => $user->id,
-            'data' => $request->all()
-        ]);
-
-        // Check if user is allowed to edit
         if (!$complaint->is_editable && !$user->hasRole(['super', 'admin'])) {
             return response()->json(['message' => 'This complaint is no longer editable.'], 403);
         }
@@ -149,21 +172,7 @@ class ComplaintApiController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        try {
-            $complaint->update([
-                'complainant_name' => $request->complainant_name,
-                'phone' => $request->phone,
-                'address' => $request->address,
-                'sub_category_id' => $request->sub_category_id,
-                'police_station_id' => $request->police_station_id,
-                'description' => $request->description,
-            ]);
-            
-            \Log::info('Complaint Updated Successfully');
-        } catch (\Exception $e) {
-            \Log::error('Complaint Update Failed: ' . $e->getMessage());
-            return response()->json(['message' => 'Update failed: ' . $e->getMessage()], 500);
-        }
+        $complaint->update($request->only(['complainant_name', 'phone', 'address', 'sub_category_id', 'police_station_id', 'description']));
 
         return response()->json(['message' => 'Complaint updated successfully']);
     }
@@ -171,27 +180,21 @@ class ComplaintApiController extends Controller
     public function destroy(Complaint $complaint)
     {
         $user = auth()->user();
-
-        // Superiors and Admins can delete
         if (!$user->hasRole(['super', 'admin', 'superior'])) {
-            return response()->json(['message' => 'Unauthorized to delete complaints.'], 403);
+            return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        // Superior can only delete complaints from their station
         if ($user->hasRole('superior') && $complaint->police_station_id !== $user->police_station_id) {
-            return response()->json(['message' => 'Unauthorized to delete complaints from other stations.'], 403);
+            return response()->json(['message' => 'Unauthorized station'], 403);
         }
 
         $complaint->delete();
-
         return response()->json(['message' => 'Complaint deleted successfully']);
     }
 
     public function notifications()
     {
-        $user = auth()->user();
-        $notifications = $user->unreadNotifications;
-        return response()->json($notifications);
+        return response()->json(auth()->user()->unreadNotifications);
     }
 
     public function markNotificationsRead()
@@ -203,11 +206,7 @@ class ComplaintApiController extends Controller
     public function getStatistics(Request $request)
     {
         $user = auth()->user();
-        $stationId = $request->input('police_station_id');
-
-        if ($user->hasRole('superior')) {
-            $stationId = $user->police_station_id;
-        }
+        $stationId = $request->input('police_station_id', $user->hasRole('superior') ? $user->police_station_id : null);
 
         $query = Complaint::query();
         if ($stationId) {
@@ -215,19 +214,11 @@ class ComplaintApiController extends Controller
         }
 
         $complaints = $query->get();
-        $stats = [];
-        
-        foreach ($complaints as $complaint) {
-            $type = $complaint->subCategory->name ?? 'Unknown';
-            $stats[$type] = ($stats[$type] ?? 0) + 1;
-        }
-
-        // Sort by count descending
-        arsort($stats);
+        $stats = $complaints->groupBy(fn($c) => $c->subCategory->name ?? 'Unknown')->map->count();
 
         return response()->json([
             'total' => $complaints->count(),
-            'stats' => $stats,
+            'stats' => $stats->sortDesc(),
             'station_name' => $stationId ? PoliceStation::find($stationId)->name : 'All Stations'
         ]);
     }

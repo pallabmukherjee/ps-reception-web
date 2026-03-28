@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../main.dart';
@@ -10,12 +11,14 @@ class PushNotifications {
   // Initialize Flutter local notifications
   static Future<void> localNotiInit() async {
     const AndroidNotificationDetails androidNotificationDetails = AndroidNotificationDetails(
-      'your_channel_id',
-      'your_channel_name',
-      channelDescription: 'your_channel_description',
-      importance: Importance.high,
+      'high_importance_channel',
+      'High Importance Notifications',
+      channelDescription: 'Used for critical emergency alerts',
+      importance: Importance.max,
       priority: Priority.high,
       playSound: true,
+      enableVibration: true,
+      vibrationPattern: Int64List.fromList([0, 1000, 500, 1000]),
       sound: RawResourceAndroidNotificationSound('tone'),
     );
 

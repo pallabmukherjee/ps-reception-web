@@ -132,7 +132,7 @@ class _SuperiorComplaintListScreenState extends State<SuperiorComplaintListScree
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: "Case Directory", showBackButton: false),
+      appBar: CustomAppBar(title: "Complain Directory", showBackButton: false),
       drawer: CustomDrawer(),
       body: Container(
         color: const Color(0xFFF1F5F9),
@@ -152,7 +152,7 @@ class _SuperiorComplaintListScreenState extends State<SuperiorComplaintListScree
                             itemCount: _complaints.length + (_hasMore ? 1 : 0),
                             itemBuilder: (context, index) {
                               if (index == _complaints.length) {
-                                return const Center(child: Padding(padding: EdgeInsets.all(16.0), child: CircularProgressIndicator()));
+                                return const Center(padding: EdgeInsets.all(16.0), child: CircularProgressIndicator());
                               }
                               return _buildPremiumComplaintCard(_complaints[index]);
                             },
@@ -275,7 +275,7 @@ class _SuperiorComplaintListScreenState extends State<SuperiorComplaintListScree
                       style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Color(0xFF0F172A), letterSpacing: -0.5),
                     ),
                   ),
-                  _buildStatusBadge(complaint['status'] ?? 'Pending'),
+                  _buildStatusBadge(complaint['status']),
                 ],
               ),
               const SizedBox(height: 12),
@@ -304,7 +304,7 @@ class _SuperiorComplaintListScreenState extends State<SuperiorComplaintListScree
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      complaint['sub_category']?['name'] ?? 'General Case',
+                      complaint['sub_category']?['name'] ?? 'General Complain',
                       style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.blueGrey),
                     ),
                   ),
@@ -318,9 +318,13 @@ class _SuperiorComplaintListScreenState extends State<SuperiorComplaintListScree
     );
   }
 
-  Widget _buildStatusBadge(String status) {
+  Widget _buildStatusBadge(dynamic status) {
+    if (status == null || status.toString().toLowerCase() == 'pending') {
+      return const SizedBox.shrink();
+    }
     Color color;
-    switch (status.toLowerCase()) {
+    String statusStr = status.toString();
+    switch (statusStr.toLowerCase()) {
       case 'resolved': color = Colors.green; break;
       case 'in progress': color = Colors.orange; break;
       default: color = const Color(0xFFFF0000);
@@ -328,7 +332,7 @@ class _SuperiorComplaintListScreenState extends State<SuperiorComplaintListScree
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
-      child: Text(status.toUpperCase(), style: TextStyle(color: color, fontSize: 9, fontWeight: FontWeight.w900)),
+      child: Text(statusStr.toUpperCase(), style: TextStyle(color: color, fontSize: 9, fontWeight: FontWeight.w900)),
     );
   }
 }

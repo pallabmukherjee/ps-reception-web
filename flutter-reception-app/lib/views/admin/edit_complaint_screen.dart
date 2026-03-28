@@ -99,7 +99,7 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: "Modify Case", showBackButton: true),
+      appBar: CustomAppBar(title: "Modify Complain", showBackButton: true),
       drawer: CustomDrawer(),
       body: _isLoading 
         ? const Center(child: CircularProgressIndicator())

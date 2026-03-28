@@ -45,15 +45,11 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
       setState(() {
         _subCategories = List<Map<String, dynamic>>.from(metadata['sub_categories']);
         List<Map<String, dynamic>> allStations = List<Map<String, dynamic>>.from(metadata['police_stations']);
+        _policeStations = allStations;
         
         if (userPsId != null && _userRole != 'admin' && _userRole != 'super') {
           int? psId = int.tryParse(userPsId);
-          _policeStations = allStations.where((station) => (int.tryParse(station['id'].toString()) ?? -1) == psId).toList();
-          if (_policeStations.isNotEmpty) {
-            _selectedStationId = int.tryParse(_policeStations.first['id'].toString());
-          }
-        } else {
-          _policeStations = allStations;
+          _selectedStationId = psId;
         }
         _isLoading = false;
       });
@@ -80,7 +76,7 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
         policeStationId: _selectedStationId!,
         description: _descriptionController.text,
       );
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Case registered successfully')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Complain registered successfully')));
       Navigator.pushReplacementNamed(context, '/list_complaint');
     } catch (e) {
       setState(() => _isSubmitting = false);
@@ -95,7 +91,7 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: "Register Case", showBackButton: true),
+      appBar: CustomAppBar(title: "Register Complain", showBackButton: true),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Container(
@@ -116,7 +112,7 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
                       _buildTextField(_addressController, "Full Address", Icons.location_on_outlined, "Enter residential address", maxLines: 2),
                       
                       const SizedBox(height: 32),
-                      _buildFormSection("Case Details", Icons.gavel_outlined),
+                      _buildFormSection("Complain Details", Icons.gavel_outlined),
                       const SizedBox(height: 16),
                       _buildDropdown(
                         "Complain Type",
@@ -130,13 +126,13 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
                         "Jurisdiction Station",
                         _policeStations,
                         _selectedStationId,
-                        _userRole == 'admin' || _userRole == 'super' 
+                        (_userRole == 'admin' || _userRole == 'super') 
                           ? (val) => setState(() => _selectedStationId = val)
-                          : null,
+                          : null, // Disabled for receptionists/superiors
                         Icons.account_balance_outlined,
                       ),
                       const SizedBox(height: 16),
-                      _buildTextField(_descriptionController, "Case Description (Optional)", Icons.description_outlined, "Provide brief incident details", maxLines: 4),
+                      _buildTextField(_descriptionController, "Complain Description (Optional)", Icons.description_outlined, "Provide brief incident details", maxLines: 4),
                       
                       const SizedBox(height: 40),
                       ElevatedButton(

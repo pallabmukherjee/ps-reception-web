@@ -54,7 +54,7 @@ class ThankYouScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           const Text(
-            "The official case record has been successfully logged into the West Bengal Police central repository.",
+            "The official complain record has been successfully logged into the West Bengal Police central repository.",
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 14, color: Colors.blueGrey, fontWeight: FontWeight.w500, height: 1.5),
           ),

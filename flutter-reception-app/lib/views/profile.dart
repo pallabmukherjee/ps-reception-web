@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:kp_police/controllers/api_service.dart';
+import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'layout/app_bar.dart';
 import 'layout/custom_drawer.dart';
@@ -11,8 +11,7 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  firebase_auth.User? _user;
-  DocumentSnapshot? _userData;
+  Map<String, dynamic>? _userData;
   bool _isLoading = true;
 
   final TextEditingController _fullNameController = TextEditingController();
@@ -22,69 +21,61 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _user = firebase_auth.FirebaseAuth.instance.currentUser;
     _fetchUserData();
   }
 
   Future<void> _fetchUserData() async {
-    if (_user != null) {
-      try {
-        QuerySnapshot userSnapshot = await FirebaseFirestore.instance
-            .collection('user_data')
-            .where('email', isEqualTo: _user!.email)
-            .get();
-
-        if (userSnapshot.docs.isNotEmpty) {
-          setState(() {
-            _userData = userSnapshot.docs.first;
-            _fullNameController.text = _userData!.get('full_name') ?? '';
-            _phoneController.text = _userData!.get('phone_number') ?? '';
-            _addressController.text = _userData!.get('address') ?? '';
-            _isLoading = false;
-          });
-        } else {
-          setState(() => _isLoading = false);
-        }
-      } catch (e) {
-        print("Error fetching user data: $e");
-        setState(() => _isLoading = false);
+    setState(() => _isLoading = true);
+    try {
+      final response = await ApiService.get('profile');
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        setState(() {
+          _userData = data['user'];
+          _fullNameController.text = _userData?['full_name'] ?? _userData?['name'] ?? '';
+          _phoneController.text = _userData?['phone_number'] ?? '';
+          _addressController.text = _userData?['address'] ?? '';
+          _isLoading = false;
+        });
+      } else {
+        throw Exception('Failed to load profile: ${response.statusCode}');
       }
-    } else {
+    } catch (e) {
+      print("Error fetching user data: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load profile: $e')),
+        );
+      }
       setState(() => _isLoading = false);
     }
   }
 
   Future<void> _updateUserData() async {
-    if (_user != null && _userData != null) {
-      setState(() => _isLoading = true);
-      try {
-        await FirebaseFirestore.instance
-            .collection('user_data')
-            .doc(_userData!.id)
-            .update({
-          'full_name': _fullNameController.text,
-          'phone_number': _phoneController.text,
-          'address': _addressController.text,
-        });
+    setState(() => _isLoading = true);
+    try {
+      final response = await ApiService.post('profile', {
+        'full_name': _fullNameController.text,
+        'phone_number': _phoneController.text,
+        'address': _addressController.text,
+      });
 
+      if (response.statusCode == 200) {
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('user_name', _fullNameController.text);
 
-        String role = _userData!.get('role') ?? 'user';
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Profile updated successfully')),
-        );
-
-        if (role == 'admin') {
-          Navigator.pushReplacementNamed(context, '/adminhome');
-        } else if (role == 'superior') {
-          Navigator.pushReplacementNamed(context, '/superiorhome');
-        } else {
-          Navigator.pushReplacementNamed(context, '/home');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Profile updated successfully')),
+          );
+          _fetchUserData();
         }
-      } catch (e) {
-        setState(() => _isLoading = false);
+      } else {
+        throw Exception('Failed to update profile: ${response.statusCode}');
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to update profile: $e')),
         );
@@ -99,22 +90,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       drawer: CustomDrawer(),
       body: _isLoading 
         ? const Center(child: CircularProgressIndicator())
-        : _user == null 
-          ? _buildNoUser()
-          : _buildProfileContent(),
-    );
-  }
-
-  Widget _buildNoUser() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.person_off_rounded, size: 80, color: Colors.grey),
-          SizedBox(height: 16),
-          Text('No session active', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        ],
-      ),
+        : _buildProfileContent(),
     );
   }
 
@@ -170,7 +146,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF0F172A)),
         ),
         Text(
-          _user!.email ?? '',
+          _userData?['email'] ?? '',
           style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey.shade500),
         ),
         const SizedBox(height: 8),

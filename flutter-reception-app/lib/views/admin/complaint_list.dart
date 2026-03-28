@@ -18,6 +18,7 @@ class _ComplaintListScreenState extends State<ComplaintListScreen> {
   bool _isLoading = true;
   bool _isLoadingMore = false;
   String? _userRole;
+  String? _dutyStartTime;
   final ComplaintsService _complaintsService = ComplaintsService();
 
   // Search and Filters
@@ -32,7 +33,7 @@ class _ComplaintListScreenState extends State<ComplaintListScreen> {
   @override
   void initState() {
     super.initState();
-    _loadUserRole();
+    _loadUserRoleAndDuty();
     _fetchComplaints(reset: true);
     _scrollController.addListener(_onScroll);
   }
@@ -52,10 +53,11 @@ class _ComplaintListScreenState extends State<ComplaintListScreen> {
     }
   }
 
-  Future<void> _loadUserRole() async {
+  Future<void> _loadUserRoleAndDuty() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       _userRole = prefs.getString('user_role');
+      _dutyStartTime = prefs.getString('duty_start_time');
     });
   }
 
@@ -78,10 +80,14 @@ class _ComplaintListScreenState extends State<ComplaintListScreen> {
     }
 
     try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? dutyStart = prefs.getString('duty_start_time');
+
       final response = await _complaintsService.fetchMyComplaints(
         search: _searchController.text,
         startDate: _startDate != null ? DateFormat('yyyy-MM-dd').format(_startDate!) : null,
         endDate: _endDate != null ? DateFormat('yyyy-MM-dd').format(_endDate!) : null,
+        dutyStartTime: (_userRole != 'admin' && _userRole != 'super' && _userRole != 'superior') ? dutyStart : null,
         page: _currentPage,
       );
 
@@ -179,7 +185,7 @@ class _ComplaintListScreenState extends State<ComplaintListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: "Case Records", showBackButton: false),
+      appBar: CustomAppBar(title: "Complain Records", showBackButton: false),
       drawer: CustomDrawer(),
       body: Container(
         color: const Color(0xFFF1F5F9),
@@ -382,7 +388,7 @@ class _ComplaintListScreenState extends State<ComplaintListScreen> {
                       ],
                     ),
                   ),
-                  _buildStatusBadge(complaint['status'] ?? 'Pending'),
+                  _buildStatusBadge(complaint['status']),
                 ],
               ),
               const Padding(
@@ -455,9 +461,14 @@ class _ComplaintListScreenState extends State<ComplaintListScreen> {
     );
   }
 
-  Widget _buildStatusBadge(String status) {
+  Widget _buildStatusBadge(dynamic status) {
+    if (status == null || status.toString().toLowerCase() == 'pending') {
+      return const SizedBox.shrink();
+    }
+    
     Color color;
-    switch (status.toLowerCase()) {
+    String statusStr = status.toString();
+    switch (statusStr.toLowerCase()) {
       case 'resolved': color = Colors.green; break;
       case 'in progress': color = Colors.orange; break;
       default: color = const Color(0xFFFF0000);
@@ -471,7 +482,7 @@ class _ComplaintListScreenState extends State<ComplaintListScreen> {
         border: Border.all(color: color.withOpacity(0.2)),
       ),
       child: Text(
-        status.toUpperCase(),
+        statusStr.toUpperCase(),
         style: TextStyle(color: color, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 0.5),
       ),
     );

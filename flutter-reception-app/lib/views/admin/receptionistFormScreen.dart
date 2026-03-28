@@ -41,6 +41,7 @@ class _ReceptionistFormScreenState extends State<ReceptionistFormScreen> {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setString('receptionist_name', _receptionistNameController.text);
       await prefs.setString('receptionist_mobile', _receptionistMobileController.text);
+      await prefs.setString('duty_start_time', DateTime.now().toIso8601String());
 
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Duty session started successfully')));
       Navigator.pushReplacementNamed(context, '/adminhome');
@@ -95,7 +96,7 @@ class _ReceptionistFormScreenState extends State<ReceptionistFormScreen> {
         ),
         const SizedBox(height: 8),
         Text(
-          "Register your current duty shift to begin managing official case records.",
+          "Register your current duty shift to begin managing official Complain Records.",
           style: TextStyle(fontSize: 14, color: Colors.grey.shade600, height: 1.4),
         ),
       ],
