@@ -80,16 +80,16 @@ class _SuperiorHomePageState extends State<SuperiorHomePage> {
                       crossAxisSpacing: 16,
                       mainAxisSpacing: 16,
                       children: [
-                        _buildPremiumCard(
+                        _buildBeautifiedCard(
                           context,
-                          title: "Live Reports",
-                          subtitle: "Track complaints",
+                          title: "Complain Reports",
+                          subtitle: "Audit records",
                           icon: Icons.analytics_outlined,
                           color: const Color(0xFF00137F),
                           bgColor: const Color(0xFFE8EAF6),
                           onTap: () => Navigator.pushNamed(context, '/superior-list-complaint'),
                         ),
-                        _buildPremiumCard(
+                        _buildBeautifiedCard(
                           context,
                           title: "Statistics",
                           subtitle: "Data insights",
@@ -98,16 +98,16 @@ class _SuperiorHomePageState extends State<SuperiorHomePage> {
                           bgColor: const Color(0xFFFFEBEE),
                           onTap: () => Navigator.pushNamed(context, '/superior-statistics'),
                         ),
-                        _buildPremiumCard(
+                        _buildBeautifiedCard(
                           context,
                           title: "Official Profile",
                           subtitle: "Credential review",
                           icon: Icons.admin_panel_settings_outlined,
                           color: Colors.green.shade700,
-                          bgColor: Colors.green.shade50,
+                          bgColor: const Color(0xFFE8F5E9),
                           onTap: () => Navigator.pushNamed(context, '/profile'),
                         ),
-                        _buildPremiumCard(
+                        _buildBeautifiedCard(
                           context,
                           title: "Security",
                           subtitle: "Access control",
@@ -231,7 +231,7 @@ class _SuperiorHomePageState extends State<SuperiorHomePage> {
     );
   }
 
-  Widget _buildPremiumCard(BuildContext context, {
+  Widget _buildBeautifiedCard(BuildContext context, {
     required String title,
     required String subtitle,
     required IconData icon,
@@ -243,52 +243,51 @@ class _SuperiorHomePageState extends State<SuperiorHomePage> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(24),
       child: Container(
-        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: bgColor,
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
-            BoxShadow(
-              color: color.withOpacity(0.05),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-            ),
+            BoxShadow(color: color.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, 10)),
           ],
           border: Border.all(color: Colors.white, width: 2),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(color: color.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 4))
-                ]
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: Stack(
+            children: [
+              Positioned(
+                right: -10,
+                bottom: -10,
+                child: Icon(icon, size: 80, color: color.withOpacity(0.05)),
               ),
-              child: Icon(icon, color: color, size: 24),
-            ),
-            const Spacer(),
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w900,
-                color: Color(0xFF0F172A),
-                letterSpacing: -0.5,
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [BoxShadow(color: color.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 4))]
+                      ),
+                      child: Icon(icon, color: color, size: 24),
+                    ),
+                    const Spacer(),
+                    Text(
+                      title,
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Color(0xFF0F172A), letterSpacing: -0.5),
+                    ),
+                    Text(
+                      subtitle.toUpperCase(),
+                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.blueGrey.shade400),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            Text(
-              subtitle.toUpperCase(),
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-                color: Colors.blueGrey.shade400,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

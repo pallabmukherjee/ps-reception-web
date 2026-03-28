@@ -49,7 +49,7 @@ class ThankYouScreen extends StatelessWidget {
           ),
           const SizedBox(height: 32),
           const Text(
-            "Complaint Registered",
+            "Complain Registered",
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFF0F172A), letterSpacing: -0.5),
           ),
           const SizedBox(height: 12),

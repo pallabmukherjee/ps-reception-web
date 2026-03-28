@@ -70,7 +70,6 @@ class _AdminHomePageState extends State<AdminHomePage> {
       canPop: false,
       onPopInvokedWithResult: (bool didPop, dynamic result) {
         if (didPop) return;
-        // Logic to prevent app exit or handle back to dashboard if needed
       },
       child: Scaffold(
         appBar: CustomAppBar(title: "Dashboard", showBackButton: false),
@@ -101,16 +100,16 @@ class _AdminHomePageState extends State<AdminHomePage> {
                       crossAxisSpacing: 16,
                       mainAxisSpacing: 16,
                       children: [
-                        _buildPremiumCard(
+                        _buildBeautifiedCard(
                           context,
                           title: "Add Complain",
-                          subtitle: "Register new report",
+                          subtitle: "Register report",
                           icon: Icons.add_moderator_rounded,
                           color: const Color(0xFF00137F),
                           bgColor: const Color(0xFFE8EAF6),
                           onTap: () => Navigator.pushNamed(context, '/add_complaint'),
                         ),
-                        _buildPremiumCard(
+                        _buildBeautifiedCard(
                           context,
                           title: "Complain Records",
                           subtitle: "Review history",
@@ -119,22 +118,22 @@ class _AdminHomePageState extends State<AdminHomePage> {
                           bgColor: const Color(0xFFFFEBEE),
                           onTap: () => Navigator.pushNamed(context, '/list_complaint'),
                         ),
-                        _buildPremiumCard(
+                        _buildBeautifiedCard(
                           context,
                           title: "Profile",
-                          subtitle: "Officer details",
+                          subtitle: "Officer info",
                           icon: Icons.account_circle_rounded,
                           color: Colors.green.shade700,
-                          bgColor: Colors.green.shade50,
+                          bgColor: const Color(0xFFE8F5E9),
                           onTap: () => Navigator.pushNamed(context, '/profile'),
                         ),
-                        _buildPremiumCard(
+                        _buildBeautifiedCard(
                           context,
                           title: _dataExists ? "End Duty" : "Join Duty",
-                          subtitle: _dataExists ? "Logout shift" : "Authenticate shift",
+                          subtitle: _dataExists ? "Shift end" : "Shift start",
                           icon: _dataExists ? Icons.logout_rounded : Icons.login_rounded,
                           color: _dataExists ? Colors.orange.shade800 : Colors.teal.shade700,
-                          bgColor: _dataExists ? Colors.orange.shade50 : Colors.teal.shade50,
+                          bgColor: _dataExists ? const Color(0xFFFFF3E0) : const Color(0xFFE0F2F1),
                           onTap: _toggleData,
                         ),
                       ],
@@ -172,21 +171,11 @@ class _AdminHomePageState extends State<AdminHomePage> {
               children: [
                 TextSpan(
                   text: 'West Bengal ',
-                  style: TextStyle(
-                    color: Color(0xFFFF0000),
-                    fontSize: 32,
-                    fontWeight: FontWeight.w900,
-                    fontStyle: FontStyle.italic,
-                  ),
+                  style: TextStyle(color: Color(0xFFFF0000), fontSize: 32, fontWeight: FontWeight.w900, fontStyle: FontStyle.italic),
                 ),
                 TextSpan(
                   text: 'Police',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 32,
-                    fontWeight: FontWeight.w900,
-                    fontStyle: FontStyle.italic,
-                  ),
+                  style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w900, fontStyle: FontStyle.italic),
                 ),
               ],
             ),
@@ -194,12 +183,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
           const SizedBox(height: 8),
           const Text(
             'RECEPTION MANAGEMENT SYSTEM',
-            style: TextStyle(
-              color: Colors.white70,
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 2,
-            ),
+            style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 2),
           ),
           const SizedBox(height: 32),
           Container(
@@ -242,7 +226,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
     );
   }
 
-  Widget _buildPremiumCard(BuildContext context, {
+  Widget _buildBeautifiedCard(BuildContext context, {
     required String title,
     required String subtitle,
     required IconData icon,
@@ -254,52 +238,51 @@ class _AdminHomePageState extends State<AdminHomePage> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(24),
       child: Container(
-        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: bgColor,
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
-            BoxShadow(
-              color: color.withOpacity(0.05),
-              blurRadius: 15,
-              offset: const Offset(0, 8),
-            ),
+            BoxShadow(color: color.withOpacity(0.05), blurRadius: 15, offset: const Offset(0, 8)),
           ],
           border: Border.all(color: Colors.white, width: 2),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(color: color.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 4))
-                ]
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: Stack(
+            children: [
+              Positioned(
+                right: -10,
+                bottom: -10,
+                child: Icon(icon, size: 80, color: color.withOpacity(0.05)),
               ),
-              child: Icon(icon, color: color, size: 28),
-            ),
-            const Spacer(),
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w900,
-                color: Color(0xFF1E293B),
-                letterSpacing: -0.5,
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [BoxShadow(color: color.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 4))]
+                      ),
+                      child: Icon(icon, color: color, size: 24),
+                    ),
+                    const Spacer(),
+                    Text(
+                      title,
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Color(0xFF1E293B), letterSpacing: -0.5),
+                    ),
+                    Text(
+                      subtitle,
+                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.blueGrey.shade400),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            Text(
-              subtitle,
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-                color: Colors.blueGrey.shade400,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

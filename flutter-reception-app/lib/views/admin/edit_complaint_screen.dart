@@ -121,10 +121,10 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
                     _buildPremiumField(_addressController, "Official Address", Icons.map_outlined, maxLines: 2),
                     
                     const SizedBox(height: 32),
-                    _buildEditSection("Case Classification", Icons.shield_outlined),
+                    _buildEditSection("Complain Classification", Icons.shield_outlined),
                     const SizedBox(height: 16),
                     _buildPremiumDropdown(
-                      "Alert Classification",
+                      "Complain Classification",
                       _subCategories,
                       _selectedSubCategoryId,
                       (val) => setState(() => _selectedSubCategoryId = val),
@@ -135,7 +135,7 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
                       "Jurisdiction Station (Locked)",
                       _policeStations,
                       _selectedStationId,
-                      null, // Station cannot be changed on edit as per design
+                      null, 
                       Icons.account_balance_outlined,
                     ),
                     const SizedBox(height: 16),

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'layout/app_bar.dart';
 import 'layout/custom_drawer.dart';
@@ -39,6 +40,27 @@ class _MessageState extends State<Message> {
     }
   }
 
+  Future<void> _navigateToComplain() async {
+    if (payload['complaint_id'] == null) return;
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? role = prefs.getString('user_role');
+
+    if (role == 'superior') {
+      Navigator.pushNamed(context, '/superior-complaint-detail', arguments: {
+        'id': payload['complaint_id'],
+        'complainant_name': payload['complainant_name'],
+        'phone': payload['phone'],
+      });
+    } else {
+      Navigator.pushNamed(context, '/complaint_detail', arguments: {
+        'id': payload['complaint_id'],
+        'complainant_name': payload['complainant_name'],
+        'phone': payload['phone'],
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -58,10 +80,15 @@ class _MessageState extends State<Message> {
                   _buildDetailsCard(),
                   const SizedBox(height: 40),
                   ElevatedButton.icon(
-                    onPressed: () => Navigator.pushReplacementNamed(context, '/superior-list-complaint'),
-                    icon: const Icon(Icons.format_list_bulleted_rounded),
-                    label: const Text("ACCESS COMPLAIN DIRECTORY"),
+                    onPressed: _navigateToComplain,
+                    icon: const Icon(Icons.zoom_in_rounded),
+                    label: const Text("VIEW FULL COMPLAIN RECORD"),
                     style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00137F), foregroundColor: Colors.white),
+                  ),
+                  const SizedBox(height: 12),
+                  OutlinedButton(
+                    onPressed: () => Navigator.pushReplacementNamed(context, '/adminhome'),
+                    child: const Text("BACK TO DASHBOARD"),
                   ),
                 ],
               )
@@ -113,6 +140,10 @@ class _MessageState extends State<Message> {
           _buildInfoItem(Icons.phone_android_rounded, "Contact ID", payload['phone'] ?? 'N/A'),
           _buildDivider(),
           _buildInfoItem(Icons.feedback_outlined, "Incident Brief", payload['message'] ?? 'Official dispatch notification.', isLast: true),
+          if (payload['note'] != null) ...[
+            _buildDivider(),
+            _buildInfoItem(Icons.note_alt_outlined, "Superior Note", payload['note'], isLast: true),
+          ],
         ],
       ),
     );
