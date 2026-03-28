@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../layout/app_bar.dart';
 import '../layout/custom_drawer.dart';
 import '../layout/superior_custom_bottom_nav.dart';
@@ -19,7 +20,6 @@ class _SuperiorComplaintListScreenState extends State<SuperiorComplaintListScree
   String? _userRole;
   final ComplaintsService _complaintsService = ComplaintsService();
 
-  // Search and Filters
   final TextEditingController _searchController = TextEditingController();
   DateTime? _startDate;
   DateTime? _endDate;
@@ -59,9 +59,7 @@ class _SuperiorComplaintListScreenState extends State<SuperiorComplaintListScree
   }
 
   void _onTabSelected(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+    setState(() => _selectedIndex = index);
   }
 
   Future<void> _fetchComplaints({bool reset = false}) async {
@@ -98,43 +96,11 @@ class _SuperiorComplaintListScreenState extends State<SuperiorComplaintListScree
         _isLoading = false;
         _isLoadingMore = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load complaints: $e')),
-      );
-    }
-  }
-
-  void _deleteComplaint(int id) async {
-    bool confirm = await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Delete Complaint'),
-        content: Text('Are you sure you want to delete this complaint?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: Text('Delete', style: TextStyle(color: Colors.red))),
-        ],
-      ),
-    );
-
-    if (confirm == true) {
-      try {
-        await _complaintsService.deleteComplaint(id);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Complaint deleted successfully')));
-        _fetchComplaints(reset: true);
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to delete: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load complaints: $e')),
+        );
       }
-    }
-  }
-
-  String _formatDate(String? dateStr) {
-    if (dateStr == null) return 'N/A';
-    try {
-      final date = DateTime.parse(dateStr);
-      return DateFormat('dd MMM yyyy, hh:mm a').format(date);
-    } catch (e) {
-      return dateStr;
     }
   }
 
@@ -156,45 +122,45 @@ class _SuperiorComplaintListScreenState extends State<SuperiorComplaintListScree
     }
   }
 
+  Future<void> _makePhoneCall(String phoneNumber) async {
+    final Uri launchUri = Uri(scheme: 'tel', path: phoneNumber);
+    if (await canLaunchUrl(launchUri)) {
+      await launchUrl(launchUri);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: "Complaint List", showBackButton: false),
+      appBar: CustomAppBar(title: "Case Directory", showBackButton: false),
       drawer: CustomDrawer(),
-      body: Column(
-        children: [
-          _buildSearchBar(),
-          Expanded(
-            child: RefreshIndicator(
-              onRefresh: () => _fetchComplaints(reset: true),
-              child: _isLoading
-                  ? Center(child: CircularProgressIndicator())
-                  : _complaints.isEmpty
-                      ? Center(child: Text('No complaints found'))
-                      : ListView.builder(
-                          controller: _scrollController,
-                          padding: EdgeInsets.all(10),
-                          itemCount: _complaints.length + (_hasMore ? 1 : 0),
-                          itemBuilder: (context, index) {
-                            if (index == _complaints.length) {
-                              return Center(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: CircularProgressIndicator(),
-                                ),
-                              );
-                            }
-
-                            final complaint = _complaints[index];
-                            bool canEdit = complaint['is_editable'] == true || _userRole == 'admin' || _userRole == 'super';
-                            bool canDelete = _userRole == 'admin' || _userRole == 'super' || _userRole == 'superior';
-
-                            return _buildComplaintCard(complaint, canEdit, canDelete);
-                          },
-                        ),
+      body: Container(
+        color: const Color(0xFFF1F5F9),
+        child: Column(
+          children: [
+            _buildSuperiorSearch(),
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: () => _fetchComplaints(reset: true),
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _complaints.isEmpty
+                        ? _buildEmptyState()
+                        : ListView.builder(
+                            controller: _scrollController,
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            itemCount: _complaints.length + (_hasMore ? 1 : 0),
+                            itemBuilder: (context, index) {
+                              if (index == _complaints.length) {
+                                return const Center(child: Padding(padding: EdgeInsets.all(16.0), child: CircularProgressIndicator()));
+                              }
+                              return _buildPremiumComplaintCard(_complaints[index]);
+                            },
+                          ),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
       bottomNavigationBar: SuperiorCustomBottomNavigationBar(
         onTabSelected: _onTabSelected,
@@ -203,78 +169,79 @@ class _SuperiorComplaintListScreenState extends State<SuperiorComplaintListScree
     );
   }
 
-  Widget _buildSearchBar() {
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.folder_off_outlined, size: 80, color: Colors.grey.shade300),
+          const SizedBox(height: 16),
+          const Text("No Jurisdictional Records", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSuperiorSearch() {
     return Container(
-      padding: EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2))],
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFF00137F), Color(0xFF1E293B)],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(32),
+          bottomRight: Radius.circular(32),
+        ),
       ),
       child: Column(
         children: [
           TextField(
             controller: _searchController,
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
             decoration: InputDecoration(
-              hintText: "Search by name, phone, or type...",
-              prefixIcon: Icon(Icons.search),
-              suffixIcon: IconButton(
-                icon: Icon(Icons.clear),
-                onPressed: () {
-                  _searchController.clear();
-                  _fetchComplaints(reset: true);
-                },
-              ),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(25)),
-              contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 20),
+              hintText: "Search records...",
+              hintStyle: const TextStyle(color: Colors.white60),
+              prefixIcon: const Icon(Icons.manage_search_rounded, color: Colors.white),
+              filled: true,
+              fillColor: Colors.white.withOpacity(0.1),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide.none),
             ),
             onSubmitted: (val) => _fetchComplaints(reset: true),
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 16),
           Row(
             children: [
               Expanded(
                 child: InkWell(
                   onTap: _selectDateRange,
                   child: Container(
-                    padding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade400),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                    decoration: BoxDecoration(color: Colors.white.withOpacity(0.1), borderRadius: BorderRadius.circular(15)),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          _startDate == null
-                              ? "Select Date Range"
-                              : "${DateFormat('dd/MM/yy').format(_startDate!)} - ${DateFormat('dd/MM/yy').format(_endDate!)}",
-                          style: TextStyle(fontSize: 13),
+                          _startDate == null ? "SELECT DATE RANGE" : "${DateFormat('dd MMM').format(_startDate!)} - ${DateFormat('dd MMM').format(_endDate!)}",
+                          style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1),
                         ),
-                        Icon(Icons.calendar_today, size: 18),
+                        const Icon(Icons.event_note_rounded, size: 16, color: Colors.white),
                       ],
                     ),
                   ),
                 ),
               ),
-              if (_startDate != null)
-                IconButton(
-                  icon: Icon(Icons.close, color: Colors.red),
-                  onPressed: () {
-                    setState(() {
-                      _startDate = null;
-                      _endDate = null;
-                    });
-                    _fetchComplaints(reset: true);
-                  },
-                ),
-              SizedBox(width: 10),
+              const SizedBox(width: 12),
               ElevatedButton(
                 onPressed: () => _fetchComplaints(reset: true),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFFa3d95d),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  backgroundColor: const Color(0xFFFF0000),
+                  minimumSize: const Size(100, 48),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                 ),
-                child: Text("Filter", style: TextStyle(color: Colors.black)),
+                child: const Text("SEARCH", style: TextStyle(fontWeight: FontWeight.w900)),
               ),
             ],
           ),
@@ -283,22 +250,19 @@ class _SuperiorComplaintListScreenState extends State<SuperiorComplaintListScree
     );
   }
 
-  Widget _buildComplaintCard(Map<String, dynamic> complaint, bool canEdit, bool canDelete) {
-    return Card(
-      elevation: 3,
-      margin: EdgeInsets.symmetric(vertical: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+  Widget _buildPremiumComplaintCard(Map<String, dynamic> complaint) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 15, offset: const Offset(0, 8))],
+      ),
       child: InkWell(
-        onTap: () async {
-          final result = await Navigator.pushNamed(
-            context, 
-            '/superior-complaint-detail',
-            arguments: complaint
-          );
-          if (result == true) _fetchComplaints(reset: true);
-        },
+        onTap: () => Navigator.pushNamed(context, '/superior-complaint-detail', arguments: complaint),
+        borderRadius: BorderRadius.circular(24),
         child: Padding(
-          padding: const EdgeInsets.all(12.0),
+          padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -307,66 +271,44 @@ class _SuperiorComplaintListScreenState extends State<SuperiorComplaintListScree
                 children: [
                   Expanded(
                     child: Text(
-                      complaint['complainant_name'] ?? 'No Name',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      complaint['complainant_name']?.toUpperCase() ?? 'UNNAMED',
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Color(0xFF0F172A), letterSpacing: -0.5),
                     ),
                   ),
                   _buildStatusBadge(complaint['status'] ?? 'Pending'),
                 ],
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 12),
               Row(
                 children: [
-                  Icon(Icons.phone, size: 16, color: Colors.grey),
-                  SizedBox(width: 5),
-                  Text(complaint['phone'] ?? 'N/A'),
-                  SizedBox(width: 15),
-                  Icon(Icons.category, size: 16, color: Colors.grey),
-                  SizedBox(width: 5),
-                  Expanded(child: Text(complaint['sub_category']?['name'] ?? 'N/A', overflow: TextOverflow.ellipsis)),
-                ],
-              ),
-              SizedBox(height: 8),
-              Row(
-                children: [
-                  Icon(Icons.location_on, size: 16, color: Colors.grey),
-                  SizedBox(width: 5),
-                  Expanded(child: Text(complaint['police_station']?['name'] ?? 'N/A', style: TextStyle(color: Colors.blue.shade700))),
-                ],
-              ),
-              Divider(),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
+                  Icon(Icons.phone_in_talk_rounded, size: 14, color: Colors.grey.shade400),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: () => _makePhoneCall(complaint['phone'] ?? ''),
+                    child: Text(
+                      complaint['phone'] ?? 'N/A',
+                      style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF00137F), decoration: TextDecoration.underline),
+                    ),
+                  ),
+                  const Spacer(),
                   Text(
-                    _formatDate(complaint['created_at']),
-                    style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                    DateFormat('dd MMM, yyyy').format(DateTime.parse(complaint['created_at'])),
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade400),
                   ),
-                  Row(
-                    children: [
-                      if (canEdit)
-                        IconButton(
-                          constraints: BoxConstraints(),
-                          padding: EdgeInsets.symmetric(horizontal: 8),
-                          icon: Icon(Icons.edit, color: Colors.blue, size: 20),
-                          onPressed: () async {
-                            final result = await Navigator.pushNamed(
-                              context, 
-                              '/edit_complaint',
-                              arguments: complaint
-                            );
-                            if (result == true) _fetchComplaints(reset: true);
-                          },
-                        ),
-                      if (canDelete)
-                        IconButton(
-                          constraints: BoxConstraints(),
-                          padding: EdgeInsets.symmetric(horizontal: 8),
-                          icon: Icon(Icons.delete, color: Colors.red, size: 20),
-                          onPressed: () => _deleteComplaint(complaint['id']),
-                        ),
-                    ],
+                ],
+              ),
+              const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: Divider(height: 1, color: Color(0xFFF1F5F9))),
+              Row(
+                children: [
+                  const Icon(Icons.shield_outlined, size: 14, color: Color(0xFFFF0000)),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      complaint['sub_category']?['name'] ?? 'General Case',
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.blueGrey),
+                    ),
                   ),
+                  const Icon(Icons.chevron_right_rounded, color: Colors.blueGrey),
                 ],
               ),
             ],
@@ -377,30 +319,16 @@ class _SuperiorComplaintListScreenState extends State<SuperiorComplaintListScree
   }
 
   Widget _buildStatusBadge(String status) {
-    Color bgColor;
-    Color textColor = Colors.white;
-
+    Color color;
     switch (status.toLowerCase()) {
-      case 'resolved':
-        bgColor = Colors.green;
-        break;
-      case 'in progress':
-        bgColor = Colors.blue;
-        break;
-      default:
-        bgColor = Colors.orange;
+      case 'resolved': color = Colors.green; break;
+      case 'in progress': color = Colors.orange; break;
+      default: color = const Color(0xFFFF0000);
     }
-
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        status.toUpperCase(),
-        style: TextStyle(color: textColor, fontSize: 10, fontWeight: FontWeight.bold),
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+      child: Text(status.toUpperCase(), style: TextStyle(color: color, fontSize: 9, fontWeight: FontWeight.w900)),
     );
   }
 }

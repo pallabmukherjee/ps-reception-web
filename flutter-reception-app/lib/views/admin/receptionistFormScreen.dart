@@ -11,7 +11,7 @@ class ReceptionistFormScreen extends StatefulWidget {
 }
 
 class _ReceptionistFormScreenState extends State<ReceptionistFormScreen> {
-  int _selectedIndex = 1; // Track the selected index for BottomNavigationBar
+  int _selectedIndex = 1;
   void _onTabSelected(int index) {
     setState(() {
       _selectedIndex = index;
@@ -28,118 +28,121 @@ class _ReceptionistFormScreenState extends State<ReceptionistFormScreen> {
     _loadSavedData();
   }
 
-  // Load saved data from SharedPreferences
   Future<void> _loadSavedData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? savedName = prefs.getString('receptionist_name');
-    String? savedMobile = prefs.getString('receptionist_mobile');
-
-    if (savedName != null) {
-      _receptionistNameController.text = savedName;
-    }
-    if (savedMobile != null) {
-      _receptionistMobileController.text = savedMobile;
-    }
+    setState(() {
+      _receptionistNameController.text = prefs.getString('receptionist_name') ?? '';
+      _receptionistMobileController.text = prefs.getString('receptionist_mobile') ?? '';
+    });
   }
 
-  // Save data to SharedPreferences
   Future<void> _saveData() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setString('receptionist_name', _receptionistNameController.text);
-    prefs.setString('receptionist_mobile', _receptionistMobileController.text);
+    if (_formKey.currentState?.validate() ?? false) {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('receptionist_name', _receptionistNameController.text);
+      await prefs.setString('receptionist_mobile', _receptionistMobileController.text);
 
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Data saved successfully!')));
-    Navigator.pushReplacementNamed(context, '/adminhome');
-  }
-
-  // Remove saved data (for logout)
-  Future<void> _removeData() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.remove('receptionist_name');
-    prefs.remove('receptionist_mobile');
-
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Data removed on logout')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Duty session started successfully')));
+      Navigator.pushReplacementNamed(context, '/adminhome');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: "Receptionist Form", showBackButton: true),
+      appBar: CustomAppBar(title: "Duty Registration", showBackButton: true),
       drawer: CustomDrawer(),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              SizedBox(height: 20),
-              // Receptionist Name
-              TextFormField(
-                controller: _receptionistNameController,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
-                  label: Text("Receptionist Name"),
-                  hintText: "Enter Receptionist Name",
-                  labelStyle: TextStyle(color: Colors.black, fontSize: 18),
-                  hintStyle: TextStyle(color: Colors.black54, fontSize: 17),
+      body: Container(
+        color: const Color(0xFFF8FAFC),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeader(),
+                const SizedBox(height: 32),
+                _buildPremiumField(_receptionistNameController, "Official Personnel Name", Icons.person_pin_rounded),
+                const SizedBox(height: 20),
+                _buildPremiumField(_receptionistMobileController, "Official Mobile Number", Icons.phone_android_rounded, isPhone: true),
+                const SizedBox(height: 32),
+                _buildPolicyNotice(),
+                const SizedBox(height: 40),
+                ElevatedButton(
+                  onPressed: _saveData,
+                  child: const Text("START DUTY SESSION"),
                 ),
-                validator: (value) => value!.isEmpty ? 'Please enter the receptionist name' : null,
-              ),
-              SizedBox(height: 20),
-              // Receptionist Mobile
-              TextFormField(
-                controller: _receptionistMobileController,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
-                  label: Text("Receptionist Mobile"),
-                  hintText: "Enter Receptionist Mobile",
-                  labelStyle: TextStyle(color: Colors.black, fontSize: 18),
-                  hintStyle: TextStyle(color: Colors.black54, fontSize: 17),
-                ),
-                keyboardType: TextInputType.phone,
-                validator: (value) => value!.isEmpty ? 'Please enter the receptionist mobile number' : null,
-              ),
-              SizedBox(height: 20),
-              // Save Button
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState?.validate() ?? false) {
-                      _saveData();
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFFa3d95d),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                  ),
-                  child: Text("Save Data", style: TextStyle(fontSize: 18, color: Colors.black)),
-                ),
-              ),
-              SizedBox(height: 50),
-              Text(
-                "Submitted complain can be edited or deleted before end duty. No complain can be edited or deleted after end duty.",
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.black,
-                ),
-              ),
-              SizedBox(height: 25), // Add some space between the two texts
-              Text(
-                "সাবমিট করা কমপ্লেন ডিউটি এন্ড করার আগে পর্যন্ত এডিট বা ডিলিট করা যাবে। ডিউটি এন্ড করার পর আর কমপ্লেন এডিট বা ডিলিট করা যাবে না।",
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.black,
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
       bottomNavigationBar: CustomBottomNavigationBar(
         selectedIndex: _selectedIndex,
         onTabSelected: _onTabSelected,
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "RECEPTION DESK AUTHENTICATION",
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: Color(0xFF00137F), letterSpacing: 1.5),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          "Register your current duty shift to begin managing official case records.",
+          style: TextStyle(fontSize: 14, color: Colors.grey.shade600, height: 1.4),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPremiumField(TextEditingController controller, String label, IconData icon, {bool isPhone = false}) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: isPhone ? TextInputType.phone : TextInputType.text,
+      validator: (value) => value!.isEmpty ? 'This entry is mandatory' : null,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon, color: const Color(0xFF00137F), size: 20),
+      ),
+    );
+  }
+
+  Widget _buildPolicyNotice() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFF0000).withOpacity(0.05),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFFF0000).withOpacity(0.1)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.info_outline_rounded, color: Color(0xFFFF0000), size: 18),
+              SizedBox(width: 8),
+              Text("OFFICIAL POLICY", style: TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFFF0000), fontSize: 11, letterSpacing: 1)),
+            ],
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            "Submitted complaints can be modified or removed only before ending current duty. No records can be edited after session termination.",
+            style: TextStyle(fontSize: 12, color: Color(0xFF334155), height: 1.5, fontWeight: FontWeight.w500),
+          ),
+          const Divider(height: 24, color: Colors.black12),
+          const Text(
+            "সাবমিট করা কমপ্লেন ডিউটি এন্ড করার আগে পর্যন্ত এডিট বা ডিলিট করা যাবে। ডিউটি এন্ড করার পর আর কমপ্লেন এডিট বা ডিলিট করা যাবে না।",
+            style: TextStyle(fontSize: 12, color: Color(0xFF334155), height: 1.5),
+          ),
+        ],
       ),
     );
   }

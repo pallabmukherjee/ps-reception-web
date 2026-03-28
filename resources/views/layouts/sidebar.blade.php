@@ -3,7 +3,7 @@
         <div class="text-xl font-black tracking-tight text-white uppercase italic">
             <span class="text-red-500">WBP</span> <span class="text-blue-500">Reception</span>
         </div>
-        <div class="text-[10px] text-slate-400 font-mono mt-1 font-bold">KRISHNANAGAR PD</div>
+        <div class="text-[10px] text-slate-400 font-mono mt-1 font-bold">WEST BENGAL POLICE</div>
     </div>
     
     <nav class="flex-1 p-4 overflow-y-auto custom-scrollbar">

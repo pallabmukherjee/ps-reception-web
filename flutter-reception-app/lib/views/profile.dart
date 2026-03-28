@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';  // Import Firebase Auth
-import 'package:cloud_firestore/cloud_firestore.dart';  // Import Firestore
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'layout/app_bar.dart';
 import 'layout/custom_drawer.dart';
 
@@ -10,75 +11,80 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  User? _user;
+  firebase_auth.User? _user;
   DocumentSnapshot? _userData;
+  bool _isLoading = true;
 
-  // Controllers for the fields
-  TextEditingController _fullNameController = TextEditingController();
-  TextEditingController _phoneController = TextEditingController();
-  TextEditingController _addressController = TextEditingController();
+  final TextEditingController _fullNameController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _user = FirebaseAuth.instance.currentUser;
+    _user = firebase_auth.FirebaseAuth.instance.currentUser;
     _fetchUserData();
   }
 
-  // Fetch user data from Firestore based on email field
   Future<void> _fetchUserData() async {
     if (_user != null) {
-      // Query Firestore to find the user by email field
-      QuerySnapshot userSnapshot = await FirebaseFirestore.instance
-          .collection('user_data')
-          .where('email', isEqualTo: _user!.email)  // Match the email field
-          .get();
+      try {
+        QuerySnapshot userSnapshot = await FirebaseFirestore.instance
+            .collection('user_data')
+            .where('email', isEqualTo: _user!.email)
+            .get();
 
-      if (userSnapshot.docs.isNotEmpty) {
-        setState(() {
-          _userData = userSnapshot.docs.first; // Assuming there's only one document
-
-          // Check if fields exist and initialize controllers with existing data
-          _fullNameController.text = _userData!.get('full_name') ?? '';  // If full_name doesn't exist, set as empty
-          _phoneController.text = _userData!.get('phone_number') ?? '';  // If phone_number doesn't exist, set as empty
-          _addressController.text = _userData!.get('address') ?? '';  // If address doesn't exist, set as empty
-        });
+        if (userSnapshot.docs.isNotEmpty) {
+          setState(() {
+            _userData = userSnapshot.docs.first;
+            _fullNameController.text = _userData!.get('full_name') ?? '';
+            _phoneController.text = _userData!.get('phone_number') ?? '';
+            _addressController.text = _userData!.get('address') ?? '';
+            _isLoading = false;
+          });
+        } else {
+          setState(() => _isLoading = false);
+        }
+      } catch (e) {
+        print("Error fetching user data: $e");
+        setState(() => _isLoading = false);
       }
+    } else {
+      setState(() => _isLoading = false);
     }
   }
 
-  // Function to update the user data in Firestore and navigate based on role
   Future<void> _updateUserData() async {
     if (_user != null && _userData != null) {
+      setState(() => _isLoading = true);
       try {
-        // Update the user's data in Firestore
         await FirebaseFirestore.instance
             .collection('user_data')
-            .doc(_userData!.id) // Use document ID to update the correct document
+            .doc(_userData!.id)
             .update({
           'full_name': _fullNameController.text,
           'phone_number': _phoneController.text,
           'address': _addressController.text,
         });
 
-        // After updating, fetch the user role from Firestore
-        String role = _userData!.get('role') ?? 'user'; // Default to 'user' if no role is found
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('user_name', _fullNameController.text);
 
-        // Redirect based on role
+        String role = _userData!.get('role') ?? 'user';
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Profile updated successfully')),
+        );
+
         if (role == 'admin') {
           Navigator.pushReplacementNamed(context, '/adminhome');
-        } else if (role == 'user') {
-          Navigator.pushReplacementNamed(context, '/home');
         } else if (role == 'superior') {
           Navigator.pushReplacementNamed(context, '/superiorhome');
+        } else {
+          Navigator.pushReplacementNamed(context, '/home');
         }
-
-        // Show a success message after updating
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Profile updated successfully')),
-        );
       } catch (e) {
-        // Show an error message if something goes wrong
+        setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to update profile: $e')),
         );
@@ -88,110 +94,132 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_user == null) {
-      return Scaffold(
-        appBar: CustomAppBar(title: "Profile", showBackButton: true),
-        drawer: CustomDrawer(),
-        body: Center(
-          child: Text(
-            'No user logged in',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
+    return Scaffold(
+      appBar: CustomAppBar(title: "Official Profile", showBackButton: true),
+      drawer: CustomDrawer(),
+      body: _isLoading 
+        ? const Center(child: CircularProgressIndicator())
+        : _user == null 
+          ? _buildNoUser()
+          : _buildProfileContent(),
+    );
+  }
+
+  Widget _buildNoUser() {
+    return const Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.person_off_rounded, size: 80, color: Colors.grey),
+          SizedBox(height: 16),
+          Text('No session active', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProfileContent() {
+    return Container(
+      color: const Color(0xFFF8FAFC),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          children: [
+            _buildHeader(),
+            const SizedBox(height: 32),
+            _buildForm(),
+            const SizedBox(height: 40),
+            ElevatedButton(
+              onPressed: _updateUserData,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF00137F),
+                foregroundColor: Colors.white,
+              ),
+              child: const Text("UPDATE CREDENTIALS"),
+            ),
+          ],
         ),
-      );
-    } else {
-      return Scaffold(
-        appBar: CustomAppBar(title: "Profile", showBackButton: true),
-        drawer: CustomDrawer(),
-        body: _userData == null
-            ? Center(child: CircularProgressIndicator()) // Show loading until data is fetched
-            : SingleChildScrollView(  // Wrap the content with SingleChildScrollView to avoid overflow
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(height: 20),
-                Text(
-                  'Welcome',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 10),
-                Text(
-                  '${_user!.email}',
-                  style: TextStyle(fontSize: 22),
-                ),
-                Text(
-                  'Email you can\'t update',
-                  style: TextStyle(fontSize: 15),
-                ),
-                SizedBox(height: 20),
+      ),
+    );
+  }
 
-                // Editable fields
-                TextField(
-                  controller: _fullNameController,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15), // Rounded corners
-                    ),
-                    label: Text("Full Name"),
-                    hintText: "Enter Full Name",
-                    labelStyle: TextStyle(color: Colors.black, fontSize: 19),
-                    hintStyle: TextStyle(color: Colors.black54, fontSize: 17),
-                  ),
-                ),
-                SizedBox(height: 25),
-                TextField(
-                  controller: _phoneController,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15), // Rounded corners
-                    ),
-                    label: Text("Mobile Number"),
-                    hintText: "Enter Mobile Number",
-                    labelStyle: TextStyle(color: Colors.black, fontSize: 19),
-                    hintStyle: TextStyle(color: Colors.black54, fontSize: 17),
-                  ),
-                ),
-                SizedBox(height: 25),
-                TextField(
-                  controller: _addressController,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15), // Rounded corners
-                    ),
-                    label: Text("Address"),
-                    hintText: "Enter Address",
-                    labelStyle: TextStyle(color: Colors.black, fontSize: 19),
-                    hintStyle: TextStyle(color: Colors.black54, fontSize: 17),
-                  ),
-                ),
-                SizedBox(height: 20),
-
-                // Save button
-                SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: ElevatedButton(
-                    onPressed: _updateUserData,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFFa3d95d), // Set the background color to #a3d95d
-                    ),
-                    child: Text(
-                      "Update",
-                      style: TextStyle(
-                        fontSize: 20, // Set the font size to 20
-                        color: Colors.white, // Set the text color to white
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+  Widget _buildHeader() {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, 10))
+            ],
+          ),
+          child: CircleAvatar(
+            radius: 50,
+            backgroundColor: const Color(0xFF00137F),
+            child: Text(
+              _fullNameController.text.isNotEmpty ? _fullNameController.text[0].toUpperCase() : '?',
+              style: const TextStyle(fontSize: 40, color: Colors.white, fontWeight: FontWeight.w900),
             ),
           ),
         ),
-      );
-    }
+        const SizedBox(height: 16),
+        Text(
+          _fullNameController.text.isNotEmpty ? _fullNameController.text : 'Official Member',
+          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF0F172A)),
+        ),
+        Text(
+          _user!.email ?? '',
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey.shade500),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFF0000).withOpacity(0.1),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: const Text(
+            "WEST BENGAL POLICE AUTHORITY",
+            style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Color(0xFFFF0000), letterSpacing: 1),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildForm() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle("Personal Details"),
+        const SizedBox(height: 16),
+        _buildTextField(_fullNameController, "Full Name", Icons.badge_outlined),
+        const SizedBox(height: 20),
+        _buildTextField(_phoneController, "Mobile Number", Icons.phone_android_rounded, isPhone: true),
+        const SizedBox(height: 20),
+        _buildTextField(_addressController, "Residential Address", Icons.home_work_outlined, maxLines: 2),
+      ],
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Text(
+      title.toUpperCase(),
+      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 1.5, color: Colors.blueGrey),
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String label, IconData icon, {bool isPhone = false, int maxLines = 1}) {
+    return TextField(
+      controller: controller,
+      maxLines: maxLines,
+      keyboardType: isPhone ? TextInputType.phone : TextInputType.text,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon, color: const Color(0xFF00137F), size: 20),
+      ),
+    );
   }
 }

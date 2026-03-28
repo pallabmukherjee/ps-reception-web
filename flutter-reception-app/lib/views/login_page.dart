@@ -10,8 +10,9 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  TextEditingController emailController = TextEditingController();
-  TextEditingController passwordController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -23,199 +24,174 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC),
       body: SingleChildScrollView(
         child: Container(
           height: MediaQuery.of(context).size.height,
-          color: Color(0xFFFAF9F6),
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 40.0),
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          RichText(
-                            text: TextSpan(
-                              children: [
-                                TextSpan(
-                                  text: 'West Bengal ',
-                                  style: TextStyle(
-                                    color: Color(0xFFFF0000),
-                                    fontSize: 40,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                TextSpan(
-                                  text: 'Police',
-                                  style: TextStyle(
-                                    color: Color(0xFF00137F),
-                                    fontSize: 40,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Text(
-                            'Reception Management',
-                            style: TextStyle(
-                              color: Color(0xFF57007F),
-                              fontSize: 20,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Login",
-                          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 25),
-                        ),
-                        SizedBox(
-                          height: 25,
-                        ),
-                        TextFormField(
-                          controller: emailController,
-                          decoration: InputDecoration(
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(15),
-                            ),
-                            labelText: "Email",
-                            hintText: "Enter your email",
-                            labelStyle: TextStyle(color: Colors.black, fontSize: 19),
-                            hintStyle: TextStyle(color: Colors.black54, fontSize: 17),
-                            filled: true,
-                            fillColor: Colors.white,
-                          ),
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 18,
-                          ),
-                        ),
-                        SizedBox(
-                          height: 10,
-                        ),
-                        TextFormField(
-                          controller: passwordController,
-                          obscureText: true,
-                          decoration: InputDecoration(
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(15),
-                            ),
-                            label: Text("Password"),
-                            hintText: "Enter your Password",
-                            labelStyle: TextStyle(color: Colors.black, fontSize: 19),
-                            hintStyle: TextStyle(color: Colors.black54, fontSize: 17),
-                          ),
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 18,
-                          ),
-                        ),
-                        SizedBox(
-                          height: 10,
-                        ),
-                        SizedBox(
-                          width: double.infinity,
-                          height: 48,
-                          child: ElevatedButton(
-                            onPressed: () async {
-                              String loginMessage = await AuthService.loginWithEmail(
-                                  emailController.text, passwordController.text);
-                              if (loginMessage == "Login Successfully") {
-                                SharedPreferences prefs = await SharedPreferences.getInstance();
-                                String? role = prefs.getString('user_role');
-                                
-                                if (role == "admin") {
-                                  Navigator.pushReplacementNamed(context, "/adminhome");
-                                } else if(role == "superior") {
-                                  Navigator.pushReplacementNamed(context, "/superiorhome");
-                                }
-                                else {
-                                  Navigator.pushReplacementNamed(context, "/home");
-                                }
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      loginMessage,
-                                      style: TextStyle(color: Colors.white),
-                                    ),
-                                    backgroundColor: Colors.red.shade400,
-                                  ),
-                                );
-                              }
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Color(0xFFdf0100),
-                            ),
-                            child: Text(
-                              "Login",
-                              style: TextStyle(
-                                fontSize: 20,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(
-                          height: 10,
-                        ),
-
-                      ],
-                    ),
-                  ),
-                  SizedBox(
-                    height: 15,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      TextButton(onPressed: () {
-                        Navigator.pushNamed(context, "/forgot_password");
-                      }, child: Text(
-                        "Forgot Password",
-                        style: TextStyle(
-                          fontSize: 17,
-                          color: Color(0xFF00137F),
-                        ),
-                      )
-                      ),
-                      TextButton(onPressed: () {
-                        Navigator.pushNamed(context, "/signup");
-                      }, child: Text(
-                        "Register Now",
-                        style: TextStyle(
-                          fontSize: 17,
-                          color: Color(0xFF00137F),
-                        ),
-                      )
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildLogoHeader(),
+              const SizedBox(height: 48),
+              _buildLoginCard(),
+              const SizedBox(height: 24),
+              _buildFooterActions(),
+            ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildLogoHeader() {
+    return Column(
+      children: [
+        RichText(
+          textAlign: TextAlign.center,
+          text: const TextSpan(
+            children: [
+              TextSpan(
+                text: 'West Bengal ',
+                style: TextStyle(
+                  color: Color(0xFFFF0000),
+                  fontSize: 36,
+                  fontWeight: FontWeight.w900,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+              TextSpan(
+                text: 'Police',
+                style: TextStyle(
+                  color: Color(0xFF00137F),
+                  fontSize: 36,
+                  fontWeight: FontWeight.w900,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'RECEPTION MANAGEMENT SYSTEM',
+          style: TextStyle(
+            color: Color(0xFF64748B),
+            fontSize: 12,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 2,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLoginCard() {
+    return Container(
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(32),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 30,
+            offset: const Offset(0, 15),
+          )
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "Authorized Access",
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF0F172A), letterSpacing: -0.5),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            "Please enter your official credentials",
+            style: TextStyle(fontSize: 13, color: Colors.blueGrey, fontWeight: FontWeight.w500),
+          ),
+          const SizedBox(height: 32),
+          TextFormField(
+            controller: emailController,
+            decoration: const InputDecoration(
+              labelText: "Official Email",
+              prefixIcon: Icon(Icons.mail_outline_rounded, color: Color(0xFF00137F), size: 20),
+            ),
+          ),
+          const SizedBox(height: 20),
+          TextFormField(
+            controller: passwordController,
+            obscureText: true,
+            decoration: const InputDecoration(
+              labelText: "Password",
+              prefixIcon: Icon(Icons.lock_outline_rounded, color: Color(0xFF00137F), size: 20),
+            ),
+          ),
+          const SizedBox(height: 32),
+          ElevatedButton(
+            onPressed: _isLoading ? null : _handleLogin,
+            child: _isLoading 
+              ? const CircularProgressIndicator(color: Colors.white)
+              : const Text("SIGN IN TO PANEL"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _handleLogin() async {
+    if (emailController.text.isEmpty || passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill all fields')));
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    try {
+      String loginMessage = await AuthService.loginWithEmail(emailController.text, passwordController.text);
+      if (loginMessage == "Login Successfully") {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        String? role = prefs.getString('user_role');
+        
+        if (mounted) {
+          if (role == "admin" || role == "super") {
+            Navigator.pushReplacementNamed(context, "/adminhome");
+          } else if(role == "superior") {
+            Navigator.pushReplacementNamed(context, "/superiorhome");
+          } else {
+            Navigator.pushReplacementNamed(context, "/home");
+          }
+        }
+      } else {
+        setState(() => _isLoading = false);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(loginMessage), backgroundColor: Colors.red.shade600),
+          );
+        }
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Connection error: $e')));
+      }
+    }
+  }
+
+  Widget _buildFooterActions() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        TextButton(
+          onPressed: () => Navigator.pushNamed(context, "/forgot_password"),
+          child: const Text("Forgot Password?", style: TextStyle(color: Color(0xFF00137F), fontWeight: FontWeight.bold)),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pushNamed(context, "/signup"),
+          child: const Text("Register Now", style: TextStyle(color: Color(0xFFFF0000), fontWeight: FontWeight.w900)),
+        ),
+      ],
     );
   }
 }

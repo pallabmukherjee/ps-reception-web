@@ -60,9 +60,11 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
     } catch (e) {
       print('Error loading metadata: $e');
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load metadata: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load metadata: $e')),
+        );
+      }
     }
   }
 
@@ -81,14 +83,14 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
         );
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Complaint updated successfully!')),
+          const SnackBar(content: Text('Record modified successfully')),
         );
 
         Navigator.pop(context, true);
       } catch (e) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to update complaint: $e')),
+          SnackBar(content: Text('Update failed: $e')),
         );
       }
     }
@@ -97,102 +99,103 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: "Update Complaint", showBackButton: true),
+      appBar: CustomAppBar(title: "Modify Case", showBackButton: true),
       drawer: CustomDrawer(),
       body: _isLoading 
-        ? Center(child: CircularProgressIndicator())
-        : Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              SizedBox(height: 20),
-              TextFormField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
-                  label: Text("Name of Complaint"),
-                ),
-                validator: (value) => value!.isEmpty ? 'Please enter name' : null,
-              ),
-              SizedBox(height: 20),
-              TextFormField(
-                controller: _phoneController,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
-                  label: Text("Phone No"),
-                ),
-                keyboardType: TextInputType.phone,
-                validator: (value) => value!.isEmpty ? 'Please enter phone' : null,
-              ),
-              SizedBox(height: 20),
-              TextFormField(
-                controller: _addressController,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
-                  label: Text("Address"),
-                ),
-                validator: (value) => value!.isEmpty ? 'Please enter address' : null,
-              ),
-              SizedBox(height: 20),
-              TextFormField(
-                controller: _descriptionController,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
-                  label: Text("Description (Optional)"),
-                ),
-                maxLines: 4,
-              ),
-              SizedBox(height: 20),
-              DropdownButtonFormField<int>(
-                value: _selectedSubCategoryId,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
-                  label: Text("Complain Type"),
-                ),
-                items: _subCategories.map((sub) {
-                  return DropdownMenuItem<int>(
-                    value: int.tryParse(sub['id'].toString()),
-                    child: Text(sub['name']),
-                  );
-                }).toList(),
-                onChanged: (val) => setState(() => _selectedSubCategoryId = val),
-                validator: (val) => val == null ? 'Please select type' : null,
-              ),
-              SizedBox(height: 20),
-              DropdownButtonFormField<int>(
-                value: _selectedStationId,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
-                  label: Text("Police Station"),
-                ),
-                items: _policeStations.map((station) {
-                  return DropdownMenuItem<int>(
-                    value: int.tryParse(station['id'].toString()),
-                    child: Text(station['name']),
-                  );
-                }).toList(),
-                onChanged: null, // Always locked as per request
-                validator: (val) => val == null ? 'Please select station' : null,
-              ),
-              SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _submitForm,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFFa3d95d),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                  ),
-                  child: Text("Update Complaint", style: TextStyle(fontSize: 18, color: Colors.black)),
+        ? const Center(child: CircularProgressIndicator())
+        : Container(
+            color: const Color(0xFFF8FAFC),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildEditSection("Subject Identity", Icons.edit_note_rounded),
+                    const SizedBox(height: 16),
+                    _buildPremiumField(_nameController, "Complainant Name", Icons.person_outline),
+                    const SizedBox(height: 16),
+                    _buildPremiumField(_phoneController, "Contact Mobile", Icons.phone_android_rounded, isPhone: true),
+                    const SizedBox(height: 16),
+                    _buildPremiumField(_addressController, "Official Address", Icons.map_outlined, maxLines: 2),
+                    
+                    const SizedBox(height: 32),
+                    _buildEditSection("Case Classification", Icons.shield_outlined),
+                    const SizedBox(height: 16),
+                    _buildPremiumDropdown(
+                      "Alert Classification",
+                      _subCategories,
+                      _selectedSubCategoryId,
+                      (val) => setState(() => _selectedSubCategoryId = val),
+                      Icons.category_outlined,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildPremiumDropdown(
+                      "Jurisdiction Station (Locked)",
+                      _policeStations,
+                      _selectedStationId,
+                      null, // Station cannot be changed on edit as per design
+                      Icons.account_balance_outlined,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildPremiumField(_descriptionController, "Full Statement", Icons.description_outlined, maxLines: 4),
+                    
+                    const SizedBox(height: 40),
+                    ElevatedButton(
+                      onPressed: _submitForm,
+                      child: const Text("UPDATE JURISDICTIONAL RECORD"),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
                 ),
               ),
-            ],
+            ),
           ),
+    );
+  }
+
+  Widget _buildEditSection(String title, IconData icon) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: const Color(0xFF00137F)),
+        const SizedBox(width: 8),
+        Text(
+          title.toUpperCase(),
+          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 1.2, color: Color(0xFF00137F)),
         ),
+      ],
+    );
+  }
+
+  Widget _buildPremiumField(TextEditingController controller, String label, IconData icon, {bool isPhone = false, int maxLines = 1}) {
+    return TextFormField(
+      controller: controller,
+      maxLines: maxLines,
+      keyboardType: isPhone ? TextInputType.phone : TextInputType.text,
+      validator: (value) => value!.isEmpty ? 'Entry required' : null,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon, color: Colors.blueGrey.shade300, size: 20),
       ),
+    );
+  }
+
+  Widget _buildPremiumDropdown(String label, List<Map<String, dynamic>> items, int? selectedValue, ValueChanged<int?>? onChanged, IconData icon) {
+    return DropdownButtonFormField<int>(
+      value: selectedValue,
+      onChanged: onChanged,
+      validator: (value) => value == null ? 'Selection required' : null,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon, color: Colors.blueGrey.shade300, size: 20),
+      ),
+      items: items.map((item) {
+        return DropdownMenuItem<int>(
+          value: int.tryParse(item['id'].toString()),
+          child: Text(item['name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+        );
+      }).toList(),
     );
   }
 }

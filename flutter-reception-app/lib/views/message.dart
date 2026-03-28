@@ -37,137 +37,126 @@ class _MessageState extends State<Message> {
         payload = {'error': 'Failed to parse notification data'};
       }
     }
-
-    print('Payload: $payload');
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: "Alert Details", showBackButton: true),
+      backgroundColor: const Color(0xFFF8FAFC),
+      appBar: CustomAppBar(title: "Emergency Alert", showBackButton: true),
       drawer: CustomDrawer(),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(20),
+        padding: const EdgeInsets.all(24),
         child: payload.isNotEmpty
             ? Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // High Alert Header
-                  Text(
-                    payload['title'] ?? '🚨 HIGH ALERT 🚨',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.red[900],
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  
-                  // Category Name in Red
-                  Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-                    decoration: BoxDecoration(
-                      color: Colors.red[50],
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.red, width: 2),
-                    ),
-                    child: Column(
-                      children: [
-                        Text(
-                          "CATEGORY",
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey[700]),
-                        ),
-                        Text(
-                          '${payload['category_name'] ?? payload['sub_category_name'] ?? 'CRITICAL CASE'}',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.red,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  
-                  SizedBox(height: 30),
-
-                  // Complainant Details Card
-                  Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                    child: Padding(
-                      padding: EdgeInsets.all(20),
-                      child: Column(
-                        children: [
-                          _buildDetailRow(Icons.person, "Complainant", payload['complainant_name'] ?? 'N/A'),
-                          Divider(height: 30),
-                          _buildDetailRow(Icons.phone, "Phone No.", payload['phone'] ?? 'N/A'),
-                          Divider(height: 30),
-                          _buildDetailRow(Icons.description, "Details", payload['message'] ?? 'New critical complaint registered.'),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  SizedBox(height: 40),
-
-                  // Action Button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 55,
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.pushReplacementNamed(context, '/superior-list-complaint');
-                      },
-                      icon: Icon(Icons.list_alt, color: Colors.black),
-                      label: Text("VIEW ALL COMPLAINTS", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFFa3d95d),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                      ),
-                    ),
+                  _buildAlertIcon(),
+                  const SizedBox(height: 24),
+                  _buildAlertHeader(),
+                  const SizedBox(height: 32),
+                  _buildDetailsCard(),
+                  const SizedBox(height: 40),
+                  ElevatedButton.icon(
+                    onPressed: () => Navigator.pushReplacementNamed(context, '/superior-list-complaint'),
+                    icon: const Icon(Icons.format_list_bulleted_rounded),
+                    label: const Text("ACCESS CASE DIRECTORY"),
+                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00137F), foregroundColor: Colors.white),
                   ),
                 ],
               )
-            : Center(
-                child: Padding(
-                  padding: EdgeInsets.all(20.0),
-                  child: Text(
-                    'No notification data available.',
-                    style: TextStyle(fontSize: 18),
-                  ),
-                ),
-              ),
+            : const _EmptyState(),
       ),
     );
   }
 
-  Widget _buildDetailRow(IconData icon, String label, String value) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildAlertIcon() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFF0000).withOpacity(0.1),
+        shape: BoxShape.circle,
+      ),
+      child: const Icon(Icons.warning_amber_rounded, color: Color(0xFFFF0000), size: 64),
+    );
+  }
+
+  Widget _buildAlertHeader() {
+    return Column(
       children: [
-        Icon(icon, color: Color(0xFF00137F), size: 28),
-        SizedBox(width: 15),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label.toUpperCase(),
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey[600]),
-              ),
-              SizedBox(height: 4),
-              Text(
-                value,
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: Colors.black87),
-              ),
-            ],
-          ),
+        const Text(
+          "URGENT NOTIFICATION",
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: Color(0xFFFF0000), letterSpacing: 2),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          payload['category_name'] ?? payload['sub_category_name'] ?? 'CRITICAL ALERT',
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Color(0xFF0F172A), letterSpacing: -0.5),
         ),
       ],
+    );
+  }
+
+  Widget _buildDetailsCard() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 20, offset: const Offset(0, 10))],
+        border: Border.all(color: Colors.grey.shade100),
+      ),
+      child: Column(
+        children: [
+          _buildInfoItem(Icons.person_outline_rounded, "Subject Name", payload['complainant_name'] ?? 'UNKNOWN'),
+          _buildDivider(),
+          _buildInfoItem(Icons.phone_android_rounded, "Contact ID", payload['phone'] ?? 'N/A'),
+          _buildDivider(),
+          _buildInfoItem(Icons.feedback_outlined, "Incident Brief", payload['message'] ?? 'Official dispatch notification.', isLast: true),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoItem(IconData icon, String label, String value, {bool isLast = false}) {
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 20, color: const Color(0xFF00137F)),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label.toUpperCase(), style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: Colors.blueGrey, letterSpacing: 1)),
+                const SizedBox(height: 4),
+                Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1E293B), height: 1.4)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDivider() => const Divider(height: 1, indent: 20, endIndent: 20, color: Color(0xFFF1F5F9));
+}
+
+class _EmptyState extends StatelessWidget {
+  const _EmptyState();
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Column(
+        children: [
+          SizedBox(height: 100),
+          Icon(Icons.notifications_off_outlined, size: 64, color: Colors.grey),
+          SizedBox(height: 16),
+          Text("No Active Alert Data", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+        ],
+      ),
     );
   }
 }

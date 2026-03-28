@@ -37,7 +37,7 @@
                             </svg>
                         </button>
                         <h2 class="ml-4 text-lg font-bold text-slate-800 tracking-tight hidden md:block">
-                            @yield('header_title', 'Krishnanagar Police District')
+                            @yield('header_title', 'West Bengal Police')
                         </h2>
                     </div>
                     

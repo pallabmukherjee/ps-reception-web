@@ -98,10 +98,12 @@
                                 <td class="px-6 py-4">
                                     <div class="font-bold text-slate-900">{{ $complaint->complainant_name }}</div>
                                     <div class="text-xs text-blue-600 font-bold flex items-center mt-0.5">
-                                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                                        </svg>
-                                        {{ $complaint->phone }}
+                                        <a href="tel:{{ $complaint->phone }}" class="flex items-center hover:underline">
+                                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                            </svg>
+                                            {{ $complaint->phone }}
+                                        </a>
                                     </div>
                                     <div class="text-[10px] text-slate-500 mt-1 uppercase font-bold tracking-tighter">{{ Str::limit($complaint->address, 30) }}</div>
                                 </td>

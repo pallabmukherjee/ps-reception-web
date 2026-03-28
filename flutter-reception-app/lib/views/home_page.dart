@@ -13,77 +13,102 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   @override
-  void initState() {
-    super.initState();
-  }
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: "Home Page"),
+      backgroundColor: const Color(0xFFF8FAFC),
+      appBar: CustomAppBar(title: "Official Portal"),
       drawer: CustomDrawer(),
-      body: Center(
+      body: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            RichText(
-              textAlign: TextAlign.center,
-              text: TextSpan(
-                children: [
-                  TextSpan(
-                    text: 'West Bengal ',
-                    style: TextStyle(
-                      color: Color(0xFFFF0000),
-                      fontSize: 40,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  TextSpan(
-                    text: 'Police',
-                    style: TextStyle(
-                      color: Color(0xFF00137F),
-                      fontSize: 40,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Text(
-              'Reception Management',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Color(0xFF57007F),
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            SizedBox(height: 30),
-            Text(
-              "Your profile under review",
-              style: TextStyle(
-                fontSize: 17,
-                color: Colors.red,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            SizedBox(height: 10),
+            _buildLogoSection(),
+            const SizedBox(height: 64),
+            _buildReviewStatus(),
+            const SizedBox(height: 40),
             ElevatedButton(
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => CheckUser()),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFFa3d95d),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-              ),
-              child: Text("Check Approve status", style: TextStyle(fontSize: 15, color: Colors.black)),
+              onPressed: () => Navigator.pushReplacementNamed(context, "/check_user"),
+              child: const Text("REFRESH APPROVAL STATUS"),
             ),
           ],
         ),
       ),
+    );
+  }
 
+  Widget _buildLogoSection() {
+    return Column(
+      children: [
+        RichText(
+          textAlign: TextAlign.center,
+          text: const TextSpan(
+            children: [
+              TextSpan(
+                text: 'West Bengal ',
+                style: TextStyle(
+                  color: Color(0xFFFF0000),
+                  fontSize: 36,
+                  fontWeight: FontWeight.w900,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+              TextSpan(
+                text: 'Police',
+                style: TextStyle(
+                  color: Color(0xFF00137F),
+                  fontSize: 36,
+                  fontWeight: FontWeight.w900,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'RECEPTION MANAGEMENT SYSTEM',
+          style: TextStyle(
+            color: Color(0xFF64748B),
+            fontSize: 12,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 2,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildReviewStatus() {
+    return Container(
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(32),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 20, offset: const Offset(0, 10))],
+        border: Border.all(color: Colors.grey.shade100),
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(color: Colors.amber.withOpacity(0.1), shape: BoxShape.circle),
+            child: const Icon(Icons.pending_actions_rounded, color: Colors.amber, size: 40),
+          ),
+          const SizedBox(height: 24),
+          const Text(
+            "Account Under Review",
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Color(0xFF0F172A)),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            "Your official personnel profile is currently pending administrator verification. Please check back later.",
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 14, color: Colors.blueGrey.shade600, height: 1.5, fontWeight: FontWeight.w500),
+          ),
+        ],
+      ),
     );
   }
 }

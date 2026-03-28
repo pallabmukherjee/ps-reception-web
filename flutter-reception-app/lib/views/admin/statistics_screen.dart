@@ -131,9 +131,9 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     final int total = _statsData?['total'] ?? 0;
 
     if (stats.isEmpty) {
-      return Center(
+      return const Center(
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 40),
+          padding: EdgeInsets.symmetric(vertical: 40),
           child: Text("No data available", style: TextStyle(color: Colors.grey)),
         ),
       );
@@ -143,8 +143,8 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       children: stats.entries.map((entry) {
         final double percentage = total > 0 ? (entry.value / total) : 0;
         return Container(
-          margin: EdgeInsets.only(bottom: 16),
-          padding: EdgeInsets.all(16),
+          margin: const EdgeInsets.only(bottom: 16),
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(15),
@@ -156,11 +156,11 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(entry.key, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                  Text("${entry.value}", style: TextStyle(fontWeight: FontWeight.w900, color: Colors.blue)),
+                  Text(entry.key, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text("${entry.value}", style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.blue)),
                 ],
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               ClipRRect(
                 borderRadius: BorderRadius.circular(10),
                 child: LinearProgressIndicator(
@@ -170,10 +170,10 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                   valueColor: AlwaysStoppedAnimation<Color>(Colors.blue.shade600),
                 ),
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               Text(
                 "${(percentage * 100).toStringAsFixed(1)}% of total",
-                style: TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold),
+                style: const TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold),
               ),
             ],
           ),

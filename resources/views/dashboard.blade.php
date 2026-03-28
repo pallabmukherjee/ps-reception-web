@@ -8,7 +8,7 @@
             <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
                 <div class="text-center md:text-left">
                     <h1 class="text-4xl md:text-5xl font-black text-white tracking-tighter uppercase italic mb-2">
-                        Krishnanagar <span class="text-blue-500">Police</span> District
+                        West Bengal <span class="text-blue-500">Police</span>
                     </h1>
                     <p class="text-slate-400 font-medium text-lg uppercase tracking-widest font-mono">Reception Management System</p>
                     
