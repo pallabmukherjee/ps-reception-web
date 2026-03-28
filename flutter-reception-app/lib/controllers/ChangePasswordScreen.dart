@@ -14,50 +14,55 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   final _newPasswordController = TextEditingController();
   final _confirmNewPasswordController = TextEditingController();
   final _auth = FirebaseAuth.instance;
+  bool _isLoading = false;
 
-  // Function to change the password
+  @override
+  void dispose() {
+    _currentPasswordController.dispose();
+    _newPasswordController.dispose();
+    _confirmNewPasswordController.dispose();
+    super.dispose();
+  }
+
   Future<void> _changePassword() async {
     String currentPassword = _currentPasswordController.text;
     String newPassword = _newPasswordController.text;
     String confirmNewPassword = _confirmNewPasswordController.text;
 
-    // Check if the new password and confirm password match
-    if (newPassword != confirmNewPassword) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('New passwords do not match')),
-      );
+    if (newPassword.isEmpty || currentPassword.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill all fields')));
       return;
     }
 
-    // Get the current user
+    if (newPassword != confirmNewPassword) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('New passwords do not match')));
+      return;
+    }
+
+    setState(() => _isLoading = true);
     User? user = _auth.currentUser;
 
     if (user != null) {
       try {
-        // Re-authenticate the user to change the password
         AuthCredential credential = EmailAuthProvider.credential(
           email: user.email!,
           password: currentPassword,
         );
 
-        // Sign in the user with the credential
         await user.reauthenticateWithCredential(credential);
-
-        // Now update the password
         await user.updatePassword(newPassword);
 
-        // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Password changed successfully')),
-        );
-
-        // Optionally, navigate to another screen after password change
-        Navigator.pop(context);  // Go back to the previous screen (login or home)
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Credentials updated successfully')));
+          Navigator.pop(context);
+        }
       } catch (e) {
-        // Show error message if something goes wrong
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to change password: $e')),
-        );
+        setState(() => _isLoading = false);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Modification failed: $e'), backgroundColor: Colors.red.shade600),
+          );
+        }
       }
     }
   }
@@ -65,59 +70,58 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: "Change Password", showBackButton: true),
+      backgroundColor: const Color(0xFFF8FAFC),
+      appBar: CustomAppBar(title: "Security Settings", showBackButton: true),
       drawer: CustomDrawer(),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            TextField(
-              controller: _currentPasswordController,
-              decoration: InputDecoration(
-                labelText: 'Current Password',
-                border: OutlineInputBorder(),
-              ),
-              obscureText: true,
-            ),
-            SizedBox(height: 20),
-            TextField(
-              controller: _newPasswordController,
-              decoration: InputDecoration(
-                labelText: 'New Password',
-                border: OutlineInputBorder(),
-              ),
-              obscureText: true,
-            ),
-            SizedBox(height: 20),
-            TextField(
-              controller: _confirmNewPasswordController,
-              decoration: InputDecoration(
-                labelText: 'Confirm New Password',
-                border: OutlineInputBorder(),
-              ),
-              obscureText: true,
-            ),
-            SizedBox(height: 20),
+            _buildSectionHeader(),
+            const SizedBox(height: 32),
+            _buildPremiumField(_currentPasswordController, "Current Password", Icons.lock_outline_rounded),
+            const SizedBox(height: 20),
+            _buildPremiumField(_newPasswordController, "New Access Password", Icons.vpn_key_outlined),
+            const SizedBox(height: 20),
+            _buildPremiumField(_confirmNewPasswordController, "Confirm New Password", Icons.check_circle_outline_rounded),
+            const SizedBox(height: 40),
             ElevatedButton(
-              onPressed: _changePassword,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFFa3d95d), // Set the background color to #a3d95d
-              ),
-              child: Text(
-                'Submit',
-                style: TextStyle(fontSize: 16, color: Colors.white,),
-              ),
-            ),
-            SizedBox(height: 20),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);  // Go back to the previous screen
-              },
-              child: Text('Back', style: TextStyle(fontSize: 18, color: Colors.black,)),
+              onPressed: _isLoading ? null : _changePassword,
+              child: _isLoading 
+                ? const CircularProgressIndicator(color: Colors.white)
+                : const Text("UPDATE ACCESS CREDENTIALS"),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "SECURITY MODIFICATION",
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: Color(0xFF00137F), letterSpacing: 1.5),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          "Ensure your account stays secure by periodically updating your access credentials.",
+          style: TextStyle(fontSize: 14, color: Colors.grey.shade600, height: 1.4),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPremiumField(TextEditingController controller, String label, IconData icon) {
+    return TextFormField(
+      controller: controller,
+      obscureText: true,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon, color: const Color(0xFF00137F), size: 20),
       ),
     );
   }

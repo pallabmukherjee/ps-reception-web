@@ -19,7 +19,7 @@ class DatabaseSeeder extends Seeder
 
         // Create or Update Super Admin
         $superAdmin = \App\Models\User::updateOrCreate(
-            ['email' => 'admin@kpd.com'],
+            ['email' => 'admin@wbp.gov.in'],
             [
                 'name' => 'Super Admin',
                 'full_name' => 'Super Admin',
