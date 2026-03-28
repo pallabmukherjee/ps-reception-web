@@ -15,6 +15,30 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+
+                    @if(auth()->user()->hasRole(['super', 'admin', 'superior']))
+                    <x-nav-link :href="route('complaints.index')" :active="request()->routeIs('complaints.*')">
+                        {{ __('Complaints') }}
+                    </x-nav-link>
+
+                    <x-nav-link :href="route('statistics.index')" :active="request()->routeIs('statistics.*')">
+                        {{ __('Statistics') }}
+                    </x-nav-link>
+                    @endif
+
+                    @if(auth()->user()->hasRole(['super', 'admin']))
+                    <x-nav-link :href="route('police-stations.index')" :active="request()->routeIs('police-stations.*')">
+                        {{ __('Police Stations') }}
+                    </x-nav-link>
+
+                    <x-nav-link :href="route('categories.index')" :active="request()->routeIs('categories.*')">
+                        {{ __('Categories') }}
+                    </x-nav-link>
+
+                    <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
+                        {{ __('Users') }}
+                    </x-nav-link>
+                    @endif
                 </div>
             </div>
 

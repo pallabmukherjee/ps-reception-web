@@ -10,8 +10,9 @@ class SuperiorCustomBottomNavigationBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return BottomNavigationBar(
       currentIndex: selectedIndex,
+      type: BottomNavigationBarType.fixed,
       onTap: (index) {
-        // Handle tab selection and navigate to appropriate route
+        if (index == selectedIndex) return;
         onTabSelected(index);
         switch (index) {
           case 0: // Home
@@ -20,13 +21,13 @@ class SuperiorCustomBottomNavigationBar extends StatelessWidget {
           case 1: // List Complaint
             Navigator.pushReplacementNamed(context, '/superior-list-complaint');
             break;
-          case 2: // Complaint Detail
-            Navigator.pushReplacementNamed(context, '/superior-complaint-detail');
+          case 2: // Statistics
+            Navigator.pushReplacementNamed(context, '/superior-statistics');
             break;
         }
       },
-      selectedItemColor: Colors.red,  // Change the active tab color to red
-      unselectedItemColor: Colors.black54, // Change the inactive tab color
+      selectedItemColor: Colors.red,
+      unselectedItemColor: Colors.black54,
       items: const [
         BottomNavigationBarItem(
           icon: Icon(Icons.home),
@@ -34,7 +35,11 @@ class SuperiorCustomBottomNavigationBar extends StatelessWidget {
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.list_alt),
-          label: 'List Complaint',
+          label: 'Complaints',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.bar_chart),
+          label: 'Statistics',
         ),
       ],
     );

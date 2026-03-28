@@ -83,7 +83,7 @@ class ComplaintApiController extends Controller
         ], 201);
     }
 
-    public function myComplaints()
+    public function myComplaints(Request $request)
     {
         $user = auth()->user();
         $query = Complaint::with(['subCategory.category', 'policeStation']);
@@ -98,7 +98,29 @@ class ComplaintApiController extends Controller
             $query->where('receptionist_id', $user->id);
         }
 
-        $complaints = $query->latest()->get();
+        // Search Filter
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('complainant_name', 'like', "%$search%")
+                  ->orWhere('phone', 'like', "%$search%")
+                  ->orWhere('address', 'like', "%$search%")
+                  ->orWhereHas('subCategory', function($q2) use ($search) {
+                      $q2->where('name', 'like', "%$search%");
+                  });
+            });
+        }
+
+        // Date Filters
+        if ($request->filled('start_date')) {
+            $query->whereDate('created_at', '>=', $request->start_date);
+        }
+        if ($request->filled('end_date')) {
+            $query->whereDate('created_at', '<=', $request->end_date);
+        }
+
+        $perPage = $request->input('per_page', 20);
+        $complaints = $query->latest()->paginate($perPage);
 
         return response()->json($complaints);
     }
@@ -176,5 +198,37 @@ class ComplaintApiController extends Controller
     {
         auth()->user()->unreadNotifications->markAsRead();
         return response()->json(['message' => 'Notifications marked as read']);
+    }
+
+    public function getStatistics(Request $request)
+    {
+        $user = auth()->user();
+        $stationId = $request->input('police_station_id');
+
+        if ($user->hasRole('superior')) {
+            $stationId = $user->police_station_id;
+        }
+
+        $query = Complaint::query();
+        if ($stationId) {
+            $query->where('police_station_id', $stationId);
+        }
+
+        $complaints = $query->get();
+        $stats = [];
+        
+        foreach ($complaints as $complaint) {
+            $type = $complaint->subCategory->name ?? 'Unknown';
+            $stats[$type] = ($stats[$type] ?? 0) + 1;
+        }
+
+        // Sort by count descending
+        arsort($stats);
+
+        return response()->json([
+            'total' => $complaints->count(),
+            'stats' => $stats,
+            'station_name' => $stationId ? PoliceStation::find($stationId)->name : 'All Stations'
+        ]);
     }
 }

@@ -23,6 +23,7 @@ import 'views/signup_page.dart';
 import 'views/superior_home_page.dart';
 import 'views/admin/ThankYouScreen.dart';
 import 'views/admin/receptionistFormScreen.dart';
+import 'views/admin/statistics_screen.dart';
 
 
 final navigatorKey = GlobalKey<NavigatorState>();
@@ -63,6 +64,7 @@ class MyApp extends StatelessWidget {
         "/add_complaint": (context) =>  AddComplaintScreen(),
         "/list_complaint": (context) =>  ComplaintListScreen(),
         "/superior-list-complaint": (context) =>  SuperiorComplaintListScreen(),
+        "/superior-statistics": (context) =>  StatisticsScreen(),
         '/superior-complaint-detail': (context) => SuperiorComplaintDetailScreen(complaint: ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>),
         '/complaint_detail': (context) => ComplaintDetailScreen(complaint: ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>),
         '/edit_complaint': (context) => EditComplaintScreen(complaint: ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>),

@@ -1,85 +1,97 @@
-<div id="sidebar" class="bg-gray-800 text-white flex flex-col w-64 transition-all duration-300 ease-in-out overflow-hidden h-screen fixed left-0 top-0 z-50">
-    <div class="p-4 text-2xl font-bold border-b border-gray-700">KPD Reception</div>
-    <nav class="flex-1 p-4 overflow-y-auto">
-        <ul class="space-y-2 font-mono text-sm">
+<div id="sidebar" class="bg-slate-900 text-white flex flex-col w-64 transition-all duration-300 ease-in-out overflow-hidden h-screen fixed left-0 top-0 z-50 border-r border-slate-800">
+    <div class="p-6 text-center border-b border-slate-800 bg-slate-900">
+        <div class="text-xl font-black tracking-tight text-white uppercase italic">
+            <span class="text-red-500">WBP</span> <span class="text-blue-500">Reception</span>
+        </div>
+        <div class="text-[10px] text-slate-400 font-mono mt-1 font-bold">KRISHNANAGAR PD</div>
+    </div>
+    
+    <nav class="flex-1 p-4 overflow-y-auto custom-scrollbar">
+        <ul class="space-y-1.5 font-sans text-sm font-medium">
+            <li class="px-2 py-1 text-[10px] font-bold text-slate-500 uppercase tracking-widest">General</li>
             <li>
-                <a href="{{ route('dashboard') }}" class="flex items-center p-2 rounded transition-all duration-200 ease-in-out hover:bg-gray-700 hover:bg-opacity-50 {{ request()->routeIs('dashboard') ? 'bg-gray-700 bg-opacity-70 shadow-inner' : '' }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <a href="{{ route('dashboard') }}" class="flex items-center px-3 py-2.5 rounded-lg transition-all duration-200 group {{ request()->routeIs('dashboard') ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 {{ request()->routeIs('dashboard') ? 'text-white' : 'text-slate-500 group-hover:text-blue-400' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2 2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                     </svg>
-                    Home
+                    Dashboard
                 </a>
             </li>
 
-            @hasrole('super')
+            @if(auth()->user()->hasRole(['super', 'admin', 'superior']))
+            <li class="pt-4 px-2 py-1 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Reports</li>
             <li>
-                <a href="{{ route('users.index') }}" class="flex items-center p-2 rounded transition-all duration-200 ease-in-out hover:bg-gray-700 hover:bg-opacity-50 {{ request()->routeIs('users.*') ? 'bg-gray-700 bg-opacity-70 shadow-inner' : '' }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H2v-2a4 4 0 014-4h12.356" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 12v-1a4 4 0 014-4h2a4 4 0 014 4v1" />
+                <a href="{{ route('complaints.index') }}" class="flex items-center px-3 py-2.5 rounded-lg transition-all duration-200 group {{ request()->routeIs('complaints.*') ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 {{ request()->routeIs('complaints.*') ? 'text-white' : 'text-slate-500 group-hover:text-blue-400' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                    </svg>
+                    Complaints
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('statistics.index') }}" class="flex items-center px-3 py-2.5 rounded-lg transition-all duration-200 group {{ request()->routeIs('statistics.*') ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 {{ request()->routeIs('statistics.*') ? 'text-white' : 'text-slate-500 group-hover:text-blue-400' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Statistics
+                </a>
+            </li>
+            @endif
+
+            @if(auth()->user()->hasRole(['super', 'admin']))
+            <li class="pt-4 px-2 py-1 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Management</li>
+            <li>
+                <a href="{{ route('users.index') }}" class="flex items-center px-3 py-2.5 rounded-lg transition-all duration-200 group {{ request()->routeIs('users.*') ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 {{ request()->routeIs('users.*') ? 'text-white' : 'text-slate-500 group-hover:text-blue-400' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                     </svg>
                     Users
                 </a>
             </li>
             <li>
-                <a href="{{ route('police-stations.index') }}" class="flex items-center p-2 rounded transition-all duration-200 ease-in-out hover:bg-gray-700 hover:bg-opacity-50 {{ request()->routeIs('police-stations.*') ? 'bg-gray-700 bg-opacity-70 shadow-inner' : '' }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                <a href="{{ route('police-stations.index') }}" class="flex items-center px-3 py-2.5 rounded-lg transition-all duration-200 group {{ request()->routeIs('police-stations.*') ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 {{ request()->routeIs('police-stations.*') ? 'text-white' : 'text-slate-500 group-hover:text-blue-400' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                     </svg>
                     Police Stations
                 </a>
             </li>
             <li>
-                <a href="{{ route('categories.index') }}" class="flex items-center p-2 rounded transition-all duration-200 ease-in-out hover:bg-gray-700 hover:bg-opacity-50 {{ request()->routeIs('categories.*') ? 'bg-gray-700 bg-opacity-70 shadow-inner' : '' }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <a href="{{ route('categories.index') }}" class="flex items-center px-3 py-2.5 rounded-lg transition-all duration-200 group {{ request()->routeIs('categories.*') ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 {{ request()->routeIs('categories.*') ? 'text-white' : 'text-slate-500 group-hover:text-blue-400' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 11h.01M7 15h.01M11 7h.01M11 11h.01M11 15h.01M15 7h.01M15 11h.01M15 15h.01M19 7h.01M19 11h.01M19 15h.01M7 3h10a2 2 0 012 2v14a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z" />
                     </svg>
-                    Alert Types
+                    Categories
                 </a>
             </li>
             <li>
-                <a href="{{ route('sub-categories.index') }}" class="flex items-center p-2 rounded transition-all duration-200 ease-in-out hover:bg-gray-700 hover:bg-opacity-50 {{ request()->routeIs('sub-categories.*') ? 'bg-gray-700 bg-opacity-70 shadow-inner' : '' }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <a href="{{ route('sub-categories.index') }}" class="flex items-center px-3 py-2.5 rounded-lg transition-all duration-200 group {{ request()->routeIs('sub-categories.*') ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 {{ request()->routeIs('sub-categories.*') ? 'text-white' : 'text-slate-500 group-hover:text-blue-400' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                     </svg>
-                    Complain Categories
+                    Sub-Categories
                 </a>
             </li>
-            <li>
-                <a href="{{ route('complaints.index') }}" class="flex items-center p-2 rounded transition-all duration-200 ease-in-out hover:bg-gray-700 hover:bg-opacity-50 {{ request()->routeIs('complaints.*') ? 'bg-gray-700 bg-opacity-70 shadow-inner' : '' }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                    </svg>
-                    Complains
-                </a>
-            </li>
-            <li>
-                <a href="{{ route('statistics.index') }}" class="flex items-center p-2 rounded transition-all duration-200 ease-in-out hover:bg-gray-700 hover:bg-opacity-50 {{ request()->routeIs('statistics.*') ? 'bg-gray-700 bg-opacity-70 shadow-inner' : '' }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
-                    </svg>
-                    Statistics
-                </a>
-            </li>
-            @endhasrole
+            @endif
 
+            <li class="pt-4 px-2 py-1 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Account</li>
             <li>
-                <a href="{{ route('profile.edit') }}" class="flex items-center p-2 rounded transition-all duration-200 ease-in-out hover:bg-gray-700 hover:bg-opacity-50 {{ request()->routeIs('profile.edit') ? 'bg-gray-700 bg-opacity-70 shadow-inner' : '' }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <a href="{{ route('profile.edit') }}" class="flex items-center px-3 py-2.5 rounded-lg transition-all duration-200 group {{ request()->routeIs('profile.edit') ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 {{ request()->routeIs('profile.edit') ? 'text-white' : 'text-slate-500 group-hover:text-blue-400' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
-                    Profile Management
+                    Settings
                 </a>
             </li>
         </ul>
     </nav>
-    <div class="p-4 border-t border-gray-700 text-sm font-mono">
+    <div class="p-4 border-t border-slate-800">
         <form method="POST" action="{{ route('logout') }}">
             @csrf
-            <button type="submit" class="w-full p-2 bg-red-600 rounded hover:bg-red-700 text-white font-bold transition-all duration-200">
+            <button type="submit" class="w-full flex items-center justify-center px-4 py-2.5 bg-red-600/10 text-red-500 rounded-lg hover:bg-red-600 hover:text-white font-bold transition-all duration-200 group">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-red-500 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
                 Logout
             </button>
         </form>

@@ -11,13 +11,17 @@ class ComplaintController extends Controller
 {
     public function index(Request $request)
     {
+        $user = auth()->user();
         $policeStations = PoliceStation::all();
         $selectedStation = $request->input('police_station_id');
         $searchTerm = $request->input('search');
 
         $query = Complaint::with(['subCategory.category', 'receptionist', 'policeStation']);
 
-        if ($selectedStation) {
+        if ($user->hasRole('superior')) {
+            $query->where('police_station_id', $user->police_station_id);
+            $selectedStation = $user->police_station_id; // Lock station for superior
+        } elseif ($selectedStation) {
             $query->where('police_station_id', $selectedStation);
         }
 
@@ -40,12 +44,15 @@ class ComplaintController extends Controller
 
     public function downloadCsv(Request $request)
     {
+        $user = auth()->user();
         $selectedStation = $request->input('police_station_id');
         $searchTerm = $request->input('search');
 
         $query = Complaint::with(['subCategory.category', 'receptionist', 'policeStation']);
 
-        if ($selectedStation) {
+        if ($user->hasRole('superior')) {
+            $query->where('police_station_id', $user->police_station_id);
+        } elseif ($selectedStation) {
             $query->where('police_station_id', $selectedStation);
         }
 

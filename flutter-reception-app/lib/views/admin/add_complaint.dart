@@ -55,13 +55,17 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
         List<Map<String, dynamic>> allStations = List<Map<String, dynamic>>.from(metadata['police_stations']);
         
         if (userPsId != null && _userRole != 'admin' && _userRole != 'super') {
-          // Filter to only show the user's assigned station for non-admin/super
+          // Filter to only show the user's assigned station for non-admin/super (including superior and receptionist/user)
           int? psId = int.tryParse(userPsId);
           _policeStations = allStations.where((station) => (int.tryParse(station['id'].toString()) ?? -1) == psId).toList();
           
           if (_policeStations.isNotEmpty) {
             _selectedStationId = int.tryParse(_policeStations.first['id'].toString());
             print('DEBUG: Autoselected filtered station: $_selectedStationId');
+          } else {
+            // If the assigned station is not in the list for some reason, show all but this shouldn't happen
+            _policeStations = allStations;
+            _selectedStationId = psId;
           }
         } else {
           // Show all stations for admin/super

@@ -26,6 +26,7 @@ class _HomePageState extends State<HomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             RichText(
+              textAlign: TextAlign.center,
               text: TextSpan(
                 children: [
                   TextSpan(
@@ -49,6 +50,7 @@ class _HomePageState extends State<HomePage> {
             ),
             Text(
               'Reception Management',
+              textAlign: TextAlign.center,
               style: TextStyle(
                 color: Color(0xFF57007F),
                 fontSize: 20,

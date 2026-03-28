@@ -11,8 +11,13 @@ class StatisticsController extends Controller
 {
     public function index(Request $request)
     {
+        $user = auth()->user();
         $policeStations = PoliceStation::all();
         $selectedStationId = $request->input('police_station_id');
+
+        if ($user->hasRole('superior')) {
+            $selectedStationId = $user->police_station_id;
+        }
         
         $complaints = collect();
         $complaintStats = null;

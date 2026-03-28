@@ -19,13 +19,30 @@ class ComplaintsService {
   }
 
   // Function to fetch my complaints from Laravel API
-  Future<List<Map<String, dynamic>>> fetchMyComplaints() async {
+  Future<Map<String, dynamic>> fetchMyComplaints({
+    String? search,
+    String? startDate,
+    String? endDate,
+    int page = 1,
+    int perPage = 20,
+  }) async {
     try {
-      final response = await ApiService.get('my-complaints');
+      String url = 'my-complaints?page=$page&per_page=$perPage';
+      if (search != null && search.isNotEmpty) {
+        url += '&search=${Uri.encodeComponent(search)}';
+      }
+      if (startDate != null && startDate.isNotEmpty) {
+        url += '&start_date=$startDate';
+      }
+      if (endDate != null && endDate.isNotEmpty) {
+        url += '&end_date=$endDate';
+      }
+
+      final response = await ApiService.get(url);
       if (response.statusCode == 200) {
-        return List<Map<String, dynamic>>.from(jsonDecode(response.body));
+        return jsonDecode(response.body);
       } else {
-        throw Exception('Failed to load my complaints');
+        throw Exception('Failed to load my complaints: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
       print('Error fetching my complaints: $e');
@@ -146,6 +163,25 @@ class ComplaintsService {
       }
     } catch (e) {
       print('Error triggering test notification: $e');
+      rethrow;
+    }
+  }
+
+  // Function to fetch statistics from Laravel API
+  Future<Map<String, dynamic>> fetchStatistics({int? policeStationId}) async {
+    try {
+      String url = 'statistics';
+      if (policeStationId != null) {
+        url += '?police_station_id=$policeStationId';
+      }
+      final response = await ApiService.get(url);
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception('Failed to load statistics: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching statistics: $e');
       rethrow;
     }
   }
