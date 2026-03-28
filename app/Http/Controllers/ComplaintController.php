@@ -107,4 +107,33 @@ class ComplaintController extends Controller
         $complaint->delete();
         return redirect()->back()->with('success', 'Complaint deleted successfully.');
     }
+
+    public function addNote(Request $request, Complaint $complaint)
+    {
+        $user = auth()->user();
+        if (!$user->hasRole(['super', 'admin', 'superior'])) {
+            abort(403);
+        }
+
+        $request->validate([
+            'note' => 'required|string',
+        ]);
+
+        $complaint->update([
+            'note' => $request->note,
+            'note_updated_at' => now(),
+        ]);
+
+        // Notify receptionist
+        try {
+            $receptionist = $complaint->receptionist;
+            if ($receptionist) {
+                $receptionist->notify(new \App\Notifications\SuperiorNoteAdded($complaint));
+            }
+        } catch (\Exception $e) {
+            \Log::error("Note notification failed: " . $e->getMessage());
+        }
+
+        return redirect()->back()->with('success', 'Official note added successfully.');
+    }
 }

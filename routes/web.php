@@ -30,6 +30,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Complaints
     Route::get('/complaints', [ComplaintController::class, 'index'])->name('complaints.index');
     Route::get('/complaints/download', [ComplaintController::class, 'downloadCsv'])->name('complaints.download');
+    Route::post('/complaints/{complaint}/note', [ComplaintController::class, 'addNote'])->name('complaints.note');
     Route::delete('/complaints/{complaint}', [ComplaintController::class, 'destroy'])->name('complaints.destroy');
 
     // Statistics

@@ -87,7 +87,7 @@
                         <tr class="bg-slate-50 text-slate-500">
                             <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest">Complainant Info</th>
                             <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest">Category / Type</th>
-                            <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest">Description</th>
+                            <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest">Description & Notes</th>
                             <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-right">Registered On</th>
                             <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-center">Actions</th>
                         </tr>
@@ -118,6 +118,16 @@
                                 <td class="px-6 py-4">
                                     <div class="text-xs text-slate-600 font-medium max-w-xs truncate">{{ $complaint->description }}</div>
                                     <div class="text-[10px] text-slate-400 mt-1 font-bold italic">Rec: {{ $complaint->receptionist->name ?? 'N/A' }}</div>
+                                    
+                                    @if($complaint->note)
+                                    <div class="mt-2 p-2 bg-amber-50 border border-amber-100 rounded-lg">
+                                        <div class="text-[9px] font-black text-amber-800 uppercase tracking-widest mb-1 flex items-center">
+                                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                            Superior Note
+                                        </div>
+                                        <p class="text-[11px] text-amber-900 font-medium leading-relaxed italic">"{{ $complaint->note }}"</p>
+                                    </div>
+                                    @endif
                                 </td>
                                 <td class="px-6 py-4 text-right">
                                     <div class="text-xs font-bold text-slate-900">{{ $complaint->created_at->format('d M, Y') }}</div>
@@ -125,6 +135,14 @@
                                 </td>
                                 <td class="px-6 py-4 text-center">
                                     <div class="flex items-center justify-center gap-2">
+                                        @if(auth()->user()->hasRole(['super', 'admin', 'superior']))
+                                        <button onclick="openNoteModal({{ $complaint->id }}, '{{ addslashes($complaint->note) }}')" class="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all" title="Add Note">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                            </svg>
+                                        </button>
+                                        @endif
+
                                         <form action="{{ route('complaints.destroy', $complaint) }}" method="POST" class="inline">
                                             @csrf @method('DELETE')
                                             <button type="submit" onclick="return confirm('Archive/Delete this record?')" class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all group">
@@ -159,4 +177,40 @@
             @endif
         </div>
     </div>
+
+    <!-- Note Modal -->
+    <div id="noteModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-200">
+            <div class="p-6 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+                <h3 class="text-sm font-black text-slate-800 uppercase tracking-widest">Add Official Note</h3>
+                <button onclick="closeNoteModal()" class="text-slate-400 hover:text-slate-600 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <form id="noteForm" method="POST" class="p-6 space-y-4">
+                @csrf
+                <div>
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Instructions or Remarks</label>
+                    <textarea id="note_text" name="note" required rows="4" class="block w-full rounded-xl border-slate-200 text-sm font-bold shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all" placeholder="Enter official guidance..."></textarea>
+                </div>
+                
+                <div class="pt-4 flex gap-3">
+                    <button type="button" onclick="closeNoteModal()" class="flex-1 py-2.5 bg-slate-100 text-slate-600 text-xs font-black rounded-xl hover:bg-slate-200 transition-all uppercase tracking-widest">Cancel</button>
+                    <button type="submit" class="flex-1 py-2.5 bg-blue-600 text-white text-xs font-black rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 uppercase tracking-widest">Save Note</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openNoteModal(id, currentNote) {
+            document.getElementById('note_text').value = currentNote || '';
+            document.getElementById('noteForm').action = `/complaints/${id}/note`;
+            document.getElementById('noteModal').classList.remove('hidden');
+        }
+        function closeNoteModal() { document.getElementById('noteModal').classList.add('hidden'); }
+    </script>
 </x-app-layout>
