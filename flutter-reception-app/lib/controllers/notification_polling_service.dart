@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:kp_police/controllers/complaints_service.dart';
 import 'package:kp_police/controllers/notification_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class NotificationPollingService {
   static Timer? _timer;
@@ -12,7 +13,7 @@ class NotificationPollingService {
     if (_isPolling) return;
     _isPolling = true;
     print("DEBUG: Starting notification polling...");
-    _timer = Timer.periodic(Duration(seconds: 15), (timer) { // Reduced to 15 seconds for responsiveness
+    _timer = Timer.periodic(const Duration(seconds: 15), (timer) { 
       _checkNotifications();
     });
     // Immediate first check
@@ -27,6 +28,13 @@ class NotificationPollingService {
 
   static Future<void> _checkNotifications() async {
     try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? dutyStartTimeStr = prefs.getString('duty_start_time');
+      DateTime? dutyStartTime;
+      if (dutyStartTimeStr != null) {
+        dutyStartTime = DateTime.parse(dutyStartTimeStr);
+      }
+
       print("DEBUG: Checking for new notifications...");
       final notifications = await _complaintsService.fetchNotifications();
       if (notifications.isNotEmpty) {
@@ -34,7 +42,6 @@ class NotificationPollingService {
         for (var notification in notifications) {
           dynamic data = notification['data'];
           
-          // Handle both Map and String data (Laravel sometimes returns data as string if not cast)
           Map<String, dynamic> dataMap = {};
           if (data is String) {
             dataMap = Map<String, dynamic>.from(jsonDecode(data));
@@ -42,11 +49,20 @@ class NotificationPollingService {
             dataMap = Map<String, dynamic>.from(data);
           }
 
+          // Filter by duty session if it's a note update or high priority for started duty
+          if (dutyStartTime != null && dataMap['complaint_created_at'] != null) {
+            DateTime complaintCreatedAt = DateTime.parse(dataMap['complaint_created_at']);
+            if (complaintCreatedAt.isBefore(dutyStartTime)) {
+              print("DEBUG: Skipping notification for old complaint (pre-duty)");
+              continue;
+            }
+          }
+
           print("DEBUG: Showing notification: ${dataMap['title']}");
           
           await PushNotifications.showSimpleNotification(
             title: dataMap['title'] ?? 'New Alert',
-            body: dataMap['message'] ?? 'A new high priority complaint has been registered.',
+            body: dataMap['message'] ?? 'A new notification has been received.',
             payload: jsonEncode(dataMap),
           );
         }

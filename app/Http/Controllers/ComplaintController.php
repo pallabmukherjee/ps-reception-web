@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Complaint;
 use App\Models\PoliceStation;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ComplaintController extends Controller
@@ -124,12 +126,18 @@ class ComplaintController extends Controller
             'note_updated_at' => now(),
         ]);
 
-        // Notify receptionist
+        // Notify receptionist and admins
         try {
             $receptionist = $complaint->receptionist;
+            $admins = User::role(['admin', 'super'])->get();
+            
+            $notification = new \App\Notifications\SuperiorNoteAdded($complaint);
+            
             if ($receptionist) {
-                $receptionist->notify(new \App\Notifications\SuperiorNoteAdded($complaint));
+                $receptionist->notify($notification);
             }
+            
+            Notification::send($admins, $notification);
         } catch (\Exception $e) {
             \Log::error("Note notification failed: " . $e->getMessage());
         }

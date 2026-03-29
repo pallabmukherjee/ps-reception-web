@@ -49,6 +49,7 @@ class SuperiorNoteAdded extends Notification
             'message' => "Superior added a note to complaint #{$this->complaint->id}.",
             'type' => 'note_added',
             'note' => $this->complaint->note,
+            'complaint_created_at' => $this->complaint->created_at->toIso8601String(),
         ];
     }
 }

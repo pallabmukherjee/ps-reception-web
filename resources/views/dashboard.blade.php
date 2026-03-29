@@ -41,33 +41,45 @@
 
         <!-- Stats Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            @forelse($policeStations as $station)
+            @php
+                $colors = [
+                    ['bg' => 'bg-blue-50', 'border' => 'border-blue-100', 'text' => 'text-blue-600', 'icon_bg' => 'bg-blue-100/50'],
+                    ['bg' => 'bg-emerald-50', 'border' => 'border-emerald-100', 'text' => 'text-emerald-600', 'icon_bg' => 'bg-emerald-100/50'],
+                    ['bg' => 'bg-amber-50', 'border' => 'border-amber-100', 'text' => 'text-amber-600', 'icon_bg' => 'bg-amber-100/50'],
+                    ['bg' => 'bg-rose-50', 'border' => 'border-rose-100', 'text' => 'text-rose-600', 'icon_bg' => 'bg-rose-100/50'],
+                    ['bg' => 'bg-indigo-50', 'border' => 'border-indigo-100', 'text' => 'text-indigo-600', 'icon_bg' => 'bg-indigo-100/50'],
+                    ['bg' => 'bg-violet-50', 'border' => 'border-violet-100', 'text' => 'text-violet-600', 'icon_bg' => 'bg-violet-100/50'],
+                    ['bg' => 'bg-cyan-50', 'border' => 'border-cyan-100', 'text' => 'text-cyan-600', 'icon_bg' => 'bg-cyan-100/50'],
+                ];
+            @endphp
+            @forelse($policeStations as $index => $station)
                 @php
                     $count = $stationCounts[$station->id] ?? 0;
                     $isAssigned = auth()->user()->hasRole('superior') && auth()->user()->police_station_id == $station->id;
+                    $color = $colors[$index % count($colors)];
                 @endphp
-                <div class="bg-white group p-6 rounded-2xl shadow-sm border {{ $isAssigned ? 'border-blue-500 ring-4 ring-blue-500/5' : 'border-slate-200 hover:border-blue-300' }} transition-all duration-300 hover:shadow-xl hover:shadow-slate-200/50">
+                <div class="{{ $color['bg'] }} group p-6 rounded-2xl shadow-sm border {{ $isAssigned ? 'border-blue-500 ring-4 ring-blue-500/10' : $color['border'] . ' hover:border-slate-300' }} transition-all duration-300 hover:shadow-xl hover:shadow-slate-200/50">
                     <div class="flex justify-between items-start mb-4">
-                        <div class="p-3 bg-slate-50 rounded-xl group-hover:bg-blue-50 transition-colors">
-                            <svg class="w-6 h-6 text-slate-400 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="p-3 {{ $color['icon_bg'] }} rounded-xl group-hover:bg-white transition-colors">
+                            <svg class="w-6 h-6 {{ $color['text'] }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                             </svg>
                         </div>
                         @if($isAssigned)
-                        <span class="text-[8px] font-black bg-blue-600 text-white px-2 py-0.5 rounded-full uppercase tracking-tighter">My Station</span>
+                        <span class="text-[8px] font-black bg-blue-600 text-white px-2 py-0.5 rounded-full uppercase tracking-tighter shadow-lg shadow-blue-600/20">My Station</span>
                         @endif
                     </div>
                     
                     <h3 class="text-lg font-black text-slate-800 mb-1 tracking-tight">{{ $station->name }}</h3>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Subdivision Jurisdiction</p>
+                    <p class="text-[10px] font-bold text-slate-500/60 uppercase tracking-widest mb-4">Subdivision Jurisdiction</p>
                     
                     <div class="flex items-end justify-between">
                         <div class="text-3xl font-black text-slate-900">{{ $count }}</div>
-                        <div class="text-[10px] font-black {{ $count > 0 ? 'text-emerald-500' : 'text-slate-300' }} uppercase tracking-widest">Active Cases</div>
+                        <div class="text-[10px] font-black {{ $count > 0 ? $color['text'] : 'text-slate-300' }} uppercase tracking-widest">Active Cases</div>
                     </div>
                     
-                    <div class="mt-4 w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                        <div class="bg-blue-600 h-full rounded-full transition-all duration-1000" style="width: {{ $totalEntries > 0 ? ($count / $totalEntries) * 100 : 0 }}%"></div>
+                    <div class="mt-4 w-full bg-white/50 h-1.5 rounded-full overflow-hidden border border-black/5">
+                        <div class="{{ $isAssigned ? 'bg-blue-600' : $color['text'] }} opacity-70 h-full rounded-full transition-all duration-1000" style="width: {{ $totalEntries > 0 ? ($count / $totalEntries) * 100 : 0 }}%"></div>
                     </div>
                 </div>
             @empty

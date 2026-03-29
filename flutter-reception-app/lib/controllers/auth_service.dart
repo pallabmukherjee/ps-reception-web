@@ -28,6 +28,11 @@ class AuthService {
         NotificationPollingService.startPolling(); // Start polling for all roles upon login
         
         if (data['user']['police_station_id'] != null) {
+          await prefs.setString('user_ps_id', data['user']['police_station_id'].toString());
+        }
+        if (data['user']['police_station_notification_id'] != null) {
+          await prefs.setString('user_ps_notification_id', data['user']['police_station_notification_id']);
+        }
         
         return "Login Successfully";
       } else {

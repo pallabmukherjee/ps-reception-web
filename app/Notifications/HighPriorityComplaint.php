@@ -49,6 +49,7 @@ class HighPriorityComplaint extends Notification
             'title' => '🚨 EMERGENCY HIGH ALERT 🚨',
             'message' => "New {$this->complaint->subCategory->name} registered.",
             'type' => 'high_priority',
+            'complaint_created_at' => $this->complaint->created_at->toIso8601String(),
         ];
     }
 }

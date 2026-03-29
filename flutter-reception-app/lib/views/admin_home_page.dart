@@ -239,10 +239,23 @@ class _AdminHomePageState extends State<AdminHomePage> {
       borderRadius: BorderRadius.circular(24),
       child: Container(
         decoration: BoxDecoration(
-          color: bgColor,
+          gradient: LinearGradient(
+            colors: [bgColor, Colors.white],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
-            BoxShadow(color: color.withOpacity(0.05), blurRadius: 15, offset: const Offset(0, 8)),
+            BoxShadow(
+              color: color.withOpacity(0.12),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+            BoxShadow(
+              color: Colors.white,
+              blurRadius: 0,
+              offset: const Offset(0, 0),
+            ),
           ],
           border: Border.all(color: Colors.white, width: 2),
         ),
@@ -251,9 +264,9 @@ class _AdminHomePageState extends State<AdminHomePage> {
           child: Stack(
             children: [
               Positioned(
-                right: -10,
-                bottom: -10,
-                child: Icon(icon, size: 80, color: color.withOpacity(0.05)),
+                right: -15,
+                bottom: -15,
+                child: Icon(icon, size: 100, color: color.withOpacity(0.06)),
               ),
               Padding(
                 padding: const EdgeInsets.all(20),
@@ -261,22 +274,40 @@ class _AdminHomePageState extends State<AdminHomePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(10),
+                      padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [BoxShadow(color: color.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 4))]
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: color.withOpacity(0.15),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          )
+                        ]
                       ),
-                      child: Icon(icon, color: color, size: 24),
+                      child: Icon(icon, color: color, size: 28),
                     ),
                     const Spacer(),
                     Text(
                       title,
-                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Color(0xFF1E293B), letterSpacing: -0.5),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF1E293B),
+                        letterSpacing: -0.5,
+                        height: 1.1,
+                      ),
                     ),
+                    const SizedBox(height: 4),
                     Text(
-                      subtitle,
-                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.blueGrey.shade400),
+                      subtitle.toUpperCase(),
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w900,
+                        color: color.withOpacity(0.6),
+                        letterSpacing: 1,
+                      ),
                     ),
                   ],
                 ),

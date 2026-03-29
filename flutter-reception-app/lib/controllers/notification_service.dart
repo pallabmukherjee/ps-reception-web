@@ -10,7 +10,7 @@ class PushNotifications {
 
   // Initialize Flutter local notifications
   static Future<void> localNotiInit() async {
-    const AndroidNotificationDetails androidNotificationDetails = AndroidNotificationDetails(
+    final AndroidNotificationDetails androidNotificationDetails = AndroidNotificationDetails(
       'high_importance_channel',
       'High Importance Notifications',
       channelDescription: 'Used for critical emergency alerts',
@@ -61,16 +61,19 @@ class PushNotifications {
     required String payload,
   }) async {
     const AndroidNotificationDetails androidNotificationDetails =
-    AndroidNotificationDetails('your_channel_id', 'your_channel_name',
-        channelDescription: 'your_channel_description',
+    AndroidNotificationDetails('high_importance_channel', 'High Importance Notifications',
+        channelDescription: 'Used for critical emergency alerts',
         importance: Importance.max,
         priority: Priority.high,
         ticker: 'ticker',
+        playSound: true,
+        enableVibration: true,
+        vibrationPattern: [0, 1000, 500, 1000],
         sound: RawResourceAndroidNotificationSound('tone')
     );
     const NotificationDetails notificationDetails =
     NotificationDetails(android: androidNotificationDetails);
     await _flutterLocalNotificationsPlugin
-        .show(0, title, body, notificationDetails, payload: payload);
+        .show(DateTime.now().millisecond, title, body, notificationDetails, payload: payload);
   }
 }

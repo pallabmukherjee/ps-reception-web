@@ -143,12 +143,18 @@ class ComplaintApiController extends Controller
             'note_updated_at' => now(),
         ]);
 
-        // Notify receptionist
+        // Notify receptionist and admins
         try {
             $receptionist = $complaint->receptionist;
+            $admins = User::role(['admin', 'super'])->get();
+            
+            $notification = new SuperiorNoteAdded($complaint);
+            
             if ($receptionist) {
-                $receptionist->notify(new SuperiorNoteAdded($complaint));
+                $receptionist->notify($notification);
             }
+            
+            Notification::send($admins, $notification);
         } catch (\Exception $e) {
             \Log::error("Note notification failed: " . $e->getMessage());
         }

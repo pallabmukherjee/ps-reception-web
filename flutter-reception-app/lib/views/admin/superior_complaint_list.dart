@@ -152,7 +152,10 @@ class _SuperiorComplaintListScreenState extends State<SuperiorComplaintListScree
                             itemCount: _complaints.length + (_hasMore ? 1 : 0),
                             itemBuilder: (context, index) {
                               if (index == _complaints.length) {
-                                return const Center(padding: EdgeInsets.all(16.0), child: CircularProgressIndicator());
+                                return const Padding(
+                                  padding: EdgeInsets.all(16.0),
+                                  child: Center(child: CircularProgressIndicator()),
+                                );
                               }
                               return _buildPremiumComplaintCard(_complaints[index]);
                             },

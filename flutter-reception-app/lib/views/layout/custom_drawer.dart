@@ -10,6 +10,8 @@ class CustomDrawer extends StatefulWidget {
 class _CustomDrawerState extends State<CustomDrawer> {
   String _userName = 'Official User';
   String _userRole = 'Personnel';
+  bool _isJurisdictionOpen = false;
+  bool _isAnalyticsOpen = false;
 
   @override
   void initState() {
@@ -27,6 +29,9 @@ class _CustomDrawerState extends State<CustomDrawer> {
 
   @override
   Widget build(BuildContext context) {
+    bool isAdmin = _userRole == 'ADMIN' || _userRole == 'SUPER';
+    bool isSuperior = _userRole == 'SUPERIOR';
+
     return Drawer(
       backgroundColor: Colors.white,
       child: Column(
@@ -39,18 +44,68 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 _buildDrawerItem(
                   icon: Icons.dashboard_rounded,
                   title: 'Dashboard',
-                  onTap: () => Navigator.pushReplacementNamed(context, _userRole == 'SUPERIOR' ? '/superiorhome' : '/adminhome'),
+                  onTap: () => Navigator.pushReplacementNamed(context, isSuperior ? '/superiorhome' : '/adminhome'),
                 ),
-                _buildDrawerItem(
-                  icon: Icons.assignment_rounded,
-                  title: 'Complain Records',
-                  onTap: () => Navigator.pushNamed(context, _userRole == 'SUPERIOR' ? '/superior-list-complaint' : '/list_complaint'),
-                ),
-                _buildDrawerItem(
-                  icon: Icons.add_moderator_rounded,
-                  title: 'Register New Case',
-                  onTap: () => Navigator.pushNamed(context, '/add_complaint'),
-                ),
+                
+                // Analytics Section
+                if (isAdmin || isSuperior) ...[
+                  _buildExpandableGroup(
+                    icon: Icons.analytics_rounded,
+                    title: 'Analytics & Reports',
+                    isExpanded: _isAnalyticsOpen,
+                    onToggle: () => setState(() => _isAnalyticsOpen = !_isAnalyticsOpen),
+                    children: [
+                      _buildSubItem(
+                        title: 'All Complaints',
+                        onTap: () => Navigator.pushNamed(context, isSuperior ? '/superior-list-complaint' : '/list_complaint'),
+                      ),
+                      _buildSubItem(
+                        title: 'Statistics',
+                        onTap: () => Navigator.pushNamed(context, '/superior-statistics'),
+                      ),
+                    ],
+                  ),
+                ] else ...[
+                   _buildDrawerItem(
+                    icon: Icons.assignment_rounded,
+                    title: 'My Complaints',
+                    onTap: () => Navigator.pushNamed(context, '/list_complaint'),
+                  ),
+                ],
+
+                if (!isSuperior)
+                  _buildDrawerItem(
+                    icon: Icons.add_moderator_rounded,
+                    title: 'Register New Case',
+                    onTap: () => Navigator.pushNamed(context, '/add_complaint'),
+                  ),
+
+                // Management Section (Admin Only)
+                if (isAdmin) ...[
+                  const Divider(indent: 20, endIndent: 20, height: 24),
+                  _buildDrawerItem(
+                    icon: Icons.people_alt_rounded,
+                    title: 'User Management',
+                    onTap: () => Navigator.pushNamed(context, '/users'), // Assuming /users exists or will be handled
+                  ),
+                  _buildExpandableGroup(
+                    icon: Icons.admin_panel_settings_rounded,
+                    title: 'Jurisdiction',
+                    isExpanded: _isJurisdictionOpen,
+                    onToggle: () => setState(() => _isJurisdictionOpen = !_isJurisdictionOpen),
+                    children: [
+                      _buildSubItem(
+                        title: 'Police Stations',
+                        onTap: () => Navigator.pushNamed(context, '/stations'),
+                      ),
+                      _buildSubItem(
+                        title: 'Categories',
+                        onTap: () => Navigator.pushNamed(context, '/categories'),
+                      ),
+                    ],
+                  ),
+                ],
+
                 const Divider(indent: 20, endIndent: 20, height: 32),
                 _buildDrawerItem(
                   icon: Icons.account_circle_rounded,
@@ -68,6 +123,40 @@ class _CustomDrawerState extends State<CustomDrawer> {
           _buildLogoutButton(),
         ],
       ),
+    );
+  }
+
+  Widget _buildExpandableGroup({
+    required IconData icon,
+    required String title,
+    required bool isExpanded,
+    required VoidCallback onToggle,
+    required List<Widget> children,
+  }) {
+    return Column(
+      children: [
+        ListTile(
+          leading: Icon(icon, color: const Color(0xFF00137F), size: 22),
+          title: Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+          trailing: Icon(isExpanded ? Icons.expand_less_rounded : Icons.expand_more_rounded, size: 20),
+          onTap: onToggle,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+          visualDensity: const VisualDensity(vertical: -1),
+        ),
+        if (isExpanded) ...children,
+      ],
+    );
+  }
+
+  Widget _buildSubItem({required String title, required VoidCallback onTap}) {
+    return ListTile(
+      title: Text(
+        title,
+        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.blueGrey),
+      ),
+      onTap: onTap,
+      contentPadding: const EdgeInsets.only(left: 64, right: 24),
+      visualDensity: const VisualDensity(vertical: -3),
     );
   }
 

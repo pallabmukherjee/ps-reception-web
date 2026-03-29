@@ -20,11 +20,30 @@ class _SuperiorComplaintDetailScreenState extends State<SuperiorComplaintDetailS
   int _selectedIndex = 1;
   final ComplaintsService _complaintsService = ComplaintsService();
   bool _isDeleting = false;
+  final TextEditingController _noteController = TextEditingController();
+  bool _isAddingNote = false;
 
   void _onTabSelected(int index) {
     setState(() {
       _selectedIndex = index;
     });
+  }
+
+  Future<void> _submitNote() async {
+    if (_noteController.text.isEmpty) return;
+    setState(() => _isAddingNote = true);
+    try {
+      await _complaintsService.addNote(widget.complaint['id'], _noteController.text);
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Note added successfully')));
+      setState(() {
+        widget.complaint['note'] = _noteController.text;
+        _isAddingNote = false;
+        _noteController.clear();
+      });
+    } catch (e) {
+      setState(() => _isAddingNote = false);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add note: $e')));
+    }
   }
 
   void _deleteComplaint() async {
@@ -88,6 +107,12 @@ class _SuperiorComplaintDetailScreenState extends State<SuperiorComplaintDetailS
               _buildSuperiorHeader(),
               const SizedBox(height: 32),
               _buildSuperiorDetailCard(),
+              if (widget.complaint['note'] != null) ...[
+                const SizedBox(height: 24),
+                _buildNoteSection(),
+              ],
+              const SizedBox(height: 24),
+              _buildAddNoteField(),
               const SizedBox(height: 32),
               _buildAdminActions(),
               const SizedBox(height: 40),
@@ -99,6 +124,60 @@ class _SuperiorComplaintDetailScreenState extends State<SuperiorComplaintDetailS
         onTabSelected: _onTabSelected,
         selectedIndex: _selectedIndex,
       ),
+    );
+  }
+
+  Widget _buildNoteSection() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.amber.shade50,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.amber.shade100),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.notes_rounded, color: Colors.amber.shade900, size: 18),
+              const SizedBox(width: 8),
+              Text("YOUR OFFICIAL NOTE", style: TextStyle(fontWeight: FontWeight.w900, color: Colors.amber.shade900, fontSize: 11, letterSpacing: 1)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            widget.complaint['note'] ?? '',
+            style: const TextStyle(fontSize: 14, color: Color(0xFF334155), height: 1.5, fontWeight: FontWeight.w600),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAddNoteField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text("UPDATE OFFICIAL GUIDANCE", style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.blueGrey, letterSpacing: 1)),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _noteController,
+          maxLines: 3,
+          decoration: InputDecoration(
+            hintText: "Enter instructions for receptionist...",
+            fillColor: Colors.white,
+            suffixIcon: IconButton(
+              icon: _isAddingNote ? const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ) : const Icon(Icons.send_rounded, color: Color(0xFF00137F)),
+              onPressed: _isAddingNote ? null : _submitNote,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -144,6 +223,8 @@ class _SuperiorComplaintDetailScreenState extends State<SuperiorComplaintDetailS
           _buildInfoRow(Icons.pin_drop_rounded, "Residential Address", widget.complaint['address']),
           _buildInfoRow(Icons.category_rounded, "Complain Type", widget.complaint['sub_category']?['name']),
           _buildInfoRow(Icons.history_edu_rounded, "Statement", widget.complaint['description'], isLongText: true),
+          _buildInfoRow(Icons.person_pin_rounded, "Receptionist Info", 
+            "${widget.complaint['receptionist']?['name'] ?? 'N/A'}\n${widget.complaint['receptionist']?['phone_number'] ?? ''}", isLongText: true),
           _buildInfoRow(Icons.watch_later_rounded, "Logged On", formatTimestamp(widget.complaint['created_at'])),
           _buildInfoRow(Icons.rule_rounded, "Status", widget.complaint['status']?.toUpperCase(), isStatus: true),
         ],
