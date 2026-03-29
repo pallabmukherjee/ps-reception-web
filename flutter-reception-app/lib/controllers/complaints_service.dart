@@ -213,9 +213,13 @@ class ComplaintsService {
   }
 
   // Function to fetch a single complaint by ID
-  Future<Map<String, dynamic>> fetchComplaint(int id) async {
+  Future<Map<String, dynamic>> fetchComplaint(int id, {String? dutyStartTime}) async {
     try {
-      final response = await ApiService.get('complaints/$id');
+      String url = 'complaints/$id';
+      if (dutyStartTime != null && dutyStartTime.isNotEmpty) {
+        url += '?duty_start_time=$dutyStartTime';
+      }
+      final response = await ApiService.get(url);
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       } else {

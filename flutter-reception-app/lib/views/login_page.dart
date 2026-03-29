@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kp_police/controllers/auth_service.dart';
+import 'package:kp_police/controllers/notification_polling_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
@@ -153,6 +154,8 @@ class _LoginPageState extends State<LoginPage> {
       if (loginMessage == "Login Successfully") {
         SharedPreferences prefs = await SharedPreferences.getInstance();
         String? role = prefs.getString('user_role');
+        
+        NotificationPollingService.startPolling();
         
         if (mounted) {
           if (role == "admin" || role == "super") {

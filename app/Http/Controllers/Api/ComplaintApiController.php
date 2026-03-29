@@ -29,9 +29,33 @@ class ComplaintApiController extends Controller
         ]);
     }
 
-    public function show(Complaint $complaint)
+    public function show(Request $request, Complaint $complaint)
     {
-        return response()->json($complaint->load(['subCategory.category', 'policeStation', 'receptionist']));
+        $complaint->load(['subCategory.category', 'policeStation', 'receptionist']);
+        $user = auth()->user();
+        $dutyStartTime = $request->input('duty_start_time');
+
+        if ($user->hasRole('super')) {
+            $complaint->is_editable = true;
+        } elseif ($user->hasRole('superior')) {
+            $complaint->is_editable = ((int)$complaint->police_station_id === (int)$user->police_station_id);
+        } elseif ($user->hasRole('admin')) {
+            $isOwn = ((int)$complaint->receptionist_id === (int)$user->id);
+            $isWithinDuty = false; // Default to false for safety
+            if ($dutyStartTime) {
+                try {
+                    $dutyDate = \Carbon\Carbon::parse($dutyStartTime);
+                    $isWithinDuty = $complaint->created_at->greaterThanOrEqualTo($dutyDate);
+                } catch (\Exception $e) {
+                    \Log::error("Duty start time parsing failed in show: " . $e->getMessage());
+                }
+            }
+            $complaint->is_editable = $isOwn && $isWithinDuty;
+        } else {
+            $complaint->is_editable = ((int)$complaint->receptionist_id === (int)$user->id);
+        }
+
+        return response()->json($complaint);
     }
 
     public function store(Request $request)
@@ -43,6 +67,8 @@ class ComplaintApiController extends Controller
             'sub_category_id' => 'required|exists:sub_categories,id',
             'police_station_id' => 'required|exists:police_stations,id',
             'description' => 'nullable|string',
+            'receptionist_name' => 'nullable|string',
+            'receptionist_mobile' => 'nullable|string',
         ]);
 
         $complaint = Complaint::create([
@@ -149,7 +175,7 @@ class ComplaintApiController extends Controller
             } elseif ($user->hasRole('admin')) {
                 // Admin (Receptionist) can only edit if they are the creator AND it was during current duty session
                 $isOwn = ((int)$complaint->receptionist_id === (int)$user->id);
-                $isWithinDuty = true;
+                $isWithinDuty = false; // Default to false for safety
                 if ($dutyStartTime) {
                     try {
                         $dutyDate = \Carbon\Carbon::parse($dutyStartTime);

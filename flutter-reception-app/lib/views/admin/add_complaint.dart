@@ -77,6 +77,9 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String recName = prefs.getString('receptionist_name') ?? 'Unknown';
       String recMobile = prefs.getString('receptionist_mobile') ?? 'N/A';
+      
+      if (recName.trim().isEmpty) recName = 'Unknown';
+      if (recMobile.trim().isEmpty) recMobile = 'N/A';
 
       await _complaintsService.storeComplaint(
         name: _nameController.text,

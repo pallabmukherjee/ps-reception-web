@@ -337,7 +337,7 @@ class _ComplaintListScreenState extends State<ComplaintListScreen> {
   }
 
   Widget _buildPremiumComplaintCard(Map<String, dynamic> complaint) {
-    bool canEdit = complaint['is_editable'] == true || _userRole == 'admin' || _userRole == 'super';
+    bool canEdit = complaint['is_editable'] == true;
     bool canDelete = _userRole == 'admin' || _userRole == 'super' || _userRole == 'superior';
     
     return Container(

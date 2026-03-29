@@ -49,15 +49,6 @@ class NotificationPollingService {
             dataMap = Map<String, dynamic>.from(data);
           }
 
-          // Filter by duty session if it's a note update or high priority for started duty
-          if (dutyStartTime != null && dataMap['complaint_created_at'] != null) {
-            DateTime complaintCreatedAt = DateTime.parse(dataMap['complaint_created_at']);
-            if (complaintCreatedAt.isBefore(dutyStartTime)) {
-              print("DEBUG: Skipping notification for old complaint (pre-duty)");
-              continue;
-            }
-          }
-
           print("DEBUG: Showing notification: ${dataMap['title']}");
           
           await PushNotifications.showSimpleNotification(

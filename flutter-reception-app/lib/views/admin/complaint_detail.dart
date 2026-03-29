@@ -40,7 +40,9 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
   Future<void> _loadComplaintDetails() async {
     setState(() => _isLoading = true);
     try {
-      final fullComplaint = await _complaintsService.fetchComplaint(_complaint['id']);
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? dutyStart = prefs.getString('duty_start_time');
+      final fullComplaint = await _complaintsService.fetchComplaint(_complaint['id'], dutyStartTime: dutyStart);
       setState(() {
         _complaint = fullComplaint;
         _isLoading = false;
@@ -131,7 +133,7 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    bool canManage = _complaint['is_editable'] == true || _userRole == 'admin' || _userRole == 'super';
+    bool canManage = _complaint['is_editable'] == true;
     bool isSuperior = _userRole == 'superior';
 
     return Scaffold(

@@ -38,7 +38,9 @@ class _SuperiorComplaintDetailScreenState extends State<SuperiorComplaintDetailS
   Future<void> _loadComplaintDetails() async {
     setState(() => _isLoading = true);
     try {
-      final fullComplaint = await _complaintsService.fetchComplaint(_complaint['id']);
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? dutyStart = prefs.getString('duty_start_time');
+      final fullComplaint = await _complaintsService.fetchComplaint(_complaint['id'], dutyStartTime: dutyStart);
       setState(() {
         _complaint = fullComplaint;
         _isLoading = false;
