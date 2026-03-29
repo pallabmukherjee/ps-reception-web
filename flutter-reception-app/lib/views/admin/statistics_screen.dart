@@ -155,8 +155,16 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(entry.key, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  Expanded(
+                    child: Text(
+                      entry.key, 
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      softWrap: true,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
                   Text("${entry.value}", style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.blue)),
                 ],
               ),
