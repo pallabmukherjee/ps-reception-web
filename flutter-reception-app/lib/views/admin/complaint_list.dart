@@ -417,10 +417,11 @@ class _ComplaintListScreenState extends State<ComplaintListScreen> {
                       ),
                     ),
                   ),
-                  Text(
-                    _formatDate(complaint['created_at']),
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade400),
-                  ),
+                  if (_userRole != 'admin' && _userRole != 'superior')
+                    Text(
+                      _formatDate(complaint['created_at']),
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade400),
+                    ),
                 ],
               ),
               const SizedBox(height: 16),

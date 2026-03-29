@@ -94,13 +94,18 @@ class ComplaintApiController extends Controller
         $user = auth()->user();
         $query = Complaint::with(['subCategory.category', 'policeStation', 'receptionist']);
 
-        if ($user->hasRole(['super', 'admin'])) {
-            // Full access
-        } elseif ($user->hasRole('superior')) {
-            $query->where('police_station_id', $user->police_station_id);
+        if ($user->hasRole('super')) {
+            // Full access for super-admin: all time, all stations
+        } elseif ($user->hasRole(['admin', 'superior'])) {
+            // Admin/Superior: Restricted to their station and only last 24 hours
+            if ($user->police_station_id) {
+                $query->where('police_station_id', $user->police_station_id);
+            }
+            $query->where('created_at', '>=', now()->subHours(24));
         } else {
-            // Receptionist: Only show complaints from current duty session if duty_start_time is provided
+            // Receptionist: Only show their own from last 24 hours
             $query->where('receptionist_id', $user->id);
+            $query->where('created_at', '>=', now()->subHours(24));
             
             if ($request->filled('duty_start_time')) {
                 $query->where('created_at', '>=', $request->duty_start_time);
@@ -128,6 +133,12 @@ class ComplaintApiController extends Controller
 
         $perPage = $request->input('per_page', 20);
         $complaints = $query->latest()->paginate($perPage);
+
+        // Add is_editable flag: only own complaints are editable for non-super users
+        $complaints->getCollection()->transform(function($complaint) use ($user) {
+            $complaint->is_editable = $user->hasRole('super') || ($complaint->receptionist_id === $user->id);
+            return $complaint;
+        });
 
         return response()->json($complaints);
     }
