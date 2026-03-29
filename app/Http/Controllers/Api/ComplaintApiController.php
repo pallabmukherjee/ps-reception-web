@@ -29,6 +29,11 @@ class ComplaintApiController extends Controller
         ]);
     }
 
+    public function show(Complaint $complaint)
+    {
+        return response()->json($complaint->load(['subCategory.category', 'policeStation', 'receptionist']));
+    }
+
     public function store(Request $request)
     {
         $request->validate([

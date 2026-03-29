@@ -21,6 +21,7 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
 
   int? _selectedSubCategoryId;
   int? _selectedStationId;
+  int? _profileStationId;
   String? _userRole;
 
   List<Map<String, dynamic>> _subCategories = [];
@@ -45,11 +46,16 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
       setState(() {
         _subCategories = List<Map<String, dynamic>>.from(metadata['sub_categories']);
         List<Map<String, dynamic>> allStations = List<Map<String, dynamic>>.from(metadata['police_stations']);
-        _policeStations = allStations;
         
-        if (userPsId != null && _userRole != 'admin' && _userRole != 'super') {
+        if (userPsId != null) {
           int? psId = int.tryParse(userPsId);
+          _profileStationId = psId;
           _selectedStationId = psId;
+          
+          // Lock to the assigned station ONLY
+          _policeStations = allStations.where((ps) => int.tryParse(ps['id'].toString()) == psId).toList();
+        } else {
+          _policeStations = allStations;
         }
         _isLoading = false;
       });
@@ -126,11 +132,11 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
                         "Jurisdiction Station",
                         _policeStations,
                         _selectedStationId,
-                        (_userRole == 'admin' || _userRole == 'super') 
+                        (_profileStationId == null) 
                           ? (val) => setState(() => _selectedStationId = val)
-                          : null, // Disabled for receptionists/superiors
+                          : null, 
                         Icons.account_balance_outlined,
-                        isDisabled: (_userRole != 'admin' && _userRole != 'super'),
+                        isDisabled: (_profileStationId != null),
                       ),
                       const SizedBox(height: 16),
                       _buildTextField(_descriptionController, "Complain Description (Optional)", Icons.description_outlined, "Provide brief incident details", maxLines: 4),
@@ -189,6 +195,7 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
 
   Widget _buildDropdown(String label, List<Map<String, dynamic>> items, int? selectedValue, ValueChanged<int?>? onChanged, IconData icon, {bool isDisabled = false}) {
     return DropdownButtonFormField<int>(
+      isExpanded: true,
       value: selectedValue,
       onChanged: isDisabled ? null : onChanged,
       validator: (value) => value == null ? 'Selection required' : null,
@@ -201,7 +208,15 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
       items: items.map((item) {
         return DropdownMenuItem<int>(
           value: int.tryParse(item['id'].toString()),
-          child: Text(item['name'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isDisabled ? Colors.grey : Colors.black)),
+          child: Text(
+            item['name'], 
+            style: TextStyle(
+              fontWeight: FontWeight.bold, 
+              fontSize: 14, 
+              color: isDisabled ? Colors.grey : Colors.black
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
         );
       }).toList(),
     );

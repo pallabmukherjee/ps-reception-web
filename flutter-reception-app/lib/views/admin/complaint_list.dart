@@ -388,7 +388,6 @@ class _ComplaintListScreenState extends State<ComplaintListScreen> {
                       ],
                     ),
                   ),
-                  _buildStatusBadge(complaint['status']),
                 ],
               ),
               const Padding(
@@ -427,18 +426,22 @@ class _ComplaintListScreenState extends State<ComplaintListScreen> {
               const SizedBox(height: 16),
               Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade200),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      complaint['sub_category']?['name']?.toUpperCase() ?? 'N/A',
-                      style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.blueGrey),
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade200),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        complaint['sub_category']?['name']?.toUpperCase() ?? 'N/A',
+                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.blueGrey),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
                     ),
                   ),
-                  const Spacer(),
+                  const SizedBox(width: 8),
                   if (canEdit)
                     IconButton(
                       icon: const Icon(Icons.edit_note_rounded, color: Colors.blueGrey),

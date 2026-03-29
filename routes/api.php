@@ -22,6 +22,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('logout', [AuthController::class, 'logout']);
 
     // Complaint APIs
+    Route::get('complaints/{complaint}', [ComplaintApiController::class, 'show']);
     Route::post('complaints', [ComplaintApiController::class, 'store']);
     Route::patch('complaints/{complaint}', [ComplaintApiController::class, 'update']);
     Route::delete('complaints/{complaint}', [ComplaintApiController::class, 'destroy']);

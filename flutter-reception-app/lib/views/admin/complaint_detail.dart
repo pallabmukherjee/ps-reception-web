@@ -24,11 +24,33 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
   bool _isDeleting = false;
   final TextEditingController _noteController = TextEditingController();
   bool _isAddingNote = false;
+  late Map<String, dynamic> _complaint;
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
+    _complaint = widget.complaint;
     _loadUserRole();
+    if (_complaint['address'] == null || _complaint['description'] == null) {
+      _loadComplaintDetails();
+    }
+  }
+
+  Future<void> _loadComplaintDetails() async {
+    setState(() => _isLoading = true);
+    try {
+      final fullComplaint = await _complaintsService.fetchComplaint(_complaint['id']);
+      setState(() {
+        _complaint = fullComplaint;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load full record: $e')),
+      );
+    }
   }
 
   Future<void> _loadUserRole() async {
@@ -63,7 +85,7 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
     if (confirm == true) {
       setState(() => _isDeleting = true);
       try {
-        await _complaintsService.deleteComplaint(widget.complaint['id']);
+        await _complaintsService.deleteComplaint(_complaint['id']);
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Record deleted successfully')));
         Navigator.pop(context, true); 
       } catch (e) {
@@ -77,10 +99,10 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
     if (_noteController.text.isEmpty) return;
     setState(() => _isAddingNote = true);
     try {
-      await _complaintsService.addNote(widget.complaint['id'], _noteController.text);
+      await _complaintsService.addNote(_complaint['id'], _noteController.text);
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Note added successfully')));
       setState(() {
-        widget.complaint['note'] = _noteController.text;
+        _complaint['note'] = _noteController.text;
         _isAddingNote = false;
         _noteController.clear();
       });
@@ -109,37 +131,39 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    bool canManage = widget.complaint['is_editable'] == true || _userRole == 'admin' || _userRole == 'super';
+    bool canManage = _complaint['is_editable'] == true || _userRole == 'admin' || _userRole == 'super';
     bool isSuperior = _userRole == 'superior' || _userRole == 'admin' || _userRole == 'super';
 
     return Scaffold(
       appBar: CustomAppBar(title: "Complain Details", showBackButton: true),
       drawer: CustomDrawer(),
-      body: Container(
-        color: const Color(0xFFF8FAFC),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeaderSection(),
-              const SizedBox(height: 32),
-              _buildDetailCard(),
-              if (widget.complaint['note'] != null) ...[
-                const SizedBox(height: 24),
-                _buildNoteSection(),
-              ],
-              if (isSuperior) ...[
-                const SizedBox(height: 24),
-                _buildAddNoteField(),
-              ],
-              const SizedBox(height: 32),
-              if (canManage) _buildActionButtons(),
-              const SizedBox(height: 40),
-            ],
+      body: _isLoading 
+        ? const Center(child: CircularProgressIndicator())
+        : Container(
+            color: const Color(0xFFF8FAFC),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildHeaderSection(),
+                  const SizedBox(height: 32),
+                  _buildDetailCard(),
+                  if (_complaint['note'] != null) ...[
+                    const SizedBox(height: 24),
+                    _buildNoteSection(),
+                  ],
+                  if (isSuperior) ...[
+                    const SizedBox(height: 24),
+                    _buildAddNoteField(),
+                  ],
+                  const SizedBox(height: 32),
+                  if (canManage) _buildActionButtons(),
+                  const SizedBox(height: 40),
+                ],
+              ),
+            ),
           ),
-        ),
-      ),
       bottomNavigationBar: CustomBottomNavigationBar(
         onTabSelected: _onTabSelected,
         selectedIndex: _selectedIndex,
@@ -158,13 +182,13 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
             borderRadius: BorderRadius.circular(10),
           ),
           child: Text(
-            "COMPLAIN ID: #${widget.complaint['id']}",
+            "COMPLAIN ID: #${_complaint['id']}",
             style: const TextStyle(color: Color(0xFF00137F), fontWeight: FontWeight.w900, fontSize: 12, letterSpacing: 1),
           ),
         ),
         const SizedBox(height: 16),
         Text(
-          widget.complaint['complainant_name']?.toUpperCase() ?? 'UNNAMED',
+          _complaint['complainant_name']?.toUpperCase() ?? 'UNNAMED',
           style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Color(0xFF0F172A), letterSpacing: -1),
         ),
         const SizedBox(height: 8),
@@ -173,7 +197,7 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
             const Icon(Icons.location_on_rounded, size: 16, color: Colors.red),
             const SizedBox(width: 8),
             Text(
-              widget.complaint['police_station']?['name'] ?? 'Unknown Station',
+              _complaint['police_station']?['name'] ?? 'Unknown Station',
               style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.blueGrey),
             ),
           ],
@@ -194,20 +218,18 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
       ),
       child: Column(
         children: [
-          _buildInfoRow(Icons.phone_android_rounded, "Contact Number", widget.complaint['phone'], isPhone: true),
+          _buildInfoRow(Icons.phone_android_rounded, "Contact Number", _complaint['phone'], isPhone: true),
           _buildDivider(),
-          _buildInfoRow(Icons.home_work_outlined, "Address", widget.complaint['address']),
+          _buildInfoRow(Icons.home_work_outlined, "Address", _complaint['address']),
           _buildDivider(),
-          _buildInfoRow(Icons.shield_outlined, "Complain Category", widget.complaint['sub_category']?['name']),
+          _buildInfoRow(Icons.shield_outlined, "Complain Category", _complaint['sub_category']?['name']),
           _buildDivider(),
-          _buildInfoRow(Icons.description_outlined, "Complain Description", widget.complaint['description'], isLongText: true),
+          _buildInfoRow(Icons.description_outlined, "Complain Description", _complaint['description'], isLongText: true),
           _buildDivider(),
           _buildInfoRow(Icons.person_pin_rounded, "Receptionist Info", 
-            "${widget.complaint['receptionist']?['name'] ?? 'N/A'}\n${widget.complaint['receptionist']?['phone_number'] ?? ''}", isLongText: true),
+            "${_complaint['receptionist']?['name'] ?? 'N/A'}\n${_complaint['receptionist']?['phone_number'] ?? ''}", isLongText: true),
           _buildDivider(),
-          _buildInfoRow(Icons.event_available_rounded, "Registration Date", formatTimestamp(widget.complaint['created_at'])),
-          _buildDivider(),
-          _buildInfoRow(Icons.info_outline_rounded, "Current Status", widget.complaint['status']?.toUpperCase(), isStatus: true),
+          _buildInfoRow(Icons.event_available_rounded, "Registration Date", formatTimestamp(_complaint['created_at'])),
         ],
       ),
     );
@@ -234,7 +256,7 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            widget.complaint['note'] ?? '',
+            _complaint['note'] ?? '',
             style: const TextStyle(fontSize: 14, color: Color(0xFF334155), height: 1.5, fontWeight: FontWeight.w600),
           ),
         ],
@@ -264,7 +286,7 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String? value, {bool isPhone = false, bool isLongText = false, bool isStatus = false}) {
+  Widget _buildInfoRow(IconData icon, String label, String? value, {bool isPhone = false, bool isLongText = false}) {
     return Padding(
       padding: const EdgeInsets.all(20),
       child: Row(
@@ -287,8 +309,6 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
                     onTap: () => _makePhoneCall(value),
                     child: Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Color(0xFF00137F), decoration: TextDecoration.underline)),
                   )
-                else if (isStatus)
-                  _buildStatusBadge(value ?? 'PENDING')
                 else
                   Text(value ?? 'N/A', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: const Color(0xFF1E293B), height: isLongText ? 1.5 : 1.2)),
               ],
@@ -296,22 +316,6 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildStatusBadge(String status) {
-    if (status.isEmpty) return const SizedBox.shrink();
-    Color color;
-    switch (status.toLowerCase()) {
-      case 'resolved': color = Colors.green; break;
-      case 'in progress': color = Colors.orange; break;
-      default: color = const Color(0xFFFF0000);
-    }
-    return Container(
-      margin: const EdgeInsets.only(top: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(8), border: Border.all(color: color.withOpacity(0.2))),
-      child: Text(status, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w900)),
     );
   }
 
@@ -327,7 +331,7 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
             icon: const Icon(Icons.edit_note_rounded),
             label: const Text("MODIFY COMPLAIN"),
             onPressed: () async {
-              final result = await Navigator.pushNamed(context, '/edit_complaint', arguments: widget.complaint);
+              final result = await Navigator.pushNamed(context, '/edit_complaint', arguments: _complaint);
               if (result == true) Navigator.pop(context, true);
             },
             style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00137F), foregroundColor: Colors.white),

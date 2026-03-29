@@ -183,6 +183,7 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
 
   Widget _buildPremiumDropdown(String label, List<Map<String, dynamic>> items, int? selectedValue, ValueChanged<int?>? onChanged, IconData icon) {
     return DropdownButtonFormField<int>(
+      isExpanded: true,
       value: selectedValue,
       onChanged: onChanged,
       validator: (value) => value == null ? 'Selection required' : null,
@@ -193,7 +194,11 @@ class _EditComplaintScreenState extends State<EditComplaintScreen> {
       items: items.map((item) {
         return DropdownMenuItem<int>(
           value: int.tryParse(item['id'].toString()),
-          child: Text(item['name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+          child: Text(
+            item['name'], 
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            overflow: TextOverflow.ellipsis,
+          ),
         );
       }).toList(),
     );

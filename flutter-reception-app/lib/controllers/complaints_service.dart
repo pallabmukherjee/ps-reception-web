@@ -207,4 +207,19 @@ class ComplaintsService {
       rethrow;
     }
   }
+
+  // Function to fetch a single complaint by ID
+  Future<Map<String, dynamic>> fetchComplaint(int id) async {
+    try {
+      final response = await ApiService.get('complaints/$id');
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception('Failed to load complaint: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching complaint: $e');
+      rethrow;
+    }
+  }
 }
