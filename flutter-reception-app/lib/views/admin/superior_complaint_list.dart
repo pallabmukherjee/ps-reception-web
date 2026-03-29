@@ -293,6 +293,11 @@ class _SuperiorComplaintListScreenState extends State<SuperiorComplaintListScree
                       style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF00137F), decoration: TextDecoration.underline),
                     ),
                   ),
+                  const Spacer(),
+                  Text(
+                    DateFormat('dd MMM, hh:mm a').format(DateTime.parse(complaint['created_at'])),
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade400),
+                  ),
                 ],
               ),
               const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: Divider(height: 1, color: Color(0xFFF1F5F9))),

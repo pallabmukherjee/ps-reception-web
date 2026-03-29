@@ -142,19 +142,23 @@ class ComplaintApiController extends Controller
             if ($user->hasRole('super')) {
                 $complaint->is_editable = true;
             } elseif ($user->hasRole('superior')) {
-                // Superior can edit any record in their station? 
-                // Usually superiors just add notes, but allowing edit if requested.
-                $complaint->is_editable = ($complaint->police_station_id === $user->police_station_id);
+                // Superior can manage any record in their station
+                $complaint->is_editable = ((int)$complaint->police_station_id === (int)$user->police_station_id);
             } elseif ($user->hasRole('admin')) {
-                // Admin can only edit if they are the receptionist AND it was submitted during current duty
-                $isOwn = ($complaint->receptionist_id === $user->id);
+                // Admin (Receptionist) can only edit if they are the creator AND it was during current duty session
+                $isOwn = ((int)$complaint->receptionist_id === (int)$user->id);
                 $isWithinDuty = true;
                 if ($dutyStartTime) {
-                    $isWithinDuty = $complaint->created_at->greaterThanOrEqualTo($dutyStartTime);
+                    try {
+                        $dutyDate = \Carbon\Carbon::parse($dutyStartTime);
+                        $isWithinDuty = $complaint->created_at->greaterThanOrEqualTo($dutyDate);
+                    } catch (\Exception $e) {
+                        \Log::error("Duty start time parsing failed: " . $e->getMessage());
+                    }
                 }
                 $complaint->is_editable = $isOwn && $isWithinDuty;
             } else {
-                $complaint->is_editable = ($complaint->receptionist_id === $user->id);
+                $complaint->is_editable = ((int)$complaint->receptionist_id === (int)$user->id);
             }
             return $complaint;
         });

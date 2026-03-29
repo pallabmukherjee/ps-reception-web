@@ -150,6 +150,16 @@ class _ComplaintListScreenState extends State<ComplaintListScreen> {
     }
   }
 
+  String _formatDateTime(String? dateStr) {
+    if (dateStr == null) return 'N/A';
+    try {
+      final date = DateTime.parse(dateStr);
+      return DateFormat('dd MMM, hh:mm a').format(date);
+    } catch (e) {
+      return dateStr;
+    }
+  }
+
   Future<void> _selectDateRange() async {
     final DateTimeRange? picked = await showDateRangePicker(
       context: context,
@@ -417,11 +427,10 @@ class _ComplaintListScreenState extends State<ComplaintListScreen> {
                       ),
                     ),
                   ),
-                  if (_userRole != 'admin' && _userRole != 'superior')
-                    Text(
-                      _formatDate(complaint['created_at']),
-                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade400),
-                    ),
+                  Text(
+                    _formatDateTime(complaint['created_at']),
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade400),
+                  ),
                 ],
               ),
               const SizedBox(height: 16),
