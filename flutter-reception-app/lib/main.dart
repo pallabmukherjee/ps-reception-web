@@ -153,6 +153,12 @@ class _CheckUserState extends State<CheckUser> {
         if (role != null) {
           NotificationPollingService.startPolling(); // Start polling for all authenticated roles
           if (role == "admin" || role == "super") {
+            print("User is an admin, navigating to /adminhome");
+            Navigator.pushReplacementNamed(context, "/adminhome");
+          } else if (role == "superior") {
+            print("User is a superior, navigating to /superiorhome");
+            Navigator.pushReplacementNamed(context, "/superiorhome");
+          } else {
             print("User is a regular user, navigating to /home");
             Navigator.pushReplacementNamed(context, "/home");
           }
