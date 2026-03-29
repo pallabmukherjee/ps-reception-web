@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('address')->nullable();
             $table->foreignId('police_station_id')->nullable()->constrained()->onDelete('set null');
             $table->string('fcm_token')->nullable();
-            $table->string('full_name')->nullable(); // For consistency with Firebase
+            $table->string('full_name')->nullable();
         });
     }
 

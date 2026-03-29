@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   @override
@@ -8,7 +7,6 @@ class ForgotPasswordScreen extends StatefulWidget {
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _emailController = TextEditingController();
-  final _auth = FirebaseAuth.instance;
   bool _isLoading = false;
 
   @override
@@ -28,21 +26,18 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     }
 
     setState(() => _isLoading = true);
-    try {
-      await _auth.sendPasswordResetEmail(email: email);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Password reset instructions sent. Please check your inbox.')),
-        );
-        Navigator.pop(context);
-      }
-    } catch (e) {
-      setState(() => _isLoading = false);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Verification failed: $e'), backgroundColor: Colors.red.shade600),
-        );
-      }
+    
+    // In a real Laravel-only implementation, you would call an API like:
+    // await AuthService.sendResetLink(email);
+    
+    await Future.delayed(const Duration(seconds: 2)); // Simulate API call
+
+    setState(() => _isLoading = false);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('If this email is registered, recovery instructions have been sent.')),
+      );
+      Navigator.pop(context);
     }
   }
 

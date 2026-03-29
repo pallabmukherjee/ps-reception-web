@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 class Complaint extends Model
 {
     protected $fillable = [
-        'firebase_id',
         'complainant_name',
         'phone',
         'address',
