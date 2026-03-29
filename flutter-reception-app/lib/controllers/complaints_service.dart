@@ -80,6 +80,8 @@ class ComplaintsService {
     required int subCategoryId,
     String? description,
     required int policeStationId,
+    required String receptionistName,
+    required String receptionistMobile,
   }) async {
     try {
       final response = await ApiService.post('complaints', {
@@ -89,6 +91,8 @@ class ComplaintsService {
         'sub_category_id': subCategoryId,
         'description': description ?? '',
         'police_station_id': policeStationId,
+        'receptionist_name': receptionistName,
+        'receptionist_mobile': receptionistMobile,
       });
 
       if (response.statusCode == 201) {

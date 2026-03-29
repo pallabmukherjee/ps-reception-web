@@ -53,6 +53,8 @@ class ComplaintApiController extends Controller
             'police_station_id' => $request->police_station_id,
             'description' => $request->description,
             'receptionist_id' => auth()->id(),
+            'receptionist_name' => $request->receptionist_name,
+            'receptionist_mobile' => $request->receptionist_mobile,
             'is_editable' => true,
         ]);
 

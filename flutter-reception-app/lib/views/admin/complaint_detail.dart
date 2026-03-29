@@ -227,7 +227,7 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
           _buildInfoRow(Icons.description_outlined, "Complain Description", _complaint['description'], isLongText: true),
           _buildDivider(),
           _buildInfoRow(Icons.person_pin_rounded, "Receptionist Info", 
-            "${_complaint['receptionist']?['name'] ?? 'N/A'} (${_complaint['receptionist']?['phone_number'] ?? 'N/A'})", isLongText: true),
+            "${_complaint['receptionist_name'] ?? _complaint['receptionist']?['name'] ?? 'N/A'} (${_complaint['receptionist_mobile'] ?? _complaint['receptionist']?['phone_number'] ?? 'N/A'})", isLongText: true),
           _buildDivider(),
           _buildInfoRow(Icons.event_available_rounded, "Registration Date", formatTimestamp(_complaint['created_at'])),
         ],

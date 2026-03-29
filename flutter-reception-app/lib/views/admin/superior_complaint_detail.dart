@@ -254,7 +254,7 @@ class _SuperiorComplaintDetailScreenState extends State<SuperiorComplaintDetailS
           _buildInfoRow(Icons.category_rounded, "Complain Type", _complaint['sub_category']?['name']),
           _buildInfoRow(Icons.history_edu_rounded, "Statement", _complaint['description'], isLongText: true),
           _buildInfoRow(Icons.person_pin_rounded, "Receptionist Info", 
-            "${_complaint['receptionist']?['name'] ?? 'N/A'} (${_complaint['receptionist']?['phone_number'] ?? 'N/A'})", isLongText: true),
+            "${_complaint['receptionist_name'] ?? _complaint['receptionist']?['name'] ?? 'N/A'} (${_complaint['receptionist_mobile'] ?? _complaint['receptionist']?['phone_number'] ?? 'N/A'})", isLongText: true),
           _buildInfoRow(Icons.watch_later_rounded, "Logged On", formatTimestamp(_complaint['created_at'])),
         ],
       ),

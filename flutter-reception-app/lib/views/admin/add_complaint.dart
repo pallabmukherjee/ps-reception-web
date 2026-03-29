@@ -74,6 +74,10 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
 
     setState(() => _isSubmitting = true);
     try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String recName = prefs.getString('receptionist_name') ?? 'Unknown';
+      String recMobile = prefs.getString('receptionist_mobile') ?? 'N/A';
+
       await _complaintsService.storeComplaint(
         name: _nameController.text,
         phone: _phoneController.text,
@@ -81,6 +85,8 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
         subCategoryId: _selectedSubCategoryId!,
         policeStationId: _selectedStationId!,
         description: _descriptionController.text,
+        receptionistName: recName,
+        receptionistMobile: recMobile,
       );
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Complain registered successfully')));
       Navigator.pushReplacementNamed(context, '/list_complaint');

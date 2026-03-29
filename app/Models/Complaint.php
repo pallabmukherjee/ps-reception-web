@@ -13,6 +13,8 @@ class Complaint extends Model
         'sub_category_id',
         'description',
         'receptionist_id',
+        'receptionist_name',
+        'receptionist_mobile',
         'police_station_id',
         'is_editable',
         'note',
