@@ -87,7 +87,7 @@ class _ComplaintListScreenState extends State<ComplaintListScreen> {
         search: _searchController.text,
         startDate: _startDate != null ? DateFormat('yyyy-MM-dd').format(_startDate!) : null,
         endDate: _endDate != null ? DateFormat('yyyy-MM-dd').format(_endDate!) : null,
-        dutyStartTime: (_userRole != 'admin' && _userRole != 'super' && _userRole != 'superior') ? dutyStart : null,
+        dutyStartTime: dutyStart,
         page: _currentPage,
       );
 

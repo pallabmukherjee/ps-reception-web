@@ -95,21 +95,22 @@ class ComplaintApiController extends Controller
         $query = Complaint::with(['subCategory.category', 'policeStation', 'receptionist']);
 
         if ($user->hasRole('super')) {
-            // Full access for super-admin: all time, all stations
-        } elseif ($user->hasRole(['admin', 'superior'])) {
-            // Admin/Superior: Restricted to their station and only last 24 hours
+            // Full access for super-admin
+        } elseif ($user->hasRole('superior')) {
+            // Superior: See all station records (no time limit as per latest requirement)
+            if ($user->police_station_id) {
+                $query->where('police_station_id', $user->police_station_id);
+            }
+        } elseif ($user->hasRole('admin')) {
+            // Admin (Receptionist): Restricted to station and last 24 hours
             if ($user->police_station_id) {
                 $query->where('police_station_id', $user->police_station_id);
             }
             $query->where('created_at', '>=', now()->subHours(24));
         } else {
-            // Receptionist: Only show their own from last 24 hours
+            // Regular User: Only show their own from last 24 hours
             $query->where('receptionist_id', $user->id);
             $query->where('created_at', '>=', now()->subHours(24));
-            
-            if ($request->filled('duty_start_time')) {
-                $query->where('created_at', '>=', $request->duty_start_time);
-            }
         }
 
         if ($request->filled('search')) {
@@ -134,9 +135,27 @@ class ComplaintApiController extends Controller
         $perPage = $request->input('per_page', 20);
         $complaints = $query->latest()->paginate($perPage);
 
-        // Add is_editable flag: only own complaints are editable for non-super users
-        $complaints->getCollection()->transform(function($complaint) use ($user) {
-            $complaint->is_editable = $user->hasRole('super') || ($complaint->receptionist_id === $user->id);
+        // Add is_editable flag based on complex rules
+        $dutyStartTime = $request->input('duty_start_time');
+        
+        $complaints->getCollection()->transform(function($complaint) use ($user, $dutyStartTime) {
+            if ($user->hasRole('super')) {
+                $complaint->is_editable = true;
+            } elseif ($user->hasRole('superior')) {
+                // Superior can edit any record in their station? 
+                // Usually superiors just add notes, but allowing edit if requested.
+                $complaint->is_editable = ($complaint->police_station_id === $user->police_station_id);
+            } elseif ($user->hasRole('admin')) {
+                // Admin can only edit if they are the receptionist AND it was submitted during current duty
+                $isOwn = ($complaint->receptionist_id === $user->id);
+                $isWithinDuty = true;
+                if ($dutyStartTime) {
+                    $isWithinDuty = $complaint->created_at->greaterThanOrEqualTo($dutyStartTime);
+                }
+                $complaint->is_editable = $isOwn && $isWithinDuty;
+            } else {
+                $complaint->is_editable = ($complaint->receptionist_id === $user->id);
+            }
             return $complaint;
         });
 
