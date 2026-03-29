@@ -132,7 +132,7 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
   @override
   Widget build(BuildContext context) {
     bool canManage = _complaint['is_editable'] == true || _userRole == 'admin' || _userRole == 'super';
-    bool isSuperior = _userRole == 'superior' || _userRole == 'admin' || _userRole == 'super';
+    bool isSuperior = _userRole == 'superior';
 
     return Scaffold(
       appBar: CustomAppBar(title: "Complain Details", showBackButton: true),
