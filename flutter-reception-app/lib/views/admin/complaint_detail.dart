@@ -110,7 +110,7 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
   @override
   Widget build(BuildContext context) {
     bool canManage = widget.complaint['is_editable'] == true || _userRole == 'admin' || _userRole == 'super';
-    bool canAddNote = _userRole == 'superior' || _userRole == 'admin' || _userRole == 'super';
+    bool isSuperior = _userRole == 'superior' || _userRole == 'admin' || _userRole == 'super';
 
     return Scaffold(
       appBar: CustomAppBar(title: "Complain Details", showBackButton: true),
@@ -129,7 +129,7 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
                 const SizedBox(height: 24),
                 _buildNoteSection(),
               ],
-              if (canAddNote) ...[
+              if (isSuperior) ...[
                 const SizedBox(height: 24),
                 _buildAddNoteField(),
               ],
@@ -265,11 +265,6 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
   }
 
   Widget _buildInfoRow(IconData icon, String label, String? value, {bool isPhone = false, bool isLongText = false, bool isStatus = false}) {
-    // Hide Pending status
-    if (isStatus && (value == null || value.toLowerCase() == 'pending')) {
-      return const SizedBox.shrink();
-    }
-
     return Padding(
       padding: const EdgeInsets.all(20),
       child: Row(
@@ -293,7 +288,7 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
                     child: Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Color(0xFF00137F), decoration: TextDecoration.underline)),
                   )
                 else if (isStatus)
-                  _buildStatusBadge(value ?? '')
+                  _buildStatusBadge(value ?? 'PENDING')
                 else
                   Text(value ?? 'N/A', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: const Color(0xFF1E293B), height: isLongText ? 1.5 : 1.2)),
               ],

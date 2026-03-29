@@ -16,6 +16,8 @@ class Complaint extends Model
         'receptionist_id',
         'police_station_id',
         'is_editable',
+        'note',
+        'note_updated_at',
         'created_at',
     ];
 

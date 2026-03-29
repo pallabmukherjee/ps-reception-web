@@ -130,6 +130,7 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
                           ? (val) => setState(() => _selectedStationId = val)
                           : null, // Disabled for receptionists/superiors
                         Icons.account_balance_outlined,
+                        isDisabled: (_userRole != 'admin' && _userRole != 'super'),
                       ),
                       const SizedBox(height: 16),
                       _buildTextField(_descriptionController, "Complain Description (Optional)", Icons.description_outlined, "Provide brief incident details", maxLines: 4),
@@ -186,19 +187,21 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
     );
   }
 
-  Widget _buildDropdown(String label, List<Map<String, dynamic>> items, int? selectedValue, ValueChanged<int?>? onChanged, IconData icon) {
+  Widget _buildDropdown(String label, List<Map<String, dynamic>> items, int? selectedValue, ValueChanged<int?>? onChanged, IconData icon, {bool isDisabled = false}) {
     return DropdownButtonFormField<int>(
       value: selectedValue,
-      onChanged: onChanged,
+      onChanged: isDisabled ? null : onChanged,
       validator: (value) => value == null ? 'Selection required' : null,
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon, color: Colors.blueGrey.shade300, size: 20),
+        filled: true,
+        fillColor: isDisabled ? Colors.grey.shade100 : Colors.white,
       ),
       items: items.map((item) {
         return DropdownMenuItem<int>(
           value: int.tryParse(item['id'].toString()),
-          child: Text(item['name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+          child: Text(item['name'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isDisabled ? Colors.grey : Colors.black)),
         );
       }).toList(),
     );
