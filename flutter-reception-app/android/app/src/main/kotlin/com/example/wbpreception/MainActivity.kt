@@ -1,4 +1,4 @@
-package com.example.kp_police
+package com.example.wbpreception
 
 import io.flutter.embedding.android.FlutterActivity
 

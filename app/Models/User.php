@@ -62,4 +62,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(Complaint::class, 'receptionist_id');
     }
+
+    /**
+     * Route notifications for the FCM channel.
+     */
+    public function routeNotificationForFcm()
+    {
+        return $this->fcm_token;
+    }
 }

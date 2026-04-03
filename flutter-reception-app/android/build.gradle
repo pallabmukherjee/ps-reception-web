@@ -5,6 +5,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:8.2.2'  // Use the desired version here
+        classpath 'com.google.gms:google-services:4.4.2'
     }
 }
 allprojects {

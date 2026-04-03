@@ -1,12 +1,13 @@
 import 'dart:convert';
 
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:kp_police/controllers/auth_service.dart';
-import 'package:kp_police/controllers/notification_polling_service.dart';
-import 'package:kp_police/controllers/notification_service.dart';
-import 'package:kp_police/views/admin/complaint_detail.dart';
-import 'package:kp_police/views/admin/complaint_list.dart';
-import 'package:kp_police/views/profile.dart';
+import 'package:wbpreception/controllers/auth_service.dart';
+import 'package:wbpreception/controllers/notification_service.dart';
+import 'package:wbpreception/views/admin/complaint_detail.dart';
+import 'package:wbpreception/views/admin/complaint_list.dart';
+import 'package:wbpreception/views/profile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'views/ChangePasswordScreen.dart';
 import 'views/ForgotPasswordScreen.dart';
@@ -30,9 +31,17 @@ final navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
 
   // Initialize Local notifications
   await PushNotifications.localNotiInit();
+
+  // Initialize Firebase Messaging
+  await PushNotifications.init();
+
+  // Handle background notifications
+  FirebaseMessaging.onBackgroundMessage(
+      PushNotifications.firebaseMessagingBackgroundHandler);
 
   runApp(const MyApp());
 }
@@ -151,7 +160,6 @@ class _CheckUserState extends State<CheckUser> {
         String? role = prefs.getString('user_role');
 
         if (role != null) {
-          NotificationPollingService.startPolling(); // Start polling for all authenticated roles
           if (role == "admin" || role == "super") {
             print("User is an admin, navigating to /adminhome");
             Navigator.pushReplacementNamed(context, "/adminhome");

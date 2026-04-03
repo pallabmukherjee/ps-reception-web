@@ -28,10 +28,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('complaints/{complaint}', [ComplaintApiController::class, 'destroy']);
     Route::get('my-complaints', [ComplaintApiController::class, 'myComplaints']);
 
-    // Notification APIs
-    Route::get('notifications', [ComplaintApiController::class, 'notifications']);
-    Route::post('notifications/mark-read', [ComplaintApiController::class, 'markNotificationsRead']);
-
     // Statistics API
     Route::get('statistics', [ComplaintApiController::class, 'getStatistics']);
 

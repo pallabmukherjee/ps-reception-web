@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:kp_police/controllers/auth_service.dart';
+import 'package:wbpreception/controllers/auth_service.dart';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:kp_police/controllers/auth_service.dart';
-import 'package:kp_police/controllers/complaints_service.dart';
-import 'package:kp_police/controllers/notification_polling_service.dart';
-import 'package:kp_police/controllers/notification_service.dart';
+import 'package:wbpreception/controllers/auth_service.dart';
+import 'package:wbpreception/controllers/complaints_service.dart';
+import 'package:wbpreception/controllers/notification_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'layout/app_bar.dart';
 import 'layout/custom_drawer.dart';

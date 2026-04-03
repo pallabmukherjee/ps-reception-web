@@ -37,6 +37,8 @@ class _MessageState extends State<Message> {
         print("Error parsing payload: $e");
         payload = {'error': 'Failed to parse notification data'};
       }
+    } else if (data is Map) {
+      payload = Map<String, dynamic>.from(data);
     }
   }
 

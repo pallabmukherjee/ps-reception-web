@@ -5,6 +5,7 @@ namespace App\Notifications;
 use App\Models\Complaint;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
+use Kreait\Laravel\Firebase\Messages\FirebaseMessage;
 
 class SuperiorNoteAdded extends Notification
 {
@@ -27,7 +28,7 @@ class SuperiorNoteAdded extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'fcm'];
     }
 
     /**
@@ -51,5 +52,22 @@ class SuperiorNoteAdded extends Notification
             'note' => $this->complaint->note,
             'complaint_created_at' => $this->complaint->created_at->toIso8601String(),
         ];
+    }
+
+    /**
+     * Get the FCM representation of the notification.
+     */
+    public function toFcm(object $notifiable): FirebaseMessage
+    {
+        return FirebaseMessage::create()
+            ->withNotification([
+                'title' => '📝 New Official Note Added',
+                'body' => "Superior added a note to complaint #{$this->complaint->id}.",
+            ])
+            ->withData([
+                'complaint_id' => (string) $this->complaint->id,
+                'type' => 'note_added',
+                'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
+            ]);
     }
 }

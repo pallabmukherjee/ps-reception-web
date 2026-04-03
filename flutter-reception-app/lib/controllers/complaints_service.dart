@@ -152,47 +152,6 @@ class ComplaintsService {
     }
   }
 
-  // Function to fetch unread notifications from Laravel API
-  Future<List<Map<String, dynamic>>> fetchNotifications() async {
-    try {
-      final response = await ApiService.get('notifications');
-      if (response.statusCode == 200) {
-        return List<Map<String, dynamic>>.from(jsonDecode(response.body));
-      } else {
-        throw Exception('Failed to load notifications');
-      }
-    } catch (e) {
-      print('Error fetching notifications: $e');
-      rethrow;
-    }
-  }
-
-  // Function to mark all notifications as read in Laravel API
-  Future<void> markNotificationsRead() async {
-    try {
-      final response = await ApiService.post('notifications/mark-read', {});
-      if (response.statusCode != 200) {
-        throw Exception('Failed to mark notifications as read');
-      }
-    } catch (e) {
-      print('Error marking notifications as read: $e');
-      rethrow;
-    }
-  }
-
-  // Function to trigger a test notification (Debug only)
-  Future<void> triggerTestNotification() async {
-    try {
-      final response = await ApiService.post('notifications/test', {});
-      if (response.statusCode != 200) {
-        throw Exception('Failed to trigger: ${response.statusCode} - ${response.body}');
-      }
-    } catch (e) {
-      print('Error triggering test notification: $e');
-      rethrow;
-    }
-  }
-
   // Function to fetch statistics from Laravel API
   Future<Map<String, dynamic>> fetchStatistics({int? policeStationId}) async {
     try {

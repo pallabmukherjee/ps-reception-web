@@ -5,6 +5,7 @@ namespace App\Notifications;
 use App\Models\Complaint;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
+use Kreait\Laravel\Firebase\Messages\FirebaseMessage;
 
 class HighPriorityComplaint extends Notification
 {
@@ -27,7 +28,7 @@ class HighPriorityComplaint extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'fcm'];
     }
 
     /**
@@ -37,7 +38,6 @@ class HighPriorityComplaint extends Notification
      */
     public function toArray(object $notifiable): array
     {
-        // Ensure sub-category and category relations are loaded
         $this->complaint->loadMissing('subCategory.category');
         
         return [
@@ -51,5 +51,24 @@ class HighPriorityComplaint extends Notification
             'type' => 'high_priority',
             'complaint_created_at' => $this->complaint->created_at->toIso8601String(),
         ];
+    }
+
+    /**
+     * Get the FCM representation of the notification.
+     */
+    public function toFcm(object $notifiable): FirebaseMessage
+    {
+        $this->complaint->loadMissing('subCategory.category');
+        
+        return FirebaseMessage::create()
+            ->withNotification([
+                'title' => '🚨 EMERGENCY HIGH ALERT 🚨',
+                'body' => "New {$this->complaint->subCategory->name} registered at station.",
+            ])
+            ->withData([
+                'complaint_id' => (string) $this->complaint->id,
+                'type' => 'high_priority',
+                'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
+            ]);
     }
 }
