@@ -28,30 +28,7 @@ class SuperiorNoteAdded extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database', 'fcm'];
-    }
-
-    /**
-     * Get the array representation of the notification.
-     *
-     * @return array<string, mixed>
-     */
-    public function toArray(object $notifiable): array
-    {
-        $this->complaint->loadMissing('subCategory.category');
-        
-        return [
-            'complaint_id' => $this->complaint->id,
-            'complainant_name' => $this->complaint->complainant_name,
-            'phone' => $this->complaint->phone,
-            'category_name' => $this->complaint->subCategory->category->name ?? 'Unknown',
-            'sub_category_name' => $this->complaint->subCategory->name ?? 'Unknown',
-            'title' => '📝 New Official Note Added',
-            'message' => "Superior added a note to complaint #{$this->complaint->id}.",
-            'type' => 'note_added',
-            'note' => $this->complaint->note,
-            'complaint_created_at' => $this->complaint->created_at->toIso8601String(),
-        ];
+        return ['fcm'];
     }
 
     /**
