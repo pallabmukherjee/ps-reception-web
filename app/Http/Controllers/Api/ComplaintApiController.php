@@ -265,6 +265,33 @@ class ComplaintApiController extends Controller
         return response()->json(['message' => 'Complaint deleted successfully']);
     }
 
+    public function sendTestNotification(Request $request)
+    {
+        $user = auth()->user();
+        if (!$user->fcm_token) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'User has no FCM token registered.'
+            ], 400);
+        }
+
+        try {
+            $notification = new HighPriorityComplaint(Complaint::first());
+            $user->notify($notification);
+            
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Notification sent successfully to: ' . $user->fcm_token
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'FCM Error: ' . $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ], 500);
+        }
+    }
+
     public function getStatistics(Request $request)
     {
         $user = auth()->user();

@@ -62,9 +62,18 @@ class PushNotifications {
   }
 
   // Get FCM Token
-  static Future<String?> getDeviceToken() async {
-    String? token = await _firebaseMessaging.getToken();
-    print("Device Token: $token");
+  static Future<String?> getDeviceToken({int maxRetries = 3}) async {
+    String? token;
+    for (int i = 0; i < maxRetries; i++) {
+      try {
+        token = await _firebaseMessaging.getToken();
+        if (token != null) break;
+      } catch (e) {
+        print("FCM Token fetch error (Attempt ${i + 1}): $e");
+      }
+      await Future.delayed(const Duration(seconds: 2));
+    }
+    print("Final Device Token: $token");
     return token;
   }
 

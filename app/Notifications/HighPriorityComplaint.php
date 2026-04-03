@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Channels\FcmChannel;
 use App\Models\Complaint;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
@@ -28,7 +29,7 @@ class HighPriorityComplaint extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['fcm'];
+        return [FcmChannel::class];
     }
 
     /**

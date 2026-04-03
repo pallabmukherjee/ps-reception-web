@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:wbpreception/controllers/api_service.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wbpreception/controllers/notification_service.dart';
+import 'package:flutter/services.dart';
 import 'layout/app_bar.dart';
 import 'layout/custom_drawer.dart';
 
@@ -83,6 +85,54 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<void> _showDebugInfo() async {
+    setState(() => _isLoading = true);
+    String? token = await PushNotifications.getDeviceToken();
+    
+    try {
+      final response = await ApiService.post('test-notification', {});
+      setState(() => _isLoading = false);
+      
+      _showResultDialog(
+        title: "Debug Information",
+        content: "Device Token: $token\n\nServer Response:\n${response.body}",
+      );
+    } catch (e) {
+      setState(() => _isLoading = false);
+      _showResultDialog(
+        title: "Debug Error",
+        content: "Device Token: $token\n\nError: $e",
+      );
+    }
+  }
+
+  void _showResultDialog({required String title, required String content}) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: SingleChildScrollView(child: SelectableText(content)),
+        actions: [
+          if (content.contains("Device Token:"))
+            TextButton(
+              onPressed: () {
+                final parts = content.split("Device Token: ");
+                if (parts.length > 1) {
+                  final token = parts[1].split("\n")[0].trim();
+                  if (token != "null" && token.isNotEmpty) {
+                    Clipboard.setData(ClipboardData(text: token));
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Token copied to clipboard")));
+                  }
+                }
+              }, 
+              child: const Text("COPY TOKEN")
+            ),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("CLOSE")),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -112,6 +162,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 foregroundColor: Colors.white,
               ),
               child: const Text("UPDATE CREDENTIALS"),
+            ),
+            const SizedBox(height: 20),
+            TextButton.icon(
+              onPressed: _showDebugInfo,
+              icon: const Icon(Icons.bug_report_outlined, color: Colors.orange),
+              label: const Text("TEST NOTIFICATION & DEBUG", style: TextStyle(color: Colors.orange)),
             ),
           ],
         ),
