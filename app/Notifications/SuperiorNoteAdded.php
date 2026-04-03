@@ -41,6 +41,13 @@ class SuperiorNoteAdded extends Notification
                 'title' => '📝 New Official Note Added',
                 'body' => "Superior added a note to complaint #{$this->complaint->id}.",
             ])
+            ->withAndroidConfig([
+                'notification' => [
+                    'channel_id' => 'high_importance_channel',
+                    'icon' => 'ic_launcher',
+                    'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
+                ],
+            ])
             ->withData([
                 'complaint_id' => (string) $this->complaint->id,
                 'type' => 'note_added',

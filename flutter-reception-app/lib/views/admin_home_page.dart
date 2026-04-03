@@ -107,7 +107,13 @@ class _AdminHomePageState extends State<AdminHomePage> {
                           icon: Icons.add_moderator_rounded,
                           color: const Color(0xFF00137F),
                           bgColor: const Color(0xFFE8EAF6),
-                          onTap: () => Navigator.pushNamed(context, '/add_complaint'),
+                          onTap: () {
+                            if (_dataExists) {
+                              Navigator.pushNamed(context, '/add_complaint');
+                            } else {
+                              Navigator.pushNamed(context, '/receptionist');
+                            }
+                          },
                         ),
                         _buildBeautifiedCard(
                           context,

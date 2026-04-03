@@ -43,6 +43,13 @@ class HighPriorityComplaint extends Notification
                 'title' => '🚨 EMERGENCY HIGH ALERT 🚨',
                 'body' => "New {$this->complaint->subCategory->name} registered at station.",
             ])
+            ->withAndroidConfig([
+                'notification' => [
+                    'channel_id' => 'high_importance_channel',
+                    'icon' => 'ic_launcher',
+                    'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
+                ],
+            ])
             ->withData([
                 'complaint_id' => (string) $this->complaint->id,
                 'type' => 'high_priority',
