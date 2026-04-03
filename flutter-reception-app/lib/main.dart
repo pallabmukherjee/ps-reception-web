@@ -160,6 +160,11 @@ class _CheckUserState extends State<CheckUser> {
         String? role = prefs.getString('user_role');
 
         if (role != null) {
+          // Update FCM token on app start
+          PushNotifications.getDeviceToken().then((token) {
+            AuthService.updateFcmToken(token);
+          });
+
           if (role == "admin" || role == "super") {
             print("User is an admin, navigating to /adminhome");
             Navigator.pushReplacementNamed(context, "/adminhome");

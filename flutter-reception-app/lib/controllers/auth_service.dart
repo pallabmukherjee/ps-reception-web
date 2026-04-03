@@ -58,6 +58,16 @@ class AuthService {
     await prefs.remove('user_ps_notification_id');
   }
 
+  // update fcm token
+  static Future<void> updateFcmToken(String? fcmToken) async {
+    if (fcmToken == null) return;
+    try {
+      await ApiService.post('update-fcm-token', {'fcm_token': fcmToken});
+    } catch (e) {
+      print('Error updating FCM token: $e');
+    }
+  }
+
   // check user login in or not
   static Future<bool> isLoggedIn() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();

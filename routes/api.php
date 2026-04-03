@@ -20,6 +20,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::post('logout', [AuthController::class, 'logout']);
+    Route::post('update-fcm-token', [AuthController::class, 'updateFcmToken']);
 
     // Complaint APIs
     Route::get('complaints/{complaint}', [ComplaintApiController::class, 'show']);
