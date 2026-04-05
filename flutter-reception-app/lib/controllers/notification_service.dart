@@ -103,6 +103,11 @@ class PushNotifications {
       android: initializationSettingsAndroid,
     );
 
+    // Request notification permissions for Android 13 and above
+    await _flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+        ?.requestNotificationsPermission();
+
     await _flutterLocalNotificationsPlugin.initialize(
       initializationSettings,
       onDidReceiveNotificationResponse: onNotificationTap,

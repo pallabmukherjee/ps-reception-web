@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:wbpreception/controllers/auth_service.dart';
+import 'package:wbpreception/controllers/notification_polling_service.dart';
 import 'package:wbpreception/controllers/notification_service.dart';
 import 'package:wbpreception/views/admin/complaint_detail.dart';
 import 'package:wbpreception/views/admin/complaint_list.dart';
@@ -160,6 +161,9 @@ class _CheckUserState extends State<CheckUser> {
         String? role = prefs.getString('user_role');
 
         if (role != null) {
+          // Start polling for notifications
+          NotificationPollingService.startPolling();
+
           // Update FCM token on app start
           PushNotifications.getDeviceToken().then((token) {
             AuthService.updateFcmToken(token);

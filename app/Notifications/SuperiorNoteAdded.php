@@ -31,7 +31,24 @@ class SuperiorNoteAdded extends Notification
      */
     public function via(object $notifiable): array
     {
-        return [FcmChannel::class];
+        return ['database', FcmChannel::class];
+    }
+
+    /**
+     * Get the array representation of the notification.
+     */
+    public function toArray(object $notifiable): array
+    {
+        return [
+            'complaint_id' => $this->complaint->id,
+            'complainant_name' => $this->complaint->complainant_name,
+            'phone' => $this->complaint->phone,
+            'title' => '📝 New Official Note Added',
+            'message' => "Superior added a note to complaint #{$this->complaint->id}.",
+            'type' => 'note_added',
+            'note' => $this->complaint->note,
+            'complaint_created_at' => $this->complaint->created_at->toIso8601String(),
+        ];
     }
 
     /**

@@ -29,7 +29,7 @@ class FcmChannel
 
             // Ensure the message has the target token
             if ($message instanceof CloudMessage) {
-                $message = $message->withTarget('token', $token);
+                $message = $message->withChangedTarget('token', $token);
                 Firebase::messaging()->send($message);
                 \Log::info("FCM: Notification sent successfully to user ID: " . ($notifiable->id ?? 'unknown'));
             }

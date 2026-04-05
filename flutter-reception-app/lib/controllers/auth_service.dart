@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wbpreception/controllers/notification_polling_service.dart';
 import 'api_service.dart';
 
 class AuthService {
@@ -44,6 +45,9 @@ class AuthService {
 
   // user logout function
   static Future logout() async {
+    // Stop notification polling
+    NotificationPollingService.stopPolling();
+    
     try {
       await ApiService.post('logout', {});
     } catch (e) {

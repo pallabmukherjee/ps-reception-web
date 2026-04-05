@@ -265,6 +265,17 @@ class ComplaintApiController extends Controller
         return response()->json(['message' => 'Complaint deleted successfully']);
     }
 
+    public function notifications()
+    {
+        return response()->json(auth()->user()->unreadNotifications);
+    }
+
+    public function markNotificationsRead()
+    {
+        auth()->user()->unreadNotifications->markAsRead();
+        return response()->json(['message' => 'Notifications marked as read']);
+    }
+
     public function sendTestNotification(Request $request)
     {
         $user = auth()->user();

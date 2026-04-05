@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wbpreception/controllers/auth_service.dart';
+import 'package:wbpreception/controllers/notification_polling_service.dart';
 import 'package:wbpreception/controllers/notification_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -160,6 +161,9 @@ class _LoginPageState extends State<LoginPage> {
       if (loginMessage == "Login Successfully") {
         SharedPreferences prefs = await SharedPreferences.getInstance();
         String? role = prefs.getString('user_role');
+        
+        // Start notification polling
+        NotificationPollingService.startPolling();
         
         if (mounted) {
           if (role == "admin" || role == "super") {
