@@ -29,6 +29,7 @@ class PushNotifications {
       description: 'Used for critical emergency alerts',
       importance: Importance.max,
       playSound: true,
+      sound: const RawResourceAndroidNotificationSound('crunchy_beeps'),
       enableVibration: true,
     );
 
@@ -93,7 +94,7 @@ class PushNotifications {
       playSound: true,
       enableVibration: true,
       vibrationPattern: Int64List.fromList([0, 1000, 500, 1000]),
-      sound: RawResourceAndroidNotificationSound('tone'),
+      sound: RawResourceAndroidNotificationSound('crunchy_beeps'),
     );
 
     const AndroidInitializationSettings initializationSettingsAndroid =
@@ -137,7 +138,7 @@ class PushNotifications {
       playSound: true,
       enableVibration: true,
       vibrationPattern: Int64List.fromList([0, 1000, 500, 1000]),
-      sound: RawResourceAndroidNotificationSound('tone'),
+      sound: RawResourceAndroidNotificationSound('crunchy_beeps'),
     );
     final NotificationDetails notificationDetails =
         NotificationDetails(android: androidNotificationDetails);

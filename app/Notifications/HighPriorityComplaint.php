@@ -71,6 +71,15 @@ class HighPriorityComplaint extends Notification
                     'channel_id' => 'high_importance_channel',
                     'icon' => 'ic_launcher',
                     'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
+                    'sound' => 'crunchy_beeps',
+                ],
+            ]))
+            ->withApnsConfig(\Kreait\Firebase\Messaging\ApnsConfig::fromArray([
+                'payload' => [
+                    'aps' => [
+                        'sound' => 'crunchy_beeps.mp3',
+                        'badge' => 1,
+                    ],
                 ],
             ]))
             ->withData([
