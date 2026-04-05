@@ -29,16 +29,16 @@ class FcmChannel
 
             // Ensure the message has the target token
             if ($message instanceof CloudMessage) {
-                $messageArray = $message->toArray();
-                $messageArray['token'] = $token;
-                $message = CloudMessage::fromArray($messageArray);
+                // withToken() is the correct method for setting a token in kreait/firebase-php 8.x
+                $message = $message->withToken((string) $token);
                 
                 Firebase::messaging()->send($message);
                 \Log::info("FCM: Notification sent successfully to user ID: " . ($notifiable->id ?? 'unknown'));
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             \Log::error("FCM Error for user ID " . ($notifiable->id ?? 'unknown') . ": " . $e->getMessage());
-            // Do not throw to avoid breaking the request flow
+            // We catch everything (\Throwable) and do NOT rethrow to ensure 
+            // the main request (saving complaint/note) completes successfully.
         }
     }
 }
