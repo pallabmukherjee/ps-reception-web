@@ -79,13 +79,17 @@ class PushNotifications {
   }
 
   // Handle Background Notifications
+  @pragma('vm:entry-point')
   static Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     print("Handling a background message: ${message.messageId}");
+    if (message.notification != null) {
+      await _showLocalNotification(message);
+    }
   }
 
-  // Initialize Flutter local notifications
-  static Future<void> localNotiInit() async {
-    final AndroidNotificationDetails androidNotificationDetails = AndroidNotificationDetails(
+  // Show local notification for background messages
+  static Future<void> _showLocalNotification(RemoteMessage message) async {
+    final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
       'high_importance_channel',
       'High Importance Notifications',
       channelDescription: 'Used for critical emergency alerts',
@@ -94,9 +98,24 @@ class PushNotifications {
       playSound: true,
       enableVibration: true,
       vibrationPattern: Int64List.fromList([0, 1000, 500, 1000]),
-      sound: RawResourceAndroidNotificationSound('crunchy_beeps'),
+      sound: const RawResourceAndroidNotificationSound('crunchy_beeps'),
     );
 
+    final NotificationDetails platformDetails = NotificationDetails(
+      android: androidDetails,
+    );
+
+    await _flutterLocalNotificationsPlugin.show(
+      DateTime.now().millisecond,
+      message.notification?.title,
+      message.notification?.body,
+      platformDetails,
+      payload: jsonEncode(message.data),
+    );
+  }
+
+  // Initialize Flutter local notifications
+  static Future<void> localNotiInit() async {
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
 
@@ -138,7 +157,7 @@ class PushNotifications {
       playSound: true,
       enableVibration: true,
       vibrationPattern: Int64List.fromList([0, 1000, 500, 1000]),
-      sound: RawResourceAndroidNotificationSound('crunchy_beeps'),
+      sound: const RawResourceAndroidNotificationSound('crunchy_beeps'),
     );
     final NotificationDetails notificationDetails =
         NotificationDetails(android: androidNotificationDetails);

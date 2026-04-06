@@ -44,6 +44,15 @@ void main() async {
   FirebaseMessaging.onBackgroundMessage(
       PushNotifications.firebaseMessagingBackgroundHandler);
 
+  // For handling in terminated state
+  final RemoteMessage? message = await FirebaseMessaging.instance.getInitialMessage();
+  if (message != null) {
+    print("Launched from terminated state");
+    Future.delayed(const Duration(seconds: 1), () {
+      navigatorKey.currentState?.pushNamed("/message", arguments: message.data);
+    });
+  }
+
   runApp(const MyApp());
 }
 
