@@ -12,7 +12,7 @@ $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
 
 // --- TEST CONFIGURATION ---
-$email = 'admin@kpd.com'; 
+$email = $argv[1] ?? 'testic@example.com'; 
 // --------------------------
 
 $user = User::where('email', $email)->first();
