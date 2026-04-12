@@ -44,7 +44,7 @@ class SuperiorNoteAdded extends Notification
             'complainant_name' => $this->complaint->complainant_name,
             'phone' => $this->complaint->phone,
             'title' => '📝 New Official Note Added',
-            'message' => "Superior added a note to complaint #{$this->complaint->id}.",
+            'message' => "Superior added a note to complaint record.",
             'type' => 'note_added',
             'note' => $this->complaint->note,
             'complaint_created_at' => $this->complaint->created_at->toIso8601String(),
@@ -59,7 +59,7 @@ class SuperiorNoteAdded extends Notification
         return CloudMessage::new()
             ->withNotification(FirebaseNotification::create(
                 '📝 New Official Note Added',
-                "Superior added a note to complaint #{$this->complaint->id}."
+                "Superior added a note to complaint record."
             ))
             ->withAndroidConfig(AndroidConfig::fromArray([
                 'notification' => [

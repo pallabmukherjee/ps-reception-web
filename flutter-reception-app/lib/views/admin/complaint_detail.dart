@@ -177,18 +177,6 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: const Color(0xFF00137F).withOpacity(0.1),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Text(
-            "COMPLAIN ID: #${_complaint['id']}",
-            style: const TextStyle(color: Color(0xFF00137F), fontWeight: FontWeight.w900, fontSize: 12, letterSpacing: 1),
-          ),
-        ),
-        const SizedBox(height: 16),
         Text(
           _complaint['complainant_name']?.toUpperCase() ?? 'UNNAMED',
           style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Color(0xFF0F172A), letterSpacing: -1),

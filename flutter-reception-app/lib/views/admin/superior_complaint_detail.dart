@@ -225,8 +225,6 @@ class _SuperiorComplaintDetailScreenState extends State<SuperiorComplaintDetailS
               decoration: BoxDecoration(color: const Color(0xFFFF0000).withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
               child: const Text("OFFICIAL RECORD", style: TextStyle(color: Color(0xFFFF0000), fontWeight: FontWeight.w900, fontSize: 10, letterSpacing: 1)),
             ),
-            const Spacer(),
-            Text("ID: #${_complaint['id']}", style: const TextStyle(color: Colors.blueGrey, fontWeight: FontWeight.bold, fontSize: 12)),
           ],
         ),
         const SizedBox(height: 16),
