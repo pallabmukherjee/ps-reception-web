@@ -22,15 +22,15 @@ class AuthService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.setString('auth_token', data['token']);
-        await prefs.setString('user_role', data['user']['role']);
-        await prefs.setString('user_name', data['user']['name']);
+        await prefs.setString('auth_token', data['token']?.toString() ?? '');
+        await prefs.setString('user_role', data['user']['role']?.toString() ?? '');
+        await prefs.setString('user_name', data['user']['name']?.toString() ?? '');
         
         if (data['user']['police_station_id'] != null) {
           await prefs.setString('user_ps_id', data['user']['police_station_id'].toString());
         }
         if (data['user']['police_station_notification_id'] != null) {
-          await prefs.setString('user_ps_notification_id', data['user']['police_station_notification_id']);
+          await prefs.setString('user_ps_notification_id', data['user']['police_station_notification_id'].toString());
         }
         
         return "Login Successfully";
