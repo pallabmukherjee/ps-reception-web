@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import '../main.dart';
 
 class PushNotifications {
@@ -22,10 +23,10 @@ class PushNotifications {
       sound: true,
     );
 
-    // Create High Importance Channel for Android
+    // Create New Emergency Channel for Android to ensure fresh settings
     const AndroidNotificationChannel channel = AndroidNotificationChannel(
-      'high_importance_channel',
-      'High Importance Notifications',
+      'emergency_channel',
+      'Emergency Alerts',
       description: 'Used for critical emergency alerts',
       importance: Importance.max,
       playSound: true,
@@ -46,6 +47,17 @@ class PushNotifications {
 
     // Handle Foreground Messages
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      print("Foreground message received: ${message.messageId}");
+      
+      // Add Toast for visible debugging
+      Fluttertoast.showToast(
+        msg: "Notification: ${message.notification?.title ?? 'Data Message'}",
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.TOP,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
+
       if (message.notification != null) {
         showSimpleNotification(
           title: message.notification!.title ?? 'New Notification',
@@ -88,6 +100,9 @@ class PushNotifications {
   @pragma('vm:entry-point')
   static Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     print("Handling a background message: ${message.messageId}");
+    
+    // We don't use Fluttertoast here as it might not show in background process
+    
     if (message.notification != null) {
       await _showLocalNotification(message);
     }
@@ -96,8 +111,8 @@ class PushNotifications {
   // Show local notification for background messages
   static Future<void> _showLocalNotification(RemoteMessage message) async {
     final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      'high_importance_channel',
-      'High Importance Notifications',
+      'emergency_channel',
+      'Emergency Alerts',
       channelDescription: 'Used for critical emergency alerts',
       importance: Importance.max,
       priority: Priority.high,
@@ -155,8 +170,8 @@ class PushNotifications {
   }) async {
     final AndroidNotificationDetails androidNotificationDetails =
         AndroidNotificationDetails(
-      'high_importance_channel',
-      'High Importance Notifications',
+      'emergency_channel',
+      'Emergency Alerts',
       channelDescription: 'Used for critical emergency alerts',
       importance: Importance.max,
       priority: Priority.high,

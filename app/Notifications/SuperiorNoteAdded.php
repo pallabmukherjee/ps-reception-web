@@ -63,7 +63,7 @@ class SuperiorNoteAdded extends Notification
             ))
             ->withAndroidConfig(AndroidConfig::fromArray([
                 'notification' => [
-                    'channel_id' => 'high_importance_channel',
+                    'channel_id' => 'emergency_channel',
                     'icon' => 'ic_launcher',
                     'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
                     'sound' => 'crunchy_beeps',
