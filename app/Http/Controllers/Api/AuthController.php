@@ -28,7 +28,10 @@ class AuthController extends Controller
 
         // Update FCM Token if provided
         if ($request->fcm_token) {
+            \Log::info("FCM: Received token for user {$user->email}: " . substr($request->fcm_token, 0, 10) . "...");
             $user->update(['fcm_token' => $request->fcm_token]);
+        } else {
+            \Log::warning("FCM: No token received in login request for user {$user->email}");
         }
 
         return response()->json([
@@ -48,6 +51,7 @@ class AuthController extends Controller
     public function updateFcmToken(Request $request)
     {
         $request->validate(['fcm_token' => 'required|string']);
+        \Log::info("FCM: Received token update for user {$request->user()->email}: " . substr($request->fcm_token, 0, 10) . "...");
         $request->user()->update(['fcm_token' => $request->fcm_token]);
         return response()->json(['message' => 'FCM token updated successfully']);
     }

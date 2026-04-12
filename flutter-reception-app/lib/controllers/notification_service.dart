@@ -60,6 +60,12 @@ class PushNotifications {
       navigatorKey.currentState!
           .pushNamed("/message", arguments: message.data);
     });
+
+    // Listen for token refresh
+    _firebaseMessaging.onTokenRefresh.listen((newToken) {
+      print("FCM Token Refreshed: $newToken");
+      AuthService.updateFcmToken(newToken);
+    });
   }
 
   // Get FCM Token

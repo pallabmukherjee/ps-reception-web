@@ -11,6 +11,12 @@ class AuthService {
 
   // user login function
   static Future<String> loginWithEmail(String email, String password, {String? fcmToken}) async {
+    print("AuthService: Attempting login for $email");
+    print("AuthService: FCM Token present: ${fcmToken != null && fcmToken.isNotEmpty}");
+    if (fcmToken != null && fcmToken.isNotEmpty) {
+      print("AuthService: FCM Token prefix: ${fcmToken.substring(0, 10)}...");
+    }
+    
     try {
       final response = await ApiService.post('login', {
         'email': email,
