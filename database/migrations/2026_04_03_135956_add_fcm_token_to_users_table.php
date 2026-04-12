@@ -13,7 +13,7 @@ return new class extends Migration
     {
         if (!Schema::hasColumn('users', 'fcm_token')) {
             Schema::table('users', function (Blueprint $table) {
-                $table->string('fcm_token')->nullable()->after('remember_token');
+                $table->text('fcm_token')->nullable()->after('remember_token');
             });
         }
     }

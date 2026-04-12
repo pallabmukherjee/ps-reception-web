@@ -33,39 +33,47 @@ class DatabaseSeeder extends Seeder
         }
 
         // Seed Categories and Sub-categories
-        $data = [
+        $categoryConfig = [
             'Green' => [
-                'Male Missing (পুরুষ নিরুদ্দেশ)',
-                'Passport Verification (পাসপোর্ট যাচাই)',
-                'CA Verification',
-                'Mob Linching (গণ পিটুনি)',
-                'Permission - Political Rally/Festival/Fair/Idol immersion',
-                'Arms License - New/Renewal (অস্ত্র ছাড়পত্র - নূতন/পুনর্নবিকরণ)',
-                'Physical Assault(শারীরিক ভাবে আঘাত করা)',
-                'Meeting with IO/Officer (অফিসারের সঙ্গে দেখা করা)',
-                'Other Cyber Fraud - অন্যান্য সাইবার সংক্রান্ত প্রতারণা',
-                'Money fraud - আর্থিক জালিয়াতি',
-                'Other - অন্যান্য',
-                'Mobile/SIM card missing - মোবাইল/সিম কার্ড হারানো',
-                'Dacoity - ডাকাতি',
-                'Hazira - হাজিরা',
-                'Theft - চুরি',
-                'Threat - হুমকি',
-                'Documents missing (Addhar, Pan, Deed etc) - নথিপত্র হারানো',
-                'Female Missing - মহিলা নিরুদ্দেশ',
-                'Domestic violence - পারিবারিক হিংসা',
-                'Land dispute - জমি সংক্রান্ত সমস্যা',
-                'Political clash - রাজনৈতিক সংঘাত',
+                'priority' => 'Low Priority',
+                'notification_enabled' => false,
+                'subs' => [
+                    'Male Missing (পুরুষ নিরুদ্দেশ)',
+                    'Passport Verification (পাসপোর্ট যাচাই)',
+                    'CA Verification',
+                    'Mob Linching (গণ পিটুনি)',
+                    'Permission - Political Rally/Festival/Fair/Idol immersion',
+                    'Arms License - New/Renewal (অস্ত্র ছাড়পত্র - নূতন/পুনর্নবিকরণ)',
+                    'Physical Assault(শারীরিক ভাবে আঘাত করা)',
+                    'Meeting with IO/Officer (অফিসারের সঙ্গে দেখা করা)',
+                    'Other Cyber Fraud - অন্যান্য সাইবার সংক্রান্ত প্রতারণা',
+                    'Money fraud - আর্থিক জালিয়াতি',
+                    'Other - অন্যান্য',
+                    'Mobile/SIM card missing - মোবাইল/সিম কার্ড হারানো',
+                    'Dacoity - ডাকাতি',
+                    'Hazira - হাজিরা',
+                    'Theft - চুরি',
+                    'Threat - হুমকি',
+                    'Documents missing (Addhar, Pan, Deed etc) - নথিপত্র হারানো',
+                    'Female Missing - মহিলা নিরুদ্দেশ',
+                    'Domestic violence - পারিবারিক হিংসা',
+                    'Land dispute - জমি সংক্রান্ত সমস্যা',
+                    'Political clash - রাজনৈতিক সংঘাত',
+                ],
             ],
             'Red' => [
-                'Minor Girl / Boy missing - শিশু কন্যা / পুত্র নিখোঁজ',
-                'Dowry death - পণ এর জন্য হত্যা',
-                'Murder - খুন',
-                'Sexual harrassment - যৌন নির্যাতন',
-                'Communal clash - সাম্প্রদায়িক অশান্তি',
-                'Acid attack - অ্যাসিড হামলা',
-                'Rape/Gang Rape - ধর্ষণ/গণ ধর্ষণ',
-                'POCSO - পকসো',
+                'priority' => 'High Priority',
+                'notification_enabled' => true,
+                'subs' => [
+                    'Minor Girl / Boy missing - শিশু কন্যা / পুত্র নিখোঁজ',
+                    'Dowry death - পণ এর জন্য হত্যা',
+                    'Murder - খুন',
+                    'Sexual harrassment - যৌন নির্যাতন',
+                    'Communal clash - সাম্প্রদায়িক অশান্তি',
+                    'Acid attack - অ্যাসিড হামলা',
+                    'Rape/Gang Rape - ধর্ষণ/গণ ধর্ষণ',
+                    'POCSO - পকসো',
+                ],
             ]
         ];
 
@@ -75,9 +83,13 @@ class DatabaseSeeder extends Seeder
         \App\Models\Category::truncate();
         \Illuminate\Support\Facades\Schema::enableForeignKeyConstraints();
 
-        foreach ($data as $catName => $subs) {
-            $category = \App\Models\Category::create(['name' => $catName]);
-            foreach ($subs as $subName) {
+        foreach ($categoryConfig as $catName => $config) {
+            $category = \App\Models\Category::create([
+                'name' => $catName,
+                'priority' => $config['priority'],
+                'notification_enabled' => $config['notification_enabled'],
+            ]);
+            foreach ($config['subs'] as $subName) {
                 $isDisabled = ($subName === 'Other - অন্যান্য');
                 \App\Models\SubCategory::create([
                     'category_id' => $category->id,

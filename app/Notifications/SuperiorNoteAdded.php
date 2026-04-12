@@ -79,6 +79,9 @@ class SuperiorNoteAdded extends Notification
             ]))
             ->withData([
                 'complaint_id' => (string) $this->complaint->id,
+                'complainant_name' => $this->complaint->complainant_name,
+                'phone' => $this->complaint->phone,
+                'note' => (string) $this->complaint->note,
                 'type' => 'note_added',
                 'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
             ]);

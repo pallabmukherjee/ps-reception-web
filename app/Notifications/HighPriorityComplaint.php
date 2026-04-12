@@ -84,6 +84,10 @@ class HighPriorityComplaint extends Notification
             ]))
             ->withData([
                 'complaint_id' => (string) $this->complaint->id,
+                'complainant_name' => $this->complaint->complainant_name,
+                'phone' => $this->complaint->phone,
+                'category_name' => $this->complaint->subCategory->category->name ?? 'Unknown',
+                'sub_category_name' => $this->complaint->subCategory->name ?? 'Unknown',
                 'type' => 'high_priority',
                 'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
             ]);
