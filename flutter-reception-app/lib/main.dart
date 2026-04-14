@@ -32,6 +32,11 @@ final navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Register background handler BEFORE Firebase initialization
+  FirebaseMessaging.onBackgroundMessage(
+      PushNotifications.firebaseMessagingBackgroundHandler);
+
   await Firebase.initializeApp();
 
   // Initialize Local notifications
@@ -39,10 +44,6 @@ void main() async {
 
   // Initialize Firebase Messaging
   await PushNotifications.init();
-
-  // Handle background notifications
-  FirebaseMessaging.onBackgroundMessage(
-      PushNotifications.firebaseMessagingBackgroundHandler);
 
   // For handling in terminated state
   final RemoteMessage? message = await FirebaseMessaging.instance.getInitialMessage();

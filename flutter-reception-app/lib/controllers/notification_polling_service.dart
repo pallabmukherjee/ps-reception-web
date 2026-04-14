@@ -12,7 +12,6 @@ class NotificationPollingService {
   static void startPolling() {
     if (_isPolling) return;
     _isPolling = true;
-    print("DEBUG: Starting notification polling...");
     _timer = Timer.periodic(const Duration(seconds: 15), (timer) {
       _checkNotifications();
     });
@@ -23,28 +22,18 @@ class NotificationPollingService {
   static void stopPolling() {
     _timer?.cancel();
     _isPolling = false;
-    print("DEBUG: Stopped notification polling.");
   }
 
   static Future<void> _checkNotifications() async {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? dutyStartTimeStr = prefs.getString('duty_start_time');
-      String? userRole = prefs.getString('user_role');
-      
-      print("🔔 POLLING DEBUG: Checking API for notifications... Role: $userRole");
       
       final notifications = await _complaintsService.fetchNotifications();
       
-      if (notifications.isEmpty) {
-        print("🔔 POLLING DEBUG: No unread notifications returned from API.");
-        return;
-      }
-
-      print("🔔 POLLING DEBUG: Received ${notifications.length} raw notifications from API.");
+      if (notifications.isEmpty) return;
 
       for (var notification in notifications) {
-        print("🔔 POLLING DEBUG: Processing notification ID: ${notification['id']}");
         dynamic data = notification['data'];
         Map<String, dynamic> dataMap = {};
         
@@ -54,22 +43,16 @@ class NotificationPollingService {
           dataMap = Map<String, dynamic>.from(data);
         }
 
-        print("🔔 POLLING DEBUG: Notification Content: Title='${dataMap['title']}', Type='${dataMap['type']}'");
-
         // Duty Session Filter Check
         if (dutyStartTimeStr != null && dataMap['complaint_created_at'] != null) {
           DateTime dutyStartTime = DateTime.parse(dutyStartTimeStr);
           DateTime complaintTime = DateTime.parse(dataMap['complaint_created_at']);
           
-          if (complaintTime.isBefore(dutyStartTime)) {
-            print("🔔 POLLING DEBUG: FILTERED OUT - Complaint time ($complaintTime) is before duty start ($dutyStartTime)");
-            continue;
-          }
+          if (complaintTime.isBefore(dutyStartTime)) continue;
         }
 
-        print("🔔 POLLING DEBUG: TRIGGERING LOCAL DISPLAY for '${dataMap['title']}'");
         await PushNotifications.showSimpleNotification(
-          title: dataMap['title'] ?? 'New Alert',
+          title: dataMap['title'] ?? '🚨 Emergency Alert',
           body: dataMap['message'] ?? 'New notification received.',
           payload: jsonEncode(dataMap),
         );
@@ -77,10 +60,14 @@ class NotificationPollingService {
       
       // Mark as read ONLY after processing
       await _complaintsService.markNotificationsRead();
-      print("🔔 POLLING DEBUG: All notifications processed and marked as read on server.");
       
     } catch (e) {
-      print("🔔 POLLING DEBUG: ERROR during poll: $e");
+      // Quietly ignore network lookup errors when app is in background
+      final errorStr = e.toString();
+      if (!errorStr.contains("Failed host lookup") && 
+          !errorStr.contains("SocketException")) {
+        // Only log serious unexpected errors
+      }
     }
   }
 }

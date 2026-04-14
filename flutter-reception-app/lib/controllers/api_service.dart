@@ -8,7 +8,6 @@ class ApiService {
   static Future<Map<String, String>> getHeaders() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('auth_token');
-    print('ApiService: Using token: ${token != null ? "FOUND" : "NOT FOUND"}');
     return {
       'Content-Type': 'application/json',
       'Accept': 'application/json',

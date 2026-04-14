@@ -56,11 +56,9 @@ class SuperiorNoteAdded extends Notification
      */
     public function toFcm(object $notifiable): CloudMessage
     {
+        // Using data-only message for better background reliability on Android 13+
+        // This forces the onBackgroundMessage handler to trigger.
         return CloudMessage::new()
-            ->withNotification(FirebaseNotification::create(
-                '📝 New Official Note Added',
-                "Superior added a note to complaint record."
-            ))
             ->withAndroidConfig(AndroidConfig::fromArray([
                 'priority' => 'high',
                 'notification' => [

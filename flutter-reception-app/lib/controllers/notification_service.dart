@@ -47,20 +47,6 @@ class PushNotifications {
 
     // Handle Foreground Messages
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print("FCM Foreground message received: ${message.messageId}");
-      print("FCM Message data: ${message.data}");
-      print("FCM Message notification: ${message.notification?.title} - ${message.notification?.body}");
-      
-      // Add Toast for visible debugging
-      Fluttertoast.showToast(
-        msg: "Received: ${message.notification?.title ?? 'Emergency Notification'}",
-        toastLength: Toast.LENGTH_LONG,
-        gravity: ToastGravity.TOP,
-        backgroundColor: Colors.red,
-        textColor: Colors.white,
-        fontSize: 16.0
-      );
-
       // Extract title and body from notification OR data
       String title = message.notification?.title ?? message.data['title'] ?? '🚨 Emergency Alert';
       String body = message.notification?.body ?? message.data['message'] ?? 'New high priority complaint registered.';
@@ -74,19 +60,24 @@ class PushNotifications {
 
     // Handle Background Message Interaction
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      print("FCM Message opened app: ${message.messageId}");
       navigatorKey.currentState?.pushNamed("/message", arguments: message.data);
     });
+
+    // Handle messages that launched the app from a terminated state
+    final RemoteMessage? initialMessage = await _firebaseMessaging.getInitialMessage();
+    if (initialMessage != null) {
+      Future.delayed(const Duration(seconds: 1), () {
+        navigatorKey.currentState?.pushNamed("/message", arguments: initialMessage.data);
+      });
+    }
   }
 
   // Get FCM Token
   static Future<String?> getDeviceToken({int maxRetries = 3}) async {
     try {
       String? token = await _firebaseMessaging.getToken();
-      print("FCM Device Token: $token");
       return token;
     } catch (e) {
-      print("FCM Token fetch error: $e");
       return null;
     }
   }
@@ -94,8 +85,6 @@ class PushNotifications {
   // Handle Background Notifications
   @pragma('vm:entry-point')
   static Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-    print("🔔 BACKGROUND FCM: Handling message ${message.messageId}");
-    
     // Ensure Firebase is initialized for background processing
     try {
       // Initialize Local notifications specifically for this background process
@@ -113,8 +102,6 @@ class PushNotifications {
       String title = message.notification?.title ?? message.data['title'] ?? '🚨 Emergency Alert';
       String body = message.notification?.body ?? message.data['message'] ?? 'New alert received.';
 
-      print("🔔 BACKGROUND FCM: Displaying local notification: $title");
-      
       final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
         'emergency_channel',
         'Emergency Alerts',
@@ -138,7 +125,7 @@ class PushNotifications {
         payload: jsonEncode(message.data),
       );
     } catch (e) {
-      print("🔔 BACKGROUND FCM ERROR: $e");
+      // Silently fail in background
     }
   }
 
@@ -168,7 +155,7 @@ class PushNotifications {
         payload: jsonEncode(message.data),
       );
     } catch (e) {
-      print("Error showing local notification in background: $e");
+      // Silently fail
     }
   }
 
@@ -192,15 +179,13 @@ class PushNotifications {
         onDidReceiveNotificationResponse: onNotificationTap,
         onDidReceiveBackgroundNotificationResponse: onNotificationTap,
       );
-      print("Local Notifications Initialized");
     } catch (e) {
-      print("Local Notifications Initialization Error: $e");
+      // Silently fail
     }
   }
 
   // Handle notification tap
   static void onNotificationTap(NotificationResponse notificationResponse) {
-    print("Notification tapped with payload: ${notificationResponse.payload}");
     navigatorKey.currentState?.pushNamed("/message", arguments: notificationResponse);
   }
 
@@ -231,9 +216,8 @@ class PushNotifications {
       await _flutterLocalNotificationsPlugin.show(
           DateTime.now().hashCode, title, body, notificationDetails,
           payload: payload);
-      print("Notification displayed: $title");
     } catch (e) {
-      print("Error showing simple notification: $e");
+      // Silently fail
     }
   }
 }
