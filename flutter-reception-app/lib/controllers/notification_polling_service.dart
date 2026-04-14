@@ -45,8 +45,8 @@ class NotificationPollingService {
 
         // Duty Session Filter Check
         if (dutyStartTimeStr != null && dataMap['complaint_created_at'] != null) {
-          DateTime dutyStartTime = DateTime.parse(dutyStartTimeStr);
-          DateTime complaintTime = DateTime.parse(dataMap['complaint_created_at']);
+          DateTime dutyStartTime = DateTime.parse(dutyStartTimeStr).toLocal();
+          DateTime complaintTime = DateTime.parse(dataMap['complaint_created_at']).toLocal();
           
           if (complaintTime.isBefore(dutyStartTime)) continue;
         }

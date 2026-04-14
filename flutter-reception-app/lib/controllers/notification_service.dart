@@ -98,6 +98,21 @@ class PushNotifications {
         initializationSettings,
       );
 
+      // Explicitly create the channel in background to ensure it exists
+      const AndroidNotificationChannel channel = AndroidNotificationChannel(
+        'emergency_channel',
+        'Emergency Alerts',
+        description: 'Used for critical emergency alerts',
+        importance: Importance.max,
+        playSound: true,
+        sound: const RawResourceAndroidNotificationSound('crunchy_beeps'),
+        enableVibration: true,
+      );
+
+      await _flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+          ?.createNotificationChannel(channel);
+
       // Extract title and body from notification OR data payload
       String title = message.notification?.title ?? message.data['title'] ?? '🚨 Emergency Alert';
       String body = message.notification?.body ?? message.data['message'] ?? 'New alert received.';

@@ -109,7 +109,7 @@ class _SuperiorComplaintDetailScreenState extends State<SuperiorComplaintDetailS
   String formatTimestamp(String? timestamp) {
     if (timestamp == null) return 'N/A';
     try {
-      DateTime dateTime = DateTime.parse(timestamp);
+      DateTime dateTime = DateTime.parse(timestamp).toLocal();
       return DateFormat('dd MMM yyyy - hh:mm a').format(dateTime);
     } catch (e) {
       return timestamp;

@@ -295,7 +295,7 @@ class _SuperiorComplaintListScreenState extends State<SuperiorComplaintListScree
                   ),
                   const Spacer(),
                   Text(
-                    DateFormat('dd MMM, hh:mm a').format(DateTime.parse(complaint['created_at'])),
+                    DateFormat('dd MMM, hh:mm a').format(DateTime.parse(complaint['created_at']).toLocal()),
                     style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade400),
                   ),
                 ],

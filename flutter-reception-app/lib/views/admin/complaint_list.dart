@@ -143,7 +143,7 @@ class _ComplaintListScreenState extends State<ComplaintListScreen> {
   String _formatDate(String? dateStr) {
     if (dateStr == null) return 'N/A';
     try {
-      final date = DateTime.parse(dateStr);
+      final date = DateTime.parse(dateStr).toLocal();
       return DateFormat('dd MMM yyyy').format(date);
     } catch (e) {
       return dateStr;
@@ -153,7 +153,7 @@ class _ComplaintListScreenState extends State<ComplaintListScreen> {
   String _formatDateTime(String? dateStr) {
     if (dateStr == null) return 'N/A';
     try {
-      final date = DateTime.parse(dateStr);
+      final date = DateTime.parse(dateStr).toLocal();
       return DateFormat('dd MMM, hh:mm a').format(date);
     } catch (e) {
       return dateStr;
