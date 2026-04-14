@@ -28,11 +28,12 @@ class FcmChannel
             $message = $notification->toFcm($notifiable);
 
             if ($message instanceof CloudMessage) {
-                $message = $message->withToken((string) $token);
+                $message = $message->withToken((string) $token)
+                    ->withDefaultFcmOptions(['analytics_label' => 'emergency-alert']);
                 
                 try {
                     Firebase::messaging()->send($message);
-                    \Log::info("FCM: Sent successfully to User {$notifiable->id}");
+                    \Log::info("FCM HANDOVER: Sent successfully to User {$notifiable->id} at " . now()->toDateTimeString());
                 } catch (\Throwable $sendError) {
                     \Log::error("FCM Send Error: " . $sendError->getMessage());
                     

@@ -61,9 +61,11 @@ class HighPriorityComplaint extends Notification
     {
         $this->complaint->loadMissing('subCategory.category');
         
-        // Using data-only message for better background reliability on Android 13+
-        // This forces the onBackgroundMessage handler to trigger.
         return CloudMessage::new()
+            ->withNotification(FirebaseNotification::create(
+                '🚨 EMERGENCY HIGH ALERT 🚨',
+                "New {$this->complaint->subCategory->name} registered at station."
+            ))
             ->withAndroidConfig(AndroidConfig::fromArray([
                 'priority' => 'high',
                 'notification' => [
