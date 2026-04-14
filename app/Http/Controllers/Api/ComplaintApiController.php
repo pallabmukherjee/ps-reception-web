@@ -92,10 +92,9 @@ class ComplaintApiController extends Controller
             if ($category) {
                 $priority = $category->priority ?? 'none';
                 $isNotificationEnabled = $category->notification_enabled ?? false;
-                $categoryId = $category->id;
 
-                $isHighPriority = (strcasecmp(trim($priority), 'High Priority') === 0) || 
-                                 in_array($categoryId, [1, 5, 9]);
+                // Determine if it is high priority strictly based on the database 'priority' column
+                $isHighPriority = (strcasecmp(trim($priority), 'High Priority') === 0);
 
                 if ($isHighPriority && $isNotificationEnabled) {
                     $superiors = User::role('superior')
