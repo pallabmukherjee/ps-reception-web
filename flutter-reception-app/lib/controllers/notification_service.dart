@@ -94,11 +94,51 @@ class PushNotifications {
   // Handle Background Notifications
   @pragma('vm:entry-point')
   static Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-    print("Handling a background message: ${message.messageId}");
-    // Note: Local notifications are usually shown by the system if 'notification' payload is present.
-    // We only manually show if it's a data-only message or we want to ensure custom sound/channel.
-    if (message.data.isNotEmpty && message.notification == null) {
-       await _showLocalNotification(message);
+    print("🔔 BACKGROUND FCM: Handling message ${message.messageId}");
+    
+    // Ensure Firebase is initialized for background processing
+    try {
+      // Initialize Local notifications specifically for this background process
+      const AndroidInitializationSettings initializationSettingsAndroid =
+          AndroidInitializationSettings('@mipmap/ic_launcher');
+      const InitializationSettings initializationSettings = InitializationSettings(
+        android: initializationSettingsAndroid,
+      );
+      
+      await _flutterLocalNotificationsPlugin.initialize(
+        initializationSettings,
+      );
+
+      // Extract title and body from notification OR data payload
+      String title = message.notification?.title ?? message.data['title'] ?? '🚨 Emergency Alert';
+      String body = message.notification?.body ?? message.data['message'] ?? 'New alert received.';
+
+      print("🔔 BACKGROUND FCM: Displaying local notification: $title");
+      
+      final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+        'emergency_channel',
+        'Emergency Alerts',
+        channelDescription: 'Used for critical emergency alerts',
+        importance: Importance.max,
+        priority: Priority.high,
+        playSound: true,
+        enableVibration: true,
+        vibrationPattern: Int64List.fromList([0, 1000, 500, 1000]),
+        sound: const RawResourceAndroidNotificationSound('crunchy_beeps'),
+        icon: '@mipmap/ic_launcher',
+      );
+
+      final NotificationDetails platformDetails = NotificationDetails(android: androidDetails);
+
+      await _flutterLocalNotificationsPlugin.show(
+        DateTime.now().hashCode,
+        title,
+        body,
+        platformDetails,
+        payload: jsonEncode(message.data),
+      );
+    } catch (e) {
+      print("🔔 BACKGROUND FCM ERROR: $e");
     }
   }
 

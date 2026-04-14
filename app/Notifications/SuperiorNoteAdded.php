@@ -80,6 +80,8 @@ class SuperiorNoteAdded extends Notification
                 ],
             ]))
             ->withData([
+                'title' => '📝 New Official Note Added',
+                'message' => "Superior added a note to complaint record.",
                 'complaint_id' => (string) $this->complaint->id,
                 'complainant_name' => $this->complaint->complainant_name,
                 'phone' => $this->complaint->phone,

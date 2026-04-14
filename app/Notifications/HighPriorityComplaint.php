@@ -85,6 +85,8 @@ class HighPriorityComplaint extends Notification
                 ],
             ]))
             ->withData([
+                'title' => '🚨 EMERGENCY HIGH ALERT 🚨',
+                'message' => "New {$this->complaint->subCategory->name} registered at station.",
                 'complaint_id' => (string) $this->complaint->id,
                 'complainant_name' => $this->complaint->complainant_name,
                 'phone' => $this->complaint->phone,
