@@ -62,11 +62,13 @@ class SuperiorNoteAdded extends Notification
                 "Superior added a note to complaint record."
             ))
             ->withAndroidConfig(AndroidConfig::fromArray([
+                'priority' => 'high',
                 'notification' => [
                     'channel_id' => 'emergency_channel',
                     'icon' => 'ic_launcher',
-                    'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
                     'sound' => 'crunchy_beeps',
+                    'visibility' => 'public',
+                    'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
                 ],
             ]))
             ->withApnsConfig(\Kreait\Firebase\Messaging\ApnsConfig::fromArray([
