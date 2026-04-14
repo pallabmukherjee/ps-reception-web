@@ -30,51 +30,57 @@ class NotificationPollingService {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? dutyStartTimeStr = prefs.getString('duty_start_time');
-      DateTime? dutyStartTime;
-      if (dutyStartTimeStr != null) {
-        dutyStartTime = DateTime.parse(dutyStartTimeStr);
-      }
-
-      print("DEBUG: Checking for new notifications...");
+      String? userRole = prefs.getString('user_role');
+      
+      print("🔔 POLLING DEBUG: Checking API for notifications... Role: $userRole");
+      
       final notifications = await _complaintsService.fetchNotifications();
-      if (notifications.isNotEmpty) {
-        print("DEBUG: Found ${notifications.length} new notifications");
-        for (var notification in notifications) {
-          dynamic data = notification['data'];
-
-          Map<String, dynamic> dataMap = {};
-          if (data is String) {
-            dataMap = Map<String, dynamic>.from(jsonDecode(data));
-          } else if (data is Map) {
-            dataMap = Map<String, dynamic>.from(data);
-          }
-
-          // Filter by duty session if it's a note update or high priority for started duty
-          if (dutyStartTime != null && dataMap['complaint_created_at'] != null) {
-            try {
-              DateTime complaintCreatedAt = DateTime.parse(dataMap['complaint_created_at']);
-              if (complaintCreatedAt.isBefore(dutyStartTime)) {
-                print("DEBUG: Skipping notification for old complaint (pre-duty)");
-                continue;
-              }
-            } catch (e) {
-              print("DEBUG: Date parsing error: $e");
-            }
-          }
-
-          print("DEBUG: Showing notification: ${dataMap['title']}");
-
-          await PushNotifications.showSimpleNotification(
-            title: dataMap['title'] ?? 'New Alert',
-            body: dataMap['message'] ?? 'A new notification has been received.',
-            payload: jsonEncode(dataMap),
-          );
-        }
-        // Mark as read after showing local notifications
-        await _complaintsService.markNotificationsRead();
+      
+      if (notifications.isEmpty) {
+        print("🔔 POLLING DEBUG: No unread notifications returned from API.");
+        return;
       }
+
+      print("🔔 POLLING DEBUG: Received ${notifications.length} raw notifications from API.");
+
+      for (var notification in notifications) {
+        print("🔔 POLLING DEBUG: Processing notification ID: ${notification['id']}");
+        dynamic data = notification['data'];
+        Map<String, dynamic> dataMap = {};
+        
+        if (data is String) {
+          dataMap = Map<String, dynamic>.from(jsonDecode(data));
+        } else if (data is Map) {
+          dataMap = Map<String, dynamic>.from(data);
+        }
+
+        print("🔔 POLLING DEBUG: Notification Content: Title='${dataMap['title']}', Type='${dataMap['type']}'");
+
+        // Duty Session Filter Check
+        if (dutyStartTimeStr != null && dataMap['complaint_created_at'] != null) {
+          DateTime dutyStartTime = DateTime.parse(dutyStartTimeStr);
+          DateTime complaintTime = DateTime.parse(dataMap['complaint_created_at']);
+          
+          if (complaintTime.isBefore(dutyStartTime)) {
+            print("🔔 POLLING DEBUG: FILTERED OUT - Complaint time ($complaintTime) is before duty start ($dutyStartTime)");
+            continue;
+          }
+        }
+
+        print("🔔 POLLING DEBUG: TRIGGERING LOCAL DISPLAY for '${dataMap['title']}'");
+        await PushNotifications.showSimpleNotification(
+          title: dataMap['title'] ?? 'New Alert',
+          body: dataMap['message'] ?? 'New notification received.',
+          payload: jsonEncode(dataMap),
+        );
+      }
+      
+      // Mark as read ONLY after processing
+      await _complaintsService.markNotificationsRead();
+      print("🔔 POLLING DEBUG: All notifications processed and marked as read on server.");
+      
     } catch (e) {
-      print("DEBUG: Error during notification polling: $e");
+      print("🔔 POLLING DEBUG: ERROR during poll: $e");
     }
   }
 }
