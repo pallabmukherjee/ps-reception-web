@@ -41,16 +41,14 @@ class HighPriorityComplaint extends Notification
     {
         $this->complaint->loadMissing('subCategory.category');
 
+        $categoryName = $this->complaint->subCategory->category->name ?? 'Unknown';
+        $message = "{$categoryName} complaint received.";
+
         return [
             'complaint_id' => $this->complaint->id,
-            'complainant_name' => $this->complaint->complainant_name,
-            'phone' => $this->complaint->phone,
-            'category_name' => $this->complaint->subCategory->category->name ?? 'Unknown',
-            'sub_category_name' => $this->complaint->subCategory->name ?? 'Unknown',
             'title' => '🚨 EMERGENCY HIGH ALERT 🚨',
-            'message' => "New {$this->complaint->subCategory->name} registered at station.",
+            'message' => $message,
             'type' => 'high_priority',
-            'complaint_created_at' => $this->complaint->created_at->toIso8601String(),
         ];
     }
 
@@ -60,11 +58,12 @@ class HighPriorityComplaint extends Notification
     public function toFcm(object $notifiable): CloudMessage
     {
         $this->complaint->loadMissing('subCategory.category');
-        
+        $categoryName = $this->complaint->subCategory->category->name ?? 'High Priority';
+
         return CloudMessage::new()
             ->withNotification(FirebaseNotification::create(
                 '🚨 EMERGENCY HIGH ALERT 🚨',
-                "New {$this->complaint->subCategory->name} registered at station."
+                "{$categoryName} complaint received."
             ))
             ->withAndroidConfig(AndroidConfig::fromArray([
                 'priority' => 'high',
@@ -86,11 +85,11 @@ class HighPriorityComplaint extends Notification
             ]))
             ->withData([
                 'title' => '🚨 EMERGENCY HIGH ALERT 🚨',
-                'message' => "New {$this->complaint->subCategory->name} registered at station.",
+                'message' => "{$categoryName} complaint received.",
                 'complaint_id' => (string) $this->complaint->id,
                 'complainant_name' => $this->complaint->complainant_name,
                 'phone' => $this->complaint->phone,
-                'category_name' => $this->complaint->subCategory->category->name ?? 'Unknown',
+                'category_name' => $categoryName,
                 'sub_category_name' => $this->complaint->subCategory->name ?? 'Unknown',
                 'type' => 'high_priority',
                 'click_action' => 'FLUTTER_NOTIFICATION_CLICK',

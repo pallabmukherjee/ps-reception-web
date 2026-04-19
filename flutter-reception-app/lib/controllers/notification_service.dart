@@ -4,6 +4,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:firebase_core/firebase_core.dart';
 import '../main.dart';
 
 class PushNotifications {
@@ -47,9 +48,10 @@ class PushNotifications {
 
     // Handle Foreground Messages
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      print("!!! FOREGROUND FCM RECEIVED: Title: ${message.notification?.title ?? message.data['title']}");
       // Extract title and body from notification OR data
       String title = message.notification?.title ?? message.data['title'] ?? '🚨 Emergency Alert';
-      String body = message.notification?.body ?? message.data['message'] ?? 'New high priority complaint registered.';
+      String body = message.notification?.body ?? message.data['message'] ?? 'New alert received.';
 
       showSimpleNotification(
         title: title,
@@ -85,6 +87,7 @@ class PushNotifications {
   // Handle Background Notifications
   @pragma('vm:entry-point')
   static Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+    await Firebase.initializeApp();
     // Ensure Firebase is initialized for background processing
     try {
       // Initialize Local notifications specifically for this background process
