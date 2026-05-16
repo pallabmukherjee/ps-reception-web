@@ -3,7 +3,6 @@ import 'dart:typed_data';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:firebase_core/firebase_core.dart';
 import '../main.dart';
 
@@ -24,7 +23,7 @@ class PushNotifications {
       sound: true,
     );
 
-    // Create New Emergency Channel for Android to ensure fresh settings
+    // Create Emergency Channel for Android
     const AndroidNotificationChannel channel = AndroidNotificationChannel(
       'emergency_channel',
       'Emergency Alerts',
@@ -49,7 +48,6 @@ class PushNotifications {
     // Handle Foreground Messages
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       print("!!! FOREGROUND FCM RECEIVED: Title: ${message.notification?.title ?? message.data['title']}");
-      // Extract title and body from notification OR data
       String title = message.notification?.title ?? message.data['title'] ?? '🚨 Emergency Alert';
       String body = message.notification?.body ?? message.data['message'] ?? 'New alert received.';
 
@@ -64,14 +62,6 @@ class PushNotifications {
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       navigatorKey.currentState?.pushNamed("/message", arguments: message.data);
     });
-
-    // Handle messages that launched the app from a terminated state
-    final RemoteMessage? initialMessage = await _firebaseMessaging.getInitialMessage();
-    if (initialMessage != null) {
-      Future.delayed(const Duration(seconds: 1), () {
-        navigatorKey.currentState?.pushNamed("/message", arguments: initialMessage.data);
-      });
-    }
   }
 
   // Get FCM Token
@@ -80,6 +70,7 @@ class PushNotifications {
       String? token = await _firebaseMessaging.getToken();
       return token;
     } catch (e) {
+      print('Error getting FCM token: $e');
       return null;
     }
   }
@@ -88,20 +79,19 @@ class PushNotifications {
   @pragma('vm:entry-point')
   static Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     await Firebase.initializeApp();
-    // Ensure Firebase is initialized for background processing
     try {
-      // Initialize Local notifications specifically for this background process
       const AndroidInitializationSettings initializationSettingsAndroid =
           AndroidInitializationSettings('@mipmap/ic_launcher');
       const InitializationSettings initializationSettings = InitializationSettings(
         android: initializationSettingsAndroid,
       );
-      
+
       await _flutterLocalNotificationsPlugin.initialize(
         initializationSettings,
+        onDidReceiveNotificationResponse: onNotificationTap,
+        onDidReceiveBackgroundNotificationResponse: onNotificationTap,
       );
 
-      // Explicitly create the channel in background to ensure it exists
       const AndroidNotificationChannel channel = AndroidNotificationChannel(
         'emergency_channel',
         'Emergency Alerts',
@@ -116,7 +106,6 @@ class PushNotifications {
           .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
           ?.createNotificationChannel(channel);
 
-      // Extract title and body from notification OR data payload
       String title = message.notification?.title ?? message.data['title'] ?? '🚨 Emergency Alert';
       String body = message.notification?.body ?? message.data['message'] ?? 'New alert received.';
 
@@ -143,37 +132,7 @@ class PushNotifications {
         payload: jsonEncode(message.data),
       );
     } catch (e) {
-      // Silently fail in background
-    }
-  }
-
-  // Show local notification for background messages
-  static Future<void> _showLocalNotification(RemoteMessage message) async {
-    try {
-      final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-        'emergency_channel',
-        'Emergency Alerts',
-        channelDescription: 'Used for critical emergency alerts',
-        importance: Importance.max,
-        priority: Priority.high,
-        playSound: true,
-        enableVibration: true,
-        vibrationPattern: Int64List.fromList([0, 1000, 500, 1000]),
-        sound: const RawResourceAndroidNotificationSound('crunchy_beeps'),
-        icon: '@mipmap/ic_launcher',
-      );
-
-      final NotificationDetails platformDetails = NotificationDetails(android: androidDetails);
-
-      await _flutterLocalNotificationsPlugin.show(
-        DateTime.now().millisecond,
-        message.notification?.title ?? message.data['title'] ?? '🚨 Emergency Alert',
-        message.notification?.body ?? message.data['message'] ?? 'New incident reported.',
-        platformDetails,
-        payload: jsonEncode(message.data),
-      );
-    } catch (e) {
-      // Silently fail
+      print('Error in firebaseMessagingBackgroundHandler: $e');
     }
   }
 
@@ -187,22 +146,23 @@ class PushNotifications {
     );
 
     try {
-      // Request notification permissions for Android 13 and above
-      await _flutterLocalNotificationsPlugin
-          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-          ?.requestNotificationsPermission();
-
       await _flutterLocalNotificationsPlugin.initialize(
         initializationSettings,
         onDidReceiveNotificationResponse: onNotificationTap,
         onDidReceiveBackgroundNotificationResponse: onNotificationTap,
       );
+
+      // Request notification permissions for Android 13 and above
+      await _flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+          ?.requestNotificationsPermission();
     } catch (e) {
-      // Silently fail
+      print('Error initializing local notifications: $e');
     }
   }
 
   // Handle notification tap
+  @pragma('vm:entry-point')
   static void onNotificationTap(NotificationResponse notificationResponse) {
     navigatorKey.currentState?.pushNamed("/message", arguments: notificationResponse);
   }
@@ -227,15 +187,15 @@ class PushNotifications {
         sound: const RawResourceAndroidNotificationSound('crunchy_beeps'),
         icon: '@mipmap/ic_launcher',
       );
-      
+
       final NotificationDetails notificationDetails =
           NotificationDetails(android: androidNotificationDetails);
-      
+
       await _flutterLocalNotificationsPlugin.show(
           DateTime.now().hashCode, title, body, notificationDetails,
           payload: payload);
     } catch (e) {
-      // Silently fail
+      print('Error showing notification: $e');
     }
   }
 }

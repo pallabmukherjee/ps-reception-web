@@ -60,13 +60,12 @@ class NotificationPollingService {
       
       // Mark as read ONLY after processing
       await _complaintsService.markNotificationsRead();
-      
+
     } catch (e) {
-      // Quietly ignore network lookup errors when app is in background
       final errorStr = e.toString();
-      if (!errorStr.contains("Failed host lookup") && 
+      if (!errorStr.contains("Failed host lookup") &&
           !errorStr.contains("SocketException")) {
-        // Only log serious unexpected errors
+        print('Notification polling error: $e');
       }
     }
   }
