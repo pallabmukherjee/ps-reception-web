@@ -30,14 +30,16 @@ class FcmChannel
             if ($message instanceof CloudMessage) {
                 $message = $message->withToken((string) $token)
                     ->withDefaultFcmOptions(['analytics_label' => 'emergency-alert']);
-                
+
+                $payload = json_encode($message);
+                \Log::info("FCM PAYLOAD: " . ($payload ?: 'null'));
+
                 try {
-                    Firebase::messaging()->send($message);
-                    \Log::info("FCM HANDOVER: Sent successfully to User {$notifiable->id} at " . now()->toDateTimeString());
+                    $result = Firebase::messaging()->send($message);
+                    \Log::info("FCM HANDOVER: Sent successfully to User {$notifiable->id}. Response: " . json_encode($result));
                 } catch (\Throwable $sendError) {
                     \Log::error("FCM Send Error: " . $sendError->getMessage());
-                    
-                    // If token is invalid, clear it
+
                     if (str_contains($sendError->getMessage(), 'registration-token-not-registered')) {
                         $notifiable->update(['fcm_token' => null]);
                         \Log::warning("FCM: Cleared invalid token for User {$notifiable->id}");

@@ -71,7 +71,7 @@ class HighPriorityComplaint extends Notification
                     'channel_id' => 'emergency_channel',
                     'icon' => 'ic_launcher',
                     'sound' => 'crunchy_beeps',
-                    'visibility' => 'public',
+                    'visibility' => 'PUBLIC',
                     'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
                 ],
             ]))
