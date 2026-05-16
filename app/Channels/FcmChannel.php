@@ -4,8 +4,7 @@ namespace App\Channels;
 
 use Illuminate\Notifications\Notification;
 use Kreait\Laravel\Firebase\Facades\Firebase;
-use Kreait\Firebase\Messaging\CloudMessage;
-use Kreait\Firebase\Messaging\FcmOptions;
+use Kreait\Firebase\Messaging\RawMessageFromArray;
 
 class FcmChannel
 {
@@ -26,25 +25,26 @@ class FcmChannel
                 return;
             }
 
-            $message = $notification->toFcm($notifiable);
+            $fcmNotification = $notification->toFcm($notifiable);
 
-            if ($message instanceof CloudMessage) {
-                $message = $message->withToken((string) $token)
-                    ->withFcmOptions(FcmOptions::fromArray(['analytics_label' => 'emergency-alert']));
+            $messageData = json_decode(json_encode($fcmNotification), true);
 
-                $payload = json_encode($message);
-                \Log::info("FCM PAYLOAD: " . ($payload ?: 'null'));
+            $messageData['token'] = (string) $token;
+            $messageData['fcm_options'] = ['analytics_label' => 'emergency-alert'];
 
-                try {
-                    $result = Firebase::messaging()->send($message);
-                    \Log::info("FCM HANDOVER: Sent successfully to User {$notifiable->id}. Response: " . json_encode($result));
-                } catch (\Throwable $sendError) {
-                    \Log::error("FCM Send Error: " . $sendError->getMessage());
+            $fullPayload = json_encode(['message' => $messageData]);
+            \Log::info("FCM FULL REQUEST: " . ($fullPayload ?: 'null'));
 
-                    if (str_contains($sendError->getMessage(), 'registration-token-not-registered')) {
-                        $notifiable->update(['fcm_token' => null]);
-                        \Log::warning("FCM: Cleared invalid token for User {$notifiable->id}");
-                    }
+            try {
+                $result = Firebase::messaging()->send(new RawMessageFromArray($messageData));
+                \Log::info("FCM HANDOVER: Sent successfully to User {$notifiable->id}. Response: " . json_encode($result));
+            } catch (\Throwable $sendError) {
+                \Log::error("FCM Send Error: " . $sendError->getMessage());
+                \Log::error("FCM Send Error Class: " . get_class($sendError));
+
+                if (str_contains($sendError->getMessage(), 'registration-token-not-registered')) {
+                    $notifiable->update(['fcm_token' => null]);
+                    \Log::warning("FCM: Cleared invalid token for User {$notifiable->id}");
                 }
             }
         } catch (\Throwable $e) {
