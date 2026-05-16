@@ -36,16 +36,18 @@ class FcmChannel
             \Log::info("FCM FULL REQUEST: " . ($fullPayload ?: 'null'));
 
             try {
-                $result = Firebase::messaging()->send(new RawMessageFromArray($messageData));
-                \Log::info("FCM HANDOVER: Sent successfully to User {$notifiable->id}. Response: " . json_encode($result));
+                $sendResult = Firebase::messaging()->send(new RawMessageFromArray($messageData));
+                \Log::info("FCM HANDOVER: Sent successfully to User {$notifiable->id}. Result: " . json_encode($sendResult));
+            } catch (\Kreait\Firebase\Exception\Messaging\InvalidMessage $e) {
+                \Log::error("FCM InvalidMessage: " . $e->getMessage());
+                \Log::error("FCM InvalidMessage errors: " . json_encode($e->errors()));
+            } catch (\Kreait\Firebase\Exception\Messaging\NotFound $e) {
+                \Log::warning("FCM Token not found (unregistered), clearing for User {$notifiable->id}");
+                $notifiable->update(['fcm_token' => null]);
             } catch (\Throwable $sendError) {
                 \Log::error("FCM Send Error: " . $sendError->getMessage());
                 \Log::error("FCM Send Error Class: " . get_class($sendError));
-
-                if (str_contains($sendError->getMessage(), 'registration-token-not-registered')) {
-                    $notifiable->update(['fcm_token' => null]);
-                    \Log::warning("FCM: Cleared invalid token for User {$notifiable->id}");
-                }
+                \Log::error("FCM Send Error Trace: " . $sendError->getTraceAsString());
             }
         } catch (\Throwable $e) {
             \Log::error("FCM Channel Error: " . $e->getMessage());
