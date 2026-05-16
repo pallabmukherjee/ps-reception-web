@@ -5,6 +5,7 @@ namespace App\Channels;
 use Illuminate\Notifications\Notification;
 use Kreait\Laravel\Firebase\Facades\Firebase;
 use Kreait\Firebase\Messaging\CloudMessage;
+use Kreait\Firebase\Messaging\FcmOptions;
 
 class FcmChannel
 {
@@ -29,7 +30,7 @@ class FcmChannel
 
             if ($message instanceof CloudMessage) {
                 $message = $message->withToken((string) $token)
-                    ->withDefaultFcmOptions(['analytics_label' => 'emergency-alert']);
+                    ->withFcmOptions(FcmOptions::fromArray(['analytics_label' => 'emergency-alert']));
 
                 $payload = json_encode($message);
                 \Log::info("FCM PAYLOAD: " . ($payload ?: 'null'));
