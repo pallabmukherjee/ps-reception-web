@@ -35,6 +35,8 @@ class FcmChannel
             $fullPayload = json_encode(['message' => $messageData]);
             \Log::info("FCM FULL REQUEST: " . ($fullPayload ?: 'null'));
 
+            \Log::info("FCM PRE-SEND: config credentials type=" . gettype(config('firebase.projects.app.credentials')) . " val=" . json_encode(config('firebase.projects.app.credentials')));
+
             try {
                 $sendResult = Firebase::messaging()->send(new RawMessageFromArray($messageData));
                 \Log::info("FCM HANDOVER: Sent successfully to User {$notifiable->id}. Result: " . json_encode($sendResult));
