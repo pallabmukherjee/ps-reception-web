@@ -129,7 +129,7 @@ class ComplaintController extends Controller
         // Notify receptionist and admins (deduplicated)
         try {
             $receptionist = $complaint->receptionist;
-            $admins = User::role(['admin', 'super'])->get();
+            $admins = User::role('admin')->get();
             
             $recipients = $admins->keyBy('id');
             if ($receptionist) {
