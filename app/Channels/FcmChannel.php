@@ -32,8 +32,17 @@ class FcmChannel
             $messageData['token'] = (string) $token;
             $messageData['fcm_options'] = ['analytics_label' => 'emergency-alert'];
 
+            // Ensure notification payload is always present so Android shows
+            // system notification when app is in background / terminated
+            $notifArray = $notification->toArray($notifiable);
+            $messageData['notification'] = [
+                'title' => $notifArray['title'] ?? 'Alert',
+                'body' => $notifArray['message'] ?? 'New notification',
+            ];
+
             $fullPayload = json_encode(['message' => $messageData]);
             \Log::info("FCM FULL REQUEST: " . ($fullPayload ?: 'null'));
+            \Log::info("FCM HAS NOTIFICATION: " . (isset($messageData['notification']) ? 'yes' : 'no'));
 
             try {
                 $sendResult = Firebase::messaging()->send(new RawMessageFromArray($messageData));
