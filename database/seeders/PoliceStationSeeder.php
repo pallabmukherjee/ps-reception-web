@@ -34,7 +34,11 @@ class PoliceStationSeeder extends Seeder
         ];
 
         foreach ($stations as $station) {
-            PoliceStation::updateOrCreate(['name' => $station]);
+            $notificationId = strtolower(str_replace(' ', '_', $station));
+            PoliceStation::updateOrCreate(
+                ['name' => $station],
+                ['notification_id' => $notificationId]
+            );
         }
     }
 }
