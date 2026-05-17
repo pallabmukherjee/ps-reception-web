@@ -9,6 +9,10 @@ class NotificationPollingService {
   static final ComplaintsService _complaintsService = ComplaintsService();
   static bool _isPolling = false;
 
+  // Track notification DB IDs shown via polling so failed mark-as-read
+  // doesn't re-show the same notification on the next cycle (fixes 3x bug)
+  static final Set<int> _shownNotifDbIds = {};
+
   static void startPolling() {
     if (_isPolling) return;
     _isPolling = true;
@@ -34,6 +38,13 @@ class NotificationPollingService {
       if (notifications.isEmpty) return;
 
       for (var notification in notifications) {
+        final int? notifDbId = notification['id'] as int?;
+
+        // Skip if already shown in a previous poll cycle
+        if (notifDbId != null && _shownNotifDbIds.contains(notifDbId)) {
+          continue;
+        }
+
         dynamic data = notification['data'];
         Map<String, dynamic> dataMap = {};
 
@@ -60,6 +71,9 @@ class NotificationPollingService {
         // Track so neither path re-shows this notification
         if (complaintId != null) {
           PushNotifications.shownComplaintIds.add(complaintId);
+        }
+        if (notifDbId != null) {
+          _shownNotifDbIds.add(notifDbId);
         }
 
         await PushNotifications.showSimpleNotification(
