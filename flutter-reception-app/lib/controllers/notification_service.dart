@@ -67,6 +67,9 @@ class PushNotifications {
 
       // Handle Background Message Interaction
       FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+        // Track complaint_id so polling doesn't re-show after tapping notification
+        final String? cid = message.data['complaint_id']?.toString();
+        if (cid != null) shownComplaintIds.add(cid);
         navigateToComplaint(message.data);
       });
   }

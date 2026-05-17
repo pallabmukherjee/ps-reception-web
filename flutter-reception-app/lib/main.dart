@@ -49,6 +49,8 @@ void main() async {
   final RemoteMessage? message = await FirebaseMessaging.instance.getInitialMessage();
   if (message != null) {
     print("Launched from terminated state");
+    final String? cid = message.data['complaint_id']?.toString();
+    if (cid != null) PushNotifications.shownComplaintIds.add(cid);
     Future.delayed(const Duration(seconds: 1), () {
       PushNotifications.navigateToComplaint(message.data);
     });
