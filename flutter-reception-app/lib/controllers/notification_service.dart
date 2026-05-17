@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -12,6 +11,9 @@ class PushNotifications {
   static final _firebaseMessaging = FirebaseMessaging.instance;
   static final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
+
+  // Tracks complaint_ids already shown via FCM so polling doesn't duplicate
+  static final Set<String> shownComplaintIds = {};
 
   // Initialize Firebase Messaging
   static Future init() async {
@@ -51,6 +53,10 @@ class PushNotifications {
         print("!!! FOREGROUND FCM RECEIVED: Title: ${message.notification?.title ?? message.data['title']}");
         String title = message.notification?.title ?? message.data['title'] ?? '🚨 Emergency Alert';
         String body = message.notification?.body ?? message.data['message'] ?? 'New alert received.';
+
+        // Track complaint_id so polling doesn't re-show the same notification
+        final String? cid = message.data['complaint_id']?.toString();
+        if (cid != null) shownComplaintIds.add(cid);
 
         showSimpleNotification(
           title: title,
@@ -108,6 +114,10 @@ class PushNotifications {
 
       String title = message.notification?.title ?? message.data['title'] ?? '🚨 Emergency Alert';
       String body = message.notification?.body ?? message.data['message'] ?? 'New alert received.';
+
+      // Track complaint_id so polling doesn't re-show
+      final String? cid = message.data['complaint_id']?.toString();
+      if (cid != null) shownComplaintIds.add(cid);
 
       final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
         'emergency_channel',
