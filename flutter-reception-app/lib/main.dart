@@ -50,7 +50,7 @@ void main() async {
   if (message != null) {
     print("Launched from terminated state");
     Future.delayed(const Duration(seconds: 1), () {
-      navigatorKey.currentState?.pushNamed("/message", arguments: message.data);
+      PushNotifications.navigateToComplaint(message.data);
     });
   }
 

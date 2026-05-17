@@ -1,7 +1,5 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:wbpreception/controllers/complaints_service.dart';
-import 'package:wbpreception/controllers/notification_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class NotificationPollingService {
@@ -33,32 +31,7 @@ class NotificationPollingService {
       
       if (notifications.isEmpty) return;
 
-      for (var notification in notifications) {
-        dynamic data = notification['data'];
-        Map<String, dynamic> dataMap = {};
-        
-        if (data is String) {
-          dataMap = Map<String, dynamic>.from(jsonDecode(data));
-        } else if (data is Map) {
-          dataMap = Map<String, dynamic>.from(data);
-        }
-
-        // Duty Session Filter Check
-        if (dutyStartTimeStr != null && dataMap['complaint_created_at'] != null) {
-          DateTime dutyStartTime = DateTime.parse(dutyStartTimeStr).toLocal();
-          DateTime complaintTime = DateTime.parse(dataMap['complaint_created_at']).toLocal();
-          
-          if (complaintTime.isBefore(dutyStartTime)) continue;
-        }
-
-        await PushNotifications.showSimpleNotification(
-          title: dataMap['title'] ?? '🚨 Emergency Alert',
-          body: dataMap['message'] ?? 'New notification received.',
-          payload: jsonEncode(dataMap),
-        );
-      }
-      
-      // Mark as read ONLY after processing
+      // Mark as read — FCM handles push delivery, polling just clears the badge
       await _complaintsService.markNotificationsRead();
 
     } catch (e) {

@@ -4,8 +4,10 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../main.dart';
 
+@pragma('vm:entry-point')
 class PushNotifications {
   static final _firebaseMessaging = FirebaseMessaging.instance;
   static final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
@@ -30,38 +32,37 @@ class PushNotifications {
       description: 'Used for critical emergency alerts',
       importance: Importance.max,
       playSound: true,
-      sound: const RawResourceAndroidNotificationSound('crunchy_beeps'),
       enableVibration: true,
-    );
-
-    await _flutterLocalNotificationsPlugin
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(channel);
-
-    // Set Foreground Notification Options for iOS
-    await _firebaseMessaging.setForegroundNotificationPresentationOptions(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
-
-    // Handle Foreground Messages
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print("!!! FOREGROUND FCM RECEIVED: Title: ${message.notification?.title ?? message.data['title']}");
-      String title = message.notification?.title ?? message.data['title'] ?? '🚨 Emergency Alert';
-      String body = message.notification?.body ?? message.data['message'] ?? 'New alert received.';
-
-      showSimpleNotification(
-        title: title,
-        body: body,
-        payload: jsonEncode(message.data),
       );
-    });
 
-    // Handle Background Message Interaction
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      navigatorKey.currentState?.pushNamed("/message", arguments: message.data);
-    });
+      await _flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+          ?.createNotificationChannel(channel);
+
+      // Set Foreground Notification Options for iOS
+      await _firebaseMessaging.setForegroundNotificationPresentationOptions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+
+      // Handle Foreground Messages
+      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        print("!!! FOREGROUND FCM RECEIVED: Title: ${message.notification?.title ?? message.data['title']}");
+        String title = message.notification?.title ?? message.data['title'] ?? '🚨 Emergency Alert';
+        String body = message.notification?.body ?? message.data['message'] ?? 'New alert received.';
+
+        showSimpleNotification(
+          title: title,
+          body: body,
+          payload: jsonEncode(message.data),
+        );
+      });
+
+      // Handle Background Message Interaction
+      FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+        navigateToComplaint(message.data);
+      });
   }
 
   // Get FCM Token
@@ -98,7 +99,6 @@ class PushNotifications {
         description: 'Used for critical emergency alerts',
         importance: Importance.max,
         playSound: true,
-        sound: const RawResourceAndroidNotificationSound('crunchy_beeps'),
         enableVibration: true,
       );
 
@@ -118,7 +118,6 @@ class PushNotifications {
         playSound: true,
         enableVibration: true,
         vibrationPattern: Int64List.fromList([0, 1000, 500, 1000]),
-        sound: const RawResourceAndroidNotificationSound('crunchy_beeps'),
         icon: '@mipmap/ic_launcher',
       );
 
@@ -163,8 +162,34 @@ class PushNotifications {
 
   // Handle notification tap
   @pragma('vm:entry-point')
-  static void onNotificationTap(NotificationResponse notificationResponse) {
-    navigatorKey.currentState?.pushNamed("/message", arguments: notificationResponse);
+  static Future<void> onNotificationTap(NotificationResponse notificationResponse) async {
+    final String? payload = notificationResponse.payload;
+    if (payload == null) return;
+    try {
+      final Map<String, dynamic> data = jsonDecode(payload);
+      await navigateToComplaint(data);
+    } catch (e) {
+      print('Error in onNotificationTap: $e');
+    }
+  }
+
+  static Future<void> navigateToComplaint(Map<String, dynamic> data) async {
+    final String? complaintIdStr = data['complaint_id']?.toString();
+    if (complaintIdStr == null) return;
+    final int? complaintId = int.tryParse(complaintIdStr);
+    if (complaintId == null) return;
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final String? role = prefs.getString('user_role');
+      final String route = role == 'superior' ? '/superior-complaint-detail' : '/complaint_detail';
+      navigatorKey.currentState?.pushNamed(route, arguments: {
+        'id': complaintId,
+        'complainant_name': data['complainant_name'],
+        'phone': data['phone'],
+      });
+    } catch (e) {
+      print('Error navigating to complaint: $e');
+    }
   }
 
   // Show a simple notification
@@ -184,7 +209,6 @@ class PushNotifications {
         playSound: true,
         enableVibration: true,
         vibrationPattern: Int64List.fromList([0, 1000, 500, 1000]),
-        sound: const RawResourceAndroidNotificationSound('crunchy_beeps'),
         icon: '@mipmap/ic_launcher',
       );
 
