@@ -7,8 +7,8 @@ use App\Models\Complaint;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 use Kreait\Firebase\Messaging\CloudMessage;
-use Kreait\Firebase\Messaging\Notification;
 use Kreait\Firebase\Messaging\AndroidConfig;
+use Kreait\Firebase\Messaging\Notification as FcmNotification;
 
 class SuperiorNoteAdded extends Notification
 {
@@ -58,7 +58,7 @@ class SuperiorNoteAdded extends Notification
         $message = $this->complaint->note;
 
         return CloudMessage::new()
-            ->withNotification(Notification::create('📝 New Official Note Added', $message))
+            ->withNotification(FcmNotification::create('📝 New Official Note Added', $message))
             ->withAndroidConfig(AndroidConfig::fromArray([
                 'priority' => 'high',
             ]))
