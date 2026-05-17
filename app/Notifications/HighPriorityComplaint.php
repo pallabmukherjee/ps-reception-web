@@ -7,7 +7,6 @@ use App\Models\Complaint;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 use Kreait\Firebase\Messaging\CloudMessage;
-use Kreait\Firebase\Messaging\Notification as FirebaseNotification;
 use Kreait\Firebase\Messaging\AndroidConfig;
 
 class HighPriorityComplaint extends Notification
@@ -61,19 +60,8 @@ class HighPriorityComplaint extends Notification
         $categoryName = $this->complaint->subCategory->category->name ?? 'High Priority';
 
         return CloudMessage::new()
-            ->withNotification(FirebaseNotification::create(
-                '🚨 EMERGENCY HIGH ALERT 🚨',
-                "{$categoryName} complaint received."
-            ))
             ->withAndroidConfig(AndroidConfig::fromArray([
                 'priority' => 'high',
-                'notification' => [
-                    'channel_id' => 'emergency_channel',
-                    'icon' => 'ic_launcher',
-                    'sound' => 'crunchy_beeps',
-                    'visibility' => 'PUBLIC',
-                    'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
-                ],
             ]))
             ->withApnsConfig(\Kreait\Firebase\Messaging\ApnsConfig::fromArray([
                 'payload' => [
