@@ -18,8 +18,8 @@ return new class extends Migration
             $table->text('address');
             $table->foreignId('sub_category_id')->constrained()->onDelete('cascade');
             $table->text('description')->nullable();
-            $table->foreignId('receptionist_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('police_station_id')->constrained()->onDelete('cascade');
+            $table->foreignId('receptionist_id')->nullable()->constrained('users')->onDelete('cascade');
+            $table->foreignId('police_station_id')->nullable()->constrained()->onDelete('cascade');
             $table->boolean('is_editable')->default(false);
             $table->timestamps();
         });
