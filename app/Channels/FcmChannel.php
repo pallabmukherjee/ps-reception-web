@@ -32,13 +32,14 @@ class FcmChannel
             $messageData['token'] = (string) $token;
             $messageData['fcm_options'] = ['analytics_label' => 'emergency-alert'];
 
-            // Ensure notification payload is always present so Android shows
-            // system notification when app is in background / terminated
-            $notifArray = $notification->toArray($notifiable);
-            $messageData['notification'] = [
-                'title' => $notifArray['title'] ?? 'Alert',
-                'body' => $notifArray['message'] ?? 'New notification',
-            ];
+            // Ensure the notification uses the emergency_channel on Android
+            if (!isset($messageData['android'])) {
+                $messageData['android'] = [];
+            }
+            if (!isset($messageData['android']['notification'])) {
+                $messageData['android']['notification'] = [];
+            }
+            $messageData['android']['notification']['channel_id'] = 'emergency_channel';
 
             $fullPayload = json_encode(['message' => $messageData]);
             \Log::info("FCM FULL REQUEST: " . ($fullPayload ?: 'null'));

@@ -90,59 +90,14 @@ class PushNotifications {
   static Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     await Firebase.initializeApp();
     try {
-      const AndroidInitializationSettings initializationSettingsAndroid =
-          AndroidInitializationSettings('@mipmap/ic_launcher');
-      const InitializationSettings initializationSettings = InitializationSettings(
-        android: initializationSettingsAndroid,
-      );
-
-      await _flutterLocalNotificationsPlugin.initialize(
-        initializationSettings,
-        onDidReceiveNotificationResponse: onNotificationTap,
-        onDidReceiveBackgroundNotificationResponse: onNotificationTap,
-      );
-
-      const AndroidNotificationChannel channel = AndroidNotificationChannel(
-        'emergency_channel',
-        'Emergency Alerts',
-        description: 'Used for critical emergency alerts',
-        importance: Importance.max,
-        playSound: true,
-        enableVibration: true,
-      );
-
-      await _flutterLocalNotificationsPlugin
-          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-          ?.createNotificationChannel(channel);
-
-      String title = message.notification?.title ?? message.data['title'] ?? '🚨 Emergency Alert';
-      String body = message.notification?.body ?? message.data['message'] ?? 'New alert received.';
-
       // Track complaint_id so polling doesn't re-show
       final String? cid = message.data['complaint_id']?.toString();
       if (cid != null) shownComplaintIds.add(cid);
 
-      final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-        'emergency_channel',
-        'Emergency Alerts',
-        channelDescription: 'Used for critical emergency alerts',
-        importance: Importance.max,
-        priority: Priority.high,
-        playSound: true,
-        enableVibration: true,
-        vibrationPattern: Int64List.fromList([0, 1000, 500, 1000]),
-        icon: '@mipmap/ic_launcher',
-      );
-
-      final NotificationDetails platformDetails = NotificationDetails(android: androidDetails);
-
-      await _flutterLocalNotificationsPlugin.show(
-        DateTime.now().hashCode,
-        title,
-        body,
-        platformDetails,
-        payload: jsonEncode(message.data),
-      );
+      print("Background FCM received: ${message.notification?.title}");
+      // Manual show is REMOVED because the system automatically shows the notification
+      // when the 'notification' payload is present in the FCM message.
+      // This prevents duplicate notifications on Android.
     } catch (e) {
       print('Error in firebaseMessagingBackgroundHandler: $e');
     }
