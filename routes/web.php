@@ -36,6 +36,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Statistics
     Route::get('/statistics', [StatisticsController::class, 'index'])->name('statistics.index');
 
+    // Settings
+    Route::get('/settings/site', [\App\Http\Controllers\SettingController::class, 'index'])->name('settings.site');
+    Route::patch('/settings/site', [\App\Http\Controllers\SettingController::class, 'update'])->name('settings.update');
+    
+    Route::get('/settings/action-taken', [\App\Http\Controllers\ActionTakenController::class, 'index'])->name('settings.action-taken.index');
+    Route::post('/settings/action-taken', [\App\Http\Controllers\ActionTakenController::class, 'store'])->name('settings.action-taken.store');
+    Route::patch('/settings/action-taken/{actionTaken}', [\App\Http\Controllers\ActionTakenController::class, 'update'])->name('settings.action-taken.update');
+    Route::delete('/settings/action-taken/{actionTaken}', [\App\Http\Controllers\ActionTakenController::class, 'destroy'])->name('settings.action-taken.destroy');
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

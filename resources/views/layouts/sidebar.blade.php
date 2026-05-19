@@ -1,9 +1,22 @@
 <div id="sidebar" class="bg-slate-900 text-white flex flex-col w-64 transition-all duration-300 ease-in-out overflow-hidden h-screen fixed left-0 top-0 z-50 border-r border-slate-800">
     <div class="p-6 text-center border-b border-slate-800 bg-slate-900">
+        @if(isset($site_settings['site_logo']))
+            <img src="{{ asset('storage/' . $site_settings['site_logo']) }}" class="h-12 mx-auto mb-4 object-contain" alt="{{ $site_settings['site_name'] ?? 'Logo' }}">
+        @endif
         <div class="text-xl font-black tracking-tight text-white uppercase italic">
-            <span class="text-red-500">WBP</span> <span class="text-blue-500">Reception</span>
+            @if(isset($site_settings['site_name']))
+                @php
+                    $nameParts = explode(' ', $site_settings['site_name'], 2);
+                @endphp
+                <span class="text-red-500">{{ $nameParts[0] }}</span> 
+                @if(isset($nameParts[1]))
+                    <span class="text-blue-500">{{ $nameParts[1] }}</span>
+                @endif
+            @else
+                <span class="text-red-500">WBP</span> <span class="text-blue-500">Reception</span>
+            @endif
         </div>
-        <div class="text-[10px] text-slate-400 font-mono mt-1 font-bold">WEST BENGAL POLICE</div>
+        <div class="text-[10px] text-slate-400 font-mono mt-1 font-bold uppercase">{{ $site_settings['site_description'] ?? 'WEST BENGAL POLICE' }}</div>
     </div>
     
     <nav class="flex-1 p-4 overflow-y-auto custom-scrollbar">
@@ -84,6 +97,32 @@
                         <a href="{{ route('sub-categories.index') }}" class="flex items-center px-4 py-2 rounded-lg transition-all {{ request()->routeIs('sub-categories.*') ? 'text-blue-400 font-bold' : 'text-slate-500 hover:text-white' }}">
                             <span class="w-1.5 h-1.5 rounded-full mr-3 {{ request()->routeIs('sub-categories.*') ? 'bg-blue-400' : 'bg-slate-700' }}"></span>
                             Sub-Categories
+                        </a>
+                    </li>
+                </ul>
+            </li>
+            <li class="relative">
+                <button @click="openMenu = openMenu === 'settings' ? '' : 'settings'" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-200 group {{ request()->routeIs('settings.*') ? 'text-white bg-slate-800/50' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                    <div class="flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 text-slate-500 group-hover:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <span>System Settings</span>
+                    </div>
+                    <svg class="w-4 h-4 transition-transform duration-200" :class="openMenu === 'settings' ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+                <ul x-show="openMenu === 'settings'" x-cloak class="mt-1 ml-4 border-l border-slate-800 space-y-1">
+                    <li>
+                        <a href="{{ route('settings.site') }}" class="flex items-center px-4 py-2 rounded-lg transition-all {{ request()->routeIs('settings.site') ? 'text-blue-400 font-bold' : 'text-slate-500 hover:text-white' }}">
+                            <span class="w-1.5 h-1.5 rounded-full mr-3 {{ request()->routeIs('settings.site') ? 'bg-blue-400' : 'bg-slate-700' }}"></span>
+                            Site Settings
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('settings.action-taken.index') }}" class="flex items-center px-4 py-2 rounded-lg transition-all {{ request()->routeIs('settings.action-taken.*') ? 'text-blue-400 font-bold' : 'text-slate-500 hover:text-white' }}">
+                            <span class="w-1.5 h-1.5 rounded-full mr-3 {{ request()->routeIs('settings.action-taken.*') ? 'bg-blue-400' : 'bg-slate-700' }}"></span>
+                            Action Taken
                         </a>
                     </li>
                 </ul>

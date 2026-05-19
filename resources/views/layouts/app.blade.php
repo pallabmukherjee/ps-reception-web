@@ -5,7 +5,12 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'WBP Reception') }}</title>
+        <title>{{ $site_settings['site_name'] ?? config('app.name', 'WBP Reception') }}</title>
+
+        <!-- Favicon -->
+        @if(isset($site_settings['site_favicon']))
+            <link rel="icon" type="image/x-icon" href="{{ asset('storage/' . $site_settings['site_favicon']) }}">
+        @endif
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -37,7 +42,7 @@
                             </svg>
                         </button>
                         <h2 class="ml-4 text-lg font-bold text-slate-800 tracking-tight hidden md:block">
-                            @yield('header_title', 'West Bengal Police')
+                            @yield('header_title', $site_settings['site_name'] ?? 'West Bengal Police')
                         </h2>
                     </div>
                     
@@ -55,6 +60,12 @@
                 <!-- Page Content -->
                 <main class="flex-1 overflow-y-auto p-6 bg-slate-50 custom-scrollbar">
                     {{ $slot }}
+                    
+                    <footer class="mt-12 py-6 border-t border-slate-200 text-center">
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                            {{ $site_settings['footer_text'] ?? '© ' . date('Y') . ' West Bengal Police. All Rights Reserved.' }}
+                        </p>
+                    </footer>
                 </main>
             </div>
         </div>

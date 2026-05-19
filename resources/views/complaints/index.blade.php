@@ -10,15 +10,13 @@
             </div>
             
             <div class="flex items-center gap-3">
-                @if($selectedStation)
-                <a href="{{ route('complaints.download', ['police_station_id' => $selectedStation, 'search' => $searchTerm]) }}" 
+                <a href="{{ route('complaints.download', ['police_station_id' => $selectedStation, 'sub_category_id' => $selectedSubCategory, 'start_date' => $startDate, 'end_date' => $endDate, 'search' => $searchTerm]) }}" 
                    class="inline-flex items-center px-4 py-2 bg-emerald-600 text-white text-sm font-bold rounded-lg hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-600/20">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                     </svg>
                     EXPORT CSV
                 </a>
-                @endif
             </div>
         </div>
 
@@ -26,7 +24,7 @@
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="p-6 border-b border-slate-100 bg-slate-50/50">
                 <form action="{{ route('complaints.index') }}" method="GET" class="grid grid-cols-1 md:grid-cols-12 gap-6">
-                    <div class="md:col-span-5">
+                    <div class="md:col-span-3">
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2" for="policeStationSelect">
                             Police Station
                         </label>
@@ -36,9 +34,6 @@
                                     <option>{{ auth()->user()->policeStation->name ?? 'Assigned Station' }}</option>
                                 </select>
                                 <input type="hidden" name="police_station_id" value="{{ auth()->user()->police_station_id }}">
-                                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
-                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path></svg>
-                                </div>
                             </div>
                         @else
                             <select
@@ -56,24 +51,68 @@
                             </select>
                         @endif
                     </div>
-                    
-                    <div class="md:col-span-7">
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2" for="searchComplaints">
-                            Quick Search
+
+                    <div class="md:col-span-3">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2" for="subCategorySelect">
+                            Sub-Category
                         </label>
+                        <select
+                            id="subCategorySelect"
+                            name="sub_category_id"
+                            onchange="this.form.submit()"
+                            class="block w-full rounded-xl border-slate-200 text-slate-700 text-sm font-bold shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all"
+                        >
+                            <option value="">-- All Types --</option>
+                            @foreach($subCategories as $subCat)
+                                <option value="{{ $subCat->id }}" {{ $selectedSubCategory == $subCat->id ? 'selected' : '' }}>
+                                    {{ $subCat->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="md:col-span-3">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">
+                            Date From
+                        </label>
+                        <input
+                            type="date"
+                            name="start_date"
+                            value="{{ $startDate }}"
+                            onchange="this.form.submit()"
+                            class="block w-full rounded-xl border-slate-200 text-slate-700 text-sm font-bold shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all"
+                        />
+                    </div>
+
+                    <div class="md:col-span-3">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">
+                            Date To
+                        </label>
+                        <input
+                            type="date"
+                            name="end_date"
+                            value="{{ $endDate }}"
+                            onchange="this.form.submit()"
+                            class="block w-full rounded-xl border-slate-200 text-slate-700 text-sm font-bold shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all"
+                        />
+                    </div>
+                    
+                    <div class="md:col-span-12">
                         <div class="relative">
                             <input
                                 type="text"
-                                id="searchComplaints"
                                 name="search"
                                 value="{{ $searchTerm }}"
-                                placeholder="Search by name, phone, address, or type..."
+                                placeholder="Search by name, phone, address, or description..."
                                 class="block w-full pl-10 rounded-xl border-slate-200 text-slate-700 text-sm font-medium shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all"
                             />
                             <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                                 <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                 </svg>
+                            </div>
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                                <button type="submit" class="text-xs font-black text-blue-600 hover:text-blue-700 uppercase tracking-widest">Apply Search</button>
                             </div>
                         </div>
                     </div>
@@ -128,6 +167,18 @@
                                         <p class="text-[11px] text-amber-900 font-medium leading-relaxed italic">"{{ $complaint->note }}"</p>
                                     </div>
                                     @endif
+
+                                    @if($complaint->action_taken)
+                                    <div class="mt-2 p-2 bg-blue-50 border border-blue-100 rounded-lg">
+                                        <div class="text-[9px] font-black text-blue-800 uppercase tracking-widest mb-1 flex items-center">
+                                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            Action: {{ $complaint->action_taken }}
+                                        </div>
+                                        @if($complaint->action_details)
+                                            <p class="text-[11px] text-blue-900 font-medium leading-relaxed">{{ $complaint->action_details }}</p>
+                                        @endif
+                                    </div>
+                                    @endif
                                 </td>
                                 <td class="px-6 py-4 text-right">
                                     <div class="text-xs font-bold text-slate-900">{{ $complaint->created_at->format('d M, Y') }}</div>
@@ -136,7 +187,7 @@
                                 <td class="px-6 py-4 text-center">
                                     <div class="flex items-center justify-center gap-2">
                                         @if(auth()->user()->hasRole(['super', 'admin', 'superior']))
-                                        <button onclick="openNoteModal({{ $complaint->id }}, '{{ addslashes($complaint->note) }}')" class="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all" title="Add Note">
+                                        <button onclick="openNoteModal({{ $complaint->id }}, '{{ addslashes($complaint->note) }}', '{{ addslashes($complaint->action_taken) }}', '{{ addslashes($complaint->action_details) }}')" class="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all" title="Add Note / Action">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                             </svg>
@@ -180,9 +231,9 @@
 
     <!-- Note Modal -->
     <div id="noteModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden">
-        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-200">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-200">
             <div class="p-6 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
-                <h3 class="text-sm font-black text-slate-800 uppercase tracking-widest">Add Official Note</h3>
+                <h3 class="text-sm font-black text-slate-800 uppercase tracking-widest">Update Complaint Action</h3>
                 <button onclick="closeNoteModal()" class="text-slate-400 hover:text-slate-600 transition-colors">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -194,20 +245,38 @@
                 @csrf
                 <div>
                     <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Instructions or Remarks</label>
-                    <textarea id="note_text" name="note" required rows="4" class="block w-full rounded-xl border-slate-200 text-sm font-bold shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all" placeholder="Enter official guidance..."></textarea>
+                    <textarea id="note_text" name="note" rows="3" class="block w-full rounded-xl border-slate-200 text-sm font-bold shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all" placeholder="Enter official guidance..."></textarea>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Choose Action</label>
+                        <select id="action_taken" name="action_taken" class="block w-full rounded-xl border-slate-200 text-sm font-bold shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all">
+                            <option value="">-- No Action Selected --</option>
+                            @foreach($actionTakenList as $actionOption)
+                                <option value="{{ $actionOption->name }}">{{ $actionOption->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Action Details</label>
+                        <textarea id="action_details" name="action_details" rows="2" class="block w-full rounded-xl border-slate-200 text-sm font-bold shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all" placeholder="Briefly explain the action..."></textarea>
+                    </div>
                 </div>
                 
                 <div class="pt-4 flex gap-3">
                     <button type="button" onclick="closeNoteModal()" class="flex-1 py-2.5 bg-slate-100 text-slate-600 text-xs font-black rounded-xl hover:bg-slate-200 transition-all uppercase tracking-widest">Cancel</button>
-                    <button type="submit" class="flex-1 py-2.5 bg-blue-600 text-white text-xs font-black rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 uppercase tracking-widest">Save Note</button>
+                    <button type="submit" class="flex-1 py-2.5 bg-blue-600 text-white text-xs font-black rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 uppercase tracking-widest">Commit Update</button>
                 </div>
             </form>
         </div>
     </div>
 
     <script>
-        function openNoteModal(id, currentNote) {
+        function openNoteModal(id, currentNote, currentAction, currentDetails) {
             document.getElementById('note_text').value = currentNote || '';
+            document.getElementById('action_taken').value = currentAction || '';
+            document.getElementById('action_details').value = currentDetails || '';
             document.getElementById('noteForm').action = `/complaints/${id}/note`;
             document.getElementById('noteModal').classList.remove('hidden');
         }

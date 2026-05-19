@@ -19,6 +19,18 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Share settings with all views
+        if (!app()->runningInConsole()) {
+            try {
+                if (\Schema::hasTable('settings')) {
+                    $settings = \App\Models\Setting::all()->pluck('value', 'key')->toArray();
+                    view()->share('site_settings', $settings);
+                }
+            } catch (\Exception $e) {
+                // Ignore errors if table doesn't exist yet
+            }
+        }
+
         // Resolve Firebase credentials:
         // 1. Prefer base64 env var → inline JSON string (avoids file path issues)
         // 2. Fall back to credentials file on disk

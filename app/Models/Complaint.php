@@ -19,6 +19,8 @@ class Complaint extends Model
         'is_editable',
         'note',
         'note_updated_at',
+        'action_taken',
+        'action_details',
         'created_at',
     ];
 

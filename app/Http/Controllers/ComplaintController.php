@@ -15,16 +15,33 @@ class ComplaintController extends Controller
     {
         $user = auth()->user();
         $policeStations = PoliceStation::all();
+        $subCategories = \App\Models\SubCategory::all();
+        $actionTakenList = \App\Models\ActionTaken::all();
+        
         $selectedStation = $request->input('police_station_id');
+        $selectedSubCategory = $request->input('sub_category_id');
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
         $searchTerm = $request->input('search');
 
         $query = Complaint::with(['subCategory.category', 'receptionist', 'policeStation']);
 
         if ($user->hasRole('superior')) {
             $query->where('police_station_id', $user->police_station_id);
-            $selectedStation = $user->police_station_id; // Lock station for superior
+            $selectedStation = $user->police_station_id;
         } elseif ($selectedStation) {
             $query->where('police_station_id', $selectedStation);
+        }
+
+        if ($selectedSubCategory) {
+            $query->where('sub_category_id', $selectedSubCategory);
+        }
+
+        if ($startDate) {
+            $query->whereDate('created_at', '>=', $startDate);
+        }
+        if ($endDate) {
+            $query->whereDate('created_at', '<=', $endDate);
         }
 
         if ($searchTerm) {
@@ -41,13 +58,19 @@ class ComplaintController extends Controller
 
         $complaints = $query->latest()->paginate(10)->withQueryString();
 
-        return view('complaints.index', compact('complaints', 'policeStations', 'selectedStation', 'searchTerm'));
+        return view('complaints.index', compact(
+            'complaints', 'policeStations', 'subCategories', 'actionTakenList', 
+            'selectedStation', 'selectedSubCategory', 'startDate', 'endDate', 'searchTerm'
+        ));
     }
 
     public function downloadCsv(Request $request)
     {
         $user = auth()->user();
         $selectedStation = $request->input('police_station_id');
+        $selectedSubCategory = $request->input('sub_category_id');
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
         $searchTerm = $request->input('search');
 
         $query = Complaint::with(['subCategory.category', 'receptionist', 'policeStation']);
@@ -56,6 +79,17 @@ class ComplaintController extends Controller
             $query->where('police_station_id', $user->police_station_id);
         } elseif ($selectedStation) {
             $query->where('police_station_id', $selectedStation);
+        }
+
+        if ($selectedSubCategory) {
+            $query->where('sub_category_id', $selectedSubCategory);
+        }
+
+        if ($startDate) {
+            $query->whereDate('created_at', '>=', $startDate);
+        }
+        if ($endDate) {
+            $query->whereDate('created_at', '<=', $endDate);
         }
 
         if ($searchTerm) {
@@ -78,7 +112,8 @@ class ComplaintController extends Controller
             // CSV Header (Matching React exactly)
             fputcsv($handle, [
                 'Name', 'Phone', 'Address', 'Complain Type', 'Description', 
-                'Police Station', 'Receptionist Name', 'Receptionist Mobile', 'Complain Register Time'
+                'Police Station', 'Receptionist Name', 'Receptionist Mobile', 'Complain Register Time',
+                'Official Note', 'Action Taken', 'Action Details'
             ]);
 
             foreach ($complaints as $complaint) {
@@ -92,6 +127,9 @@ class ComplaintController extends Controller
                     $complaint->receptionist->name ?? 'N/A',
                     $complaint->receptionist->phone_number ?? 'N/A',
                     $complaint->created_at->format('d/m/Y h:i A'),
+                    $complaint->note ?? '',
+                    $complaint->action_taken ?? '',
+                    $complaint->action_details ?? '',
                 ]);
             }
 
@@ -118,11 +156,15 @@ class ComplaintController extends Controller
         }
 
         $request->validate([
-            'note' => 'required|string',
+            'note' => 'nullable|string',
+            'action_taken' => 'nullable|string',
+            'action_details' => 'nullable|string',
         ]);
 
         $complaint->update([
             'note' => $request->note,
+            'action_taken' => $request->action_taken,
+            'action_details' => $request->action_details,
             'note_updated_at' => now(),
         ]);
 
