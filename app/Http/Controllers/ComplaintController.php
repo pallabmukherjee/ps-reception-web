@@ -156,13 +156,11 @@ class ComplaintController extends Controller
         }
 
         $request->validate([
-            'note' => 'nullable|string',
             'action_taken' => 'nullable|string',
             'action_details' => 'nullable|string',
         ]);
 
         $complaint->update([
-            'note' => $request->note,
             'action_taken' => $request->action_taken,
             'action_details' => $request->action_details,
             'note_updated_at' => now(),

@@ -187,7 +187,7 @@
                                 <td class="px-6 py-4 text-center">
                                     <div class="flex items-center justify-center gap-2">
                                         @if(auth()->user()->hasRole(['super', 'admin', 'superior']))
-                                        <button onclick="openNoteModal({{ $complaint->id }}, '{{ addslashes($complaint->note) }}', '{{ addslashes($complaint->action_taken) }}', '{{ addslashes($complaint->action_details) }}')" class="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all" title="Add Note / Action">
+                                        <button onclick="openNoteModal({{ $complaint->id }}, '{{ addslashes($complaint->action_taken) }}', '{{ addslashes($complaint->action_details) }}')" class="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all" title="Add Note / Action">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                             </svg>
@@ -243,12 +243,7 @@
             
             <form id="noteForm" method="POST" class="p-6 space-y-4">
                 @csrf
-                <div>
-                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Instructions or Remarks</label>
-                    <textarea id="note_text" name="note" rows="3" class="block w-full rounded-xl border-slate-200 text-sm font-bold shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all" placeholder="Enter official guidance..."></textarea>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 gap-4">
                     <div>
                         <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Choose Action</label>
                         <select id="action_taken" name="action_taken" class="block w-full rounded-xl border-slate-200 text-sm font-bold shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all">
@@ -260,7 +255,7 @@
                     </div>
                     <div>
                         <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Action Details</label>
-                        <textarea id="action_details" name="action_details" rows="2" class="block w-full rounded-xl border-slate-200 text-sm font-bold shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all" placeholder="Briefly explain the action..."></textarea>
+                        <textarea id="action_details" name="action_details" rows="4" class="block w-full rounded-xl border-slate-200 text-sm font-bold shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all" placeholder="Briefly explain the action taken..."></textarea>
                     </div>
                 </div>
                 
@@ -273,8 +268,7 @@
     </div>
 
     <script>
-        function openNoteModal(id, currentNote, currentAction, currentDetails) {
-            document.getElementById('note_text').value = currentNote || '';
+        function openNoteModal(id, currentAction, currentDetails) {
             document.getElementById('action_taken').value = currentAction || '';
             document.getElementById('action_details').value = currentDetails || '';
             document.getElementById('noteForm').action = `/complaints/${id}/note`;
