@@ -66,19 +66,19 @@
                             </svg>
                         </div>
                         @if($isAssigned)
-                        <span class="text-[7px] font-black bg-blue-600 text-white px-1.5 py-0.5 rounded-full uppercase tracking-tighter shadow-lg shadow-blue-600/20">My Station</span>
+                        <span class="text-[8px] font-black bg-blue-600 text-white px-2 py-0.5 rounded-full uppercase tracking-tighter shadow-lg shadow-blue-600/20">My Station</span>
                         @endif
                     </div>
 
-                    <h3 class="text-base font-black text-slate-800 mb-0.5 tracking-tight">{{ $station->name }}</h3>
-                    <p class="text-[9px] font-bold text-slate-500/60 uppercase tracking-widest mb-3">Jurisdiction</p>
+                    <h3 class="text-lg font-black text-slate-800 mb-0.5 tracking-tight">{{ $station->name }}</h3>
+                    <p class="text-[10px] font-bold text-slate-500/60 uppercase tracking-widest mb-3">Jurisdiction</p>
 
                     <div class="flex items-end justify-between">
-                        <div class="text-2xl font-black text-slate-900">{{ $count }}</div>
-                        <div class="text-[9px] font-black {{ $count > 0 ? $color['text'] : 'text-slate-300' }} uppercase tracking-widest">Complains</div>
+                        <div class="text-3xl font-black text-slate-900">{{ $count }}</div>
+                        <div class="text-[10px] font-black {{ $count > 0 ? $color['text'] : 'text-slate-300' }} uppercase tracking-widest">Complains</div>
                     </div>
 
-                    <div class="mt-3 w-full bg-white/50 h-1 rounded-full overflow-hidden border border-black/5">
+                    <div class="mt-3 w-full bg-white/50 h-1.5 rounded-full overflow-hidden border border-black/5">
                         <div class="{{ $isAssigned ? 'bg-blue-600' : $color['text'] }} opacity-70 h-full rounded-full transition-all duration-1000" style="width: {{ $totalEntries > 0 ? ($count / $totalEntries) * 100 : 0 }}%"></div>
                     </div>
                 </a>            @empty
