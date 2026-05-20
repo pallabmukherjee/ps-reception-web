@@ -98,7 +98,7 @@
                         <div class="bg-rose-100/80 border border-rose-200 rounded-xl p-2.5 flex items-center justify-between">
                             <div class="flex items-center">
                                 <div class="w-2 h-2 rounded-full bg-rose-600 animate-pulse mr-2"></div>
-                                <span class="text-[10px] font-black text-rose-700 uppercase tracking-tight">Sensitive Overdue</span>
+                                <span class="text-[10px] font-black text-rose-700 uppercase tracking-tight">Sensitive Complain No Action</span>
                             </div>
                             <span class="text-sm font-black text-rose-800">{{ $stationStats->overdue_sensitive }}</span>
                         </div>
