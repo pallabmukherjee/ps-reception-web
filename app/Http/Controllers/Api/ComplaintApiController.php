@@ -201,13 +201,16 @@ class ComplaintApiController extends Controller
         }
 
         $request->validate([
+            'note' => 'nullable|string',
             'action_taken' => 'nullable|string',
             'action_details' => 'nullable|string',
         ]);
 
         $complaint->update([
+            'note' => $request->note,
             'action_taken' => $request->action_taken,
             'action_details' => $request->action_details,
+            'note_updated_at' => now(),
         ]);
 
         // Notify receptionist and admins (deduplicated)
@@ -227,7 +230,7 @@ class ComplaintApiController extends Controller
             \Log::error("Action notification failed: " . $e->getMessage());
         }
 
-        return response()->json(['message' => 'Action updated successfully', 'action_taken' => $complaint->action_taken]);
+        return response()->json(['message' => 'Action and note updated successfully', 'action_taken' => $complaint->action_taken, 'note' => $complaint->note]);
     }
 
     public function update(Request $request, Complaint $complaint)

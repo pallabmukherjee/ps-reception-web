@@ -113,7 +113,7 @@ class ComplaintController extends Controller
             fputcsv($handle, [
                 'Name', 'Phone', 'Address', 'Complain Type', 'Description', 
                 'Police Station', 'Receptionist Name', 'Receptionist Mobile', 'Complain Register Time',
-                'Action Taken', 'Action Details'
+                'Official Note', 'Action Taken', 'Action Details'
             ]);
 
             foreach ($complaints as $complaint) {
@@ -127,6 +127,7 @@ class ComplaintController extends Controller
                     $complaint->receptionist->name ?? 'N/A',
                     $complaint->receptionist->phone_number ?? 'N/A',
                     $complaint->created_at->format('d/m/Y h:i A'),
+                    $complaint->note ?? '',
                     $complaint->action_taken ?? '',
                     $complaint->action_details ?? '',
                 ]);
@@ -155,13 +156,16 @@ class ComplaintController extends Controller
         }
 
         $request->validate([
+            'note' => 'nullable|string',
             'action_taken' => 'nullable|string',
             'action_details' => 'nullable|string',
         ]);
 
         $complaint->update([
+            'note' => $request->note,
             'action_taken' => $request->action_taken,
             'action_details' => $request->action_details,
+            'note_updated_at' => now(),
         ]);
 
         // Notify receptionist and admins (deduplicated)
@@ -181,6 +185,6 @@ class ComplaintController extends Controller
             \Log::error("Action notification failed: " . $e->getMessage());
         }
 
-        return redirect()->back()->with('success', 'Official action updated successfully.');
+        return redirect()->back()->with('success', 'Official action and note updated successfully.');
     }
 }

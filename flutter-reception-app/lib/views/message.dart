@@ -142,7 +142,11 @@ class _MessageState extends State<Message> {
           _buildDivider(),
           _buildInfoItem(Icons.phone_android_rounded, "Contact ID", payload['phone'] ?? 'N/A'),
           _buildDivider(),
-          _buildInfoItem(Icons.feedback_outlined, "Incident Brief", payload['message'] ?? 'Official dispatch notification.', isLast: true),
+          _buildInfoItem(Icons.feedback_outlined, "Incident Brief", payload['message'] ?? 'Official dispatch notification.', isLast: payload['note'] == null),
+          if (payload['note'] != null) ...[
+            _buildDivider(),
+            _buildInfoItem(Icons.note_alt_outlined, "Superior Note", payload['note'], isLast: true),
+          ],
         ],
       ),
     );

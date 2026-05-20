@@ -22,6 +22,8 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
   String? _userRole;
   final ComplaintsService _complaintsService = ComplaintsService();
   bool _isDeleting = false;
+  final TextEditingController _noteController = TextEditingController();
+  bool _isUpdating = false;
   late Map<String, dynamic> _complaint;
   bool _isLoading = false;
 
@@ -44,6 +46,7 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
       setState(() {
         _complaint = fullComplaint;
         _isLoading = false;
+        _noteController.text = _complaint['note'] ?? '';
       });
     } catch (e) {
       setState(() => _isLoading = false);
@@ -95,6 +98,29 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
     }
   }
 
+  Future<void> _submitNote() async {
+    if (_noteController.text.isEmpty) return;
+    setState(() => _isUpdating = true);
+    try {
+      // For standard admin, we might only update the note or both. 
+      // The API handles both. We pass current action to preserve it.
+      await _complaintsService.updateAction(
+        _complaint['id'], 
+        _complaint['action_taken'] ?? '', 
+        _complaint['action_details'] ?? '', 
+        _noteController.text
+      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Note updated successfully')));
+      setState(() {
+        _complaint['note'] = _noteController.text;
+        _isUpdating = false;
+      });
+    } catch (e) {
+      setState(() => _isUpdating = false);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to update note: $e')));
+    }
+  }
+
   String formatTimestamp(String? timestamp) {
     if (timestamp == null) return 'N/A';
     try {
@@ -115,6 +141,7 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
   @override
   Widget build(BuildContext context) {
     bool canManage = _complaint['is_editable'] == true;
+    bool isSuperior = _userRole == 'superior';
 
     return Scaffold(
       appBar: CustomAppBar(title: "Complain Details", showBackButton: true),
@@ -131,8 +158,12 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
                   _buildHeaderSection(),
                   const SizedBox(height: 32),
                   _buildDetailCard(),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
+                  if (_complaint['note'] != null) _buildNoteSection(),
+                  const SizedBox(height: 24),
                   if (_complaint['action_taken'] != null) _buildActionSection(),
+                  const SizedBox(height: 32),
+                  if (isSuperior) _buildAddNoteField(),
                   const SizedBox(height: 32),
                   if (canManage) _buildActionButtons(),
                   const SizedBox(height: 40),
@@ -199,6 +230,35 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
     );
   }
 
+  Widget _buildNoteSection() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.amber.shade50,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.amber.shade100),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.notes_rounded, color: Colors.amber.shade900, size: 18),
+              const SizedBox(width: 8),
+              Text("SUPERIOR NOTE", style: TextStyle(fontWeight: FontWeight.w900, color: Colors.amber.shade900, fontSize: 11, letterSpacing: 1)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            _complaint['note'] ?? '',
+            style: const TextStyle(fontSize: 14, color: Color(0xFF334155), height: 1.5, fontWeight: FontWeight.w600, fontStyle: FontStyle.italic),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildActionSection() {
     return Container(
       width: double.infinity,
@@ -232,6 +292,30 @@ class _ComplaintDetailScreenState extends State<ComplaintDetailScreen> {
           ]
         ],
       ),
+    );
+  }
+
+  Widget _buildAddNoteField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text("ADD OFFICIAL NOTE", style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.blueGrey, letterSpacing: 1)),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _noteController,
+          maxLines: 3,
+          decoration: InputDecoration(
+            hintText: "Enter official remarks or instructions...",
+            fillColor: Colors.white,
+            filled: true,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Colors.grey.shade200)),
+            suffixIcon: IconButton(
+              icon: _isUpdating ? const CircularProgressIndicator() : const Icon(Icons.send_rounded, color: Color(0xFF00137F)),
+              onPressed: _isUpdating ? null : _submitNote,
+            ),
+          ),
+        ),
+      ],
     );
   }
 

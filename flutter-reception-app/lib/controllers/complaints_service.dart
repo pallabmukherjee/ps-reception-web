@@ -54,12 +54,13 @@ class ComplaintsService {
     }
   }
 
-  // Function to update action taken for a complaint
-  Future<Map<String, dynamic>> updateAction(int complaintId, String action, String details) async {
+  // Function to update action taken and official note for a complaint
+  Future<Map<String, dynamic>> updateAction(int complaintId, String action, String details, String note) async {
     try {
       final response = await ApiService.post('complaints/$complaintId/action', {
         'action_taken': action,
         'action_details': details,
+        'note': note,
       });
 
       if (response.statusCode == 200) {

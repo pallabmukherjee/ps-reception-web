@@ -153,6 +153,17 @@
                                     <div class="text-xs text-slate-600 font-medium max-w-xs line-clamp-2 leading-relaxed">
                                         {{ $complaint->description }}
                                     </div>
+
+                                    @if($complaint->note)
+                                        <div class="mt-2 p-2 bg-amber-50 border border-amber-100 rounded-lg max-w-xs">
+                                            <div class="text-[9px] font-black text-amber-800 uppercase tracking-widest mb-0.5 flex items-center">
+                                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                                Superior Note
+                                            </div>
+                                            <p class="text-[10px] text-amber-900 font-medium leading-tight italic line-clamp-2">"{{ $complaint->note }}"</p>
+                                        </div>
+                                    @endif
+
                                     <div class="text-[10px] text-slate-400 mt-1 font-bold italic">
                                         {{ $complaint->policeStation->name ?? 'N/A' }} • Rec: {{ $complaint->receptionist->name ?? 'N/A' }}
                                     </div>
@@ -184,7 +195,7 @@
                                         </button>
 
                                         @if(auth()->user()->hasRole(['super', 'admin', 'superior']))
-                                        <button onclick="openActionModal({{ $complaint->id }}, '{{ addslashes($complaint->action_taken) }}', '{{ addslashes($complaint->action_details) }}')" class="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all" title="Update Action">
+                                        <button onclick="openActionModal({{ $complaint->id }}, '{{ addslashes($complaint->note) }}', '{{ addslashes($complaint->action_taken) }}', '{{ addslashes($complaint->action_details) }}')" class="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all" title="Update Action">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                             </svg>
@@ -269,6 +280,14 @@
                     <p id="view_description" class="text-sm text-slate-700 leading-relaxed font-medium italic"></p>
                 </div>
 
+                <!-- Official Note (Restored) -->
+                <div id="view_note_section" class="hidden">
+                    <div class="bg-amber-50 rounded-2xl p-6 border border-amber-100">
+                        <label class="text-[10px] font-black text-amber-600 uppercase tracking-widest block mb-3">Superior Instructions / Note</label>
+                        <p id="view_note_text" class="text-sm text-amber-900 leading-relaxed font-medium italic"></p>
+                    </div>
+                </div>
+
                 <!-- Action Taken -->
                 <div id="view_action_section" class="hidden">
                     <div class="bg-emerald-50 rounded-2xl p-6 border border-emerald-100">
@@ -309,9 +328,15 @@
                 </button>
             </div>
             
-            <form id="actionForm" method="POST" class="p-6 space-y-4">
+            <form id="actionForm" method="POST" class="p-6 space-y-5">
                 @csrf
-                <div class="grid grid-cols-1 gap-4">
+                <!-- Instructions Field (Restored) -->
+                <div>
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Instructions or Remarks</label>
+                    <textarea id="input_note" name="note" rows="3" class="block w-full rounded-xl border-slate-200 text-sm font-bold shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all" placeholder="Enter official guidance..."></textarea>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-100 pt-5">
                     <div>
                         <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Choose Action</label>
                         <select id="input_action_taken" name="action_taken" class="block w-full rounded-xl border-slate-200 text-sm font-bold shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all">
@@ -323,7 +348,7 @@
                     </div>
                     <div>
                         <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Action Details</label>
-                        <textarea id="input_action_details" name="action_details" rows="4" class="block w-full rounded-xl border-slate-200 text-sm font-bold shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all" placeholder="Briefly explain the action taken..."></textarea>
+                        <textarea id="input_action_details" name="action_details" rows="2" class="block w-full rounded-xl border-slate-200 text-sm font-bold shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all" placeholder="Briefly explain..."></textarea>
                     </div>
                 </div>
                 
@@ -336,7 +361,8 @@
     </div>
 
     <script>
-        function openActionModal(id, currentAction, currentDetails) {
+        function openActionModal(id, note, currentAction, currentDetails) {
+            document.getElementById('input_note').value = note || '';
             document.getElementById('input_action_taken').value = currentAction || '';
             document.getElementById('input_action_details').value = currentDetails || '';
             document.getElementById('actionForm').action = `/complaints/${id}/action`;
@@ -355,6 +381,13 @@
             
             const date = new Date(complaint.created_at);
             document.getElementById('view_date').innerText = date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
+
+            if (complaint.note) {
+                document.getElementById('view_note_section').classList.remove('hidden');
+                document.getElementById('view_note_text').innerText = complaint.note;
+            } else {
+                document.getElementById('view_note_section').classList.add('hidden');
+            }
 
             if (complaint.action_taken) {
                 document.getElementById('view_action_section').classList.remove('hidden');

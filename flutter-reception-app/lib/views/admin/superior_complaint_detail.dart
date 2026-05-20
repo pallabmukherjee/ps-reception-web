@@ -21,6 +21,10 @@ class _SuperiorComplaintDetailScreenState extends State<SuperiorComplaintDetailS
   int _selectedIndex = 1;
   final ComplaintsService _complaintsService = ComplaintsService();
   bool _isDeleting = false;
+  final TextEditingController _noteController = TextEditingController();
+  final TextEditingController _actionController = TextEditingController();
+  final TextEditingController _actionDetailsController = TextEditingController();
+  bool _isUpdating = false;
   late Map<String, dynamic> _complaint;
   bool _isLoading = false;
 
@@ -28,9 +32,12 @@ class _SuperiorComplaintDetailScreenState extends State<SuperiorComplaintDetailS
   void initState() {
     super.initState();
     _complaint = widget.complaint;
-    // If we only have basic info (like from notification), fetch full details
     if (_complaint['address'] == null || _complaint['description'] == null) {
       _loadComplaintDetails();
+    } else {
+      _noteController.text = _complaint['note'] ?? '';
+      _actionController.text = _complaint['action_taken'] ?? '';
+      _actionDetailsController.text = _complaint['action_details'] ?? '';
     }
   }
 
@@ -43,6 +50,9 @@ class _SuperiorComplaintDetailScreenState extends State<SuperiorComplaintDetailS
       setState(() {
         _complaint = fullComplaint;
         _isLoading = false;
+        _noteController.text = _complaint['note'] ?? '';
+        _actionController.text = _complaint['action_taken'] ?? '';
+        _actionDetailsController.text = _complaint['action_details'] ?? '';
       });
     } catch (e) {
       setState(() => _isLoading = false);
@@ -56,6 +66,28 @@ class _SuperiorComplaintDetailScreenState extends State<SuperiorComplaintDetailS
     setState(() {
       _selectedIndex = index;
     });
+  }
+
+  Future<void> _submitUpdate() async {
+    setState(() => _isUpdating = true);
+    try {
+      await _complaintsService.updateAction(
+        _complaint['id'], 
+        _actionController.text, 
+        _actionDetailsController.text, 
+        _noteController.text
+      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Record updated successfully')));
+      setState(() {
+        _complaint['note'] = _noteController.text;
+        _complaint['action_taken'] = _actionController.text;
+        _complaint['action_details'] = _actionDetailsController.text;
+        _isUpdating = false;
+      });
+    } catch (e) {
+      setState(() => _isUpdating = false);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to update: $e')));
+    }
   }
 
   void _deleteComplaint() async {
@@ -122,7 +154,7 @@ class _SuperiorComplaintDetailScreenState extends State<SuperiorComplaintDetailS
                   const SizedBox(height: 32),
                   _buildSuperiorDetailCard(),
                   const SizedBox(height: 32),
-                  if (_complaint['action_taken'] != null) _buildActionSection(),
+                  _buildUpdateSection(),
                   const SizedBox(height: 32),
                   _buildAdminActions(),
                   const SizedBox(height: 40),
@@ -137,37 +169,71 @@ class _SuperiorComplaintDetailScreenState extends State<SuperiorComplaintDetailS
     );
   }
 
-  Widget _buildActionSection() {
+  Widget _buildUpdateSection() {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.blue.shade50,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.blue.shade100),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.grey.shade200),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(Icons.check_circle_outline_rounded, color: Colors.blue.shade900, size: 18),
-              const SizedBox(width: 8),
-              Text("ACTION TAKEN", style: TextStyle(fontWeight: FontWeight.w900, color: Colors.blue.shade900, fontSize: 11, letterSpacing: 1)),
-            ],
-          ),
+          const Text("OFFICIAL UPDATE", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: Color(0xFF00137F), letterSpacing: 1.5)),
+          const SizedBox(height: 24),
+          
+          // Superior Note
+          const Text("SUPERIOR NOTE", style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.blueGrey, letterSpacing: 1)),
           const SizedBox(height: 8),
-          Text(
-            _complaint['action_taken'] ?? '',
-            style: TextStyle(fontSize: 15, color: Colors.blue.shade900, fontWeight: FontWeight.w900),
-          ),
-          if (_complaint['action_details'] != null) ...[
-            const SizedBox(height: 4),
-            Text(
-              _complaint['action_details'],
-              style: const TextStyle(fontSize: 14, color: Color(0xFF334155), height: 1.5, fontWeight: FontWeight.w500),
+          TextField(
+            controller: _noteController,
+            maxLines: 3,
+            decoration: InputDecoration(
+              hintText: "Instructions or guidance...",
+              fillColor: const Color(0xFFF8FAFC),
+              filled: true,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade200)),
             ),
-          ]
+          ),
+          const SizedBox(height: 20),
+          
+          // Action Taken
+          const Text("ACTION TAKEN", style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.blueGrey, letterSpacing: 1)),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _actionController,
+            decoration: InputDecoration(
+              hintText: "e.g. FIR Registered, Resolved...",
+              fillColor: const Color(0xFFF8FAFC),
+              filled: true,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade200)),
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _actionDetailsController,
+            maxLines: 2,
+            decoration: InputDecoration(
+              hintText: "Action details...",
+              fillColor: const Color(0xFFF8FAFC),
+              filled: true,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade200)),
+            ),
+          ),
+          
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: ElevatedButton(
+              onPressed: _isUpdating ? null : _submitUpdate,
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00137F), foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
+              child: _isUpdating 
+                ? const CircularProgressIndicator(color: Colors.white) 
+                : const Text("COMMIT CHANGES", style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1)),
+            ),
+          ),
         ],
       ),
     );
@@ -258,11 +324,11 @@ class _SuperiorComplaintDetailScreenState extends State<SuperiorComplaintDetailS
         else
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton.icon(
+            child: OutlinedButton.icon(
               onPressed: _deleteComplaint,
-              icon: const Icon(Icons.delete_forever_rounded, color: Colors.white),
+              icon: const Icon(Icons.delete_forever_rounded, color: Colors.red),
               label: const Text("DELETE JURISDICTIONAL RECORD"),
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF0000), foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 56), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
+              style: OutlinedButton.styleFrom(foregroundColor: Colors.red, side: const BorderSide(color: Colors.red), minimumSize: const Size(double.infinity, 56), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
             ),
           ),
       ],
