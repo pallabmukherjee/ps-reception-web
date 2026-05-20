@@ -1,33 +1,33 @@
 <x-app-layout>
     <div class="max-w-7xl mx-auto space-y-6">
         <!-- Hero Section -->
-        <div class="relative overflow-hidden bg-slate-900 rounded-3xl p-6 md:p-8 shadow-2xl">
+        <div class="relative overflow-hidden bg-slate-900 rounded-3xl p-8 md:p-10 shadow-2xl">
             <div class="absolute top-0 right-0 -m-20 w-80 h-80 bg-blue-600 rounded-full blur-3xl opacity-20"></div>
             <div class="absolute bottom-0 left-0 -m-20 w-80 h-80 bg-red-600 rounded-full blur-3xl opacity-10"></div>
             
             <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
                 <div class="text-center md:text-left">
-                    <h1 class="text-3xl md:text-4xl font-black text-white tracking-tighter uppercase italic mb-1">
+                    <h1 class="text-4xl md:text-5xl font-black text-white tracking-tighter uppercase italic mb-1">
                         West Bengal <span class="text-blue-500">Police</span>
                     </h1>
-                    <p class="text-slate-400 font-medium text-base uppercase tracking-widest font-mono">Reception Management System</p>
+                    <p class="text-slate-400 font-medium text-lg uppercase tracking-widest font-mono">Reception Management System</p>
                     
                     <div class="mt-6 flex flex-wrap justify-center md:justify-start gap-3">
                         @if(auth()->user()->hasRole('superior'))
-                        <div class="px-3 py-1.5 bg-blue-600/20 border border-blue-500/30 rounded-full text-blue-400 text-[10px] font-black tracking-widest uppercase">
+                        <div class="px-4 py-2 bg-blue-600/20 border border-blue-500/30 rounded-full text-blue-400 text-xs font-black tracking-widest uppercase">
                             Assigned: {{ auth()->user()->policeStation->name ?? 'N/A' }}
                         </div>
                         @endif
-                        <div class="px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-full text-slate-400 text-[10px] font-black tracking-widest uppercase">
+                        <div class="px-4 py-2 bg-slate-800 border border-slate-700 rounded-full text-slate-400 text-xs font-black tracking-widest uppercase">
                             Role: {{ auth()->user()->getRoleNames()->first() ?? 'User' }}
                         </div>
                     </div>
                 </div>
                 
-                <div class="bg-white/5 backdrop-blur-sm border border-white/10 p-5 rounded-2xl text-center min-w-[200px]">
-                    <div class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">Total Complaints</div>
-                    <div class="text-4xl font-black text-white">{{ $totalEntries }}</div>
-                    <div class="mt-3 text-[9px] font-bold text-slate-500 uppercase tracking-tighter italic">Last updated: {{ now()->format('d M, Y') }}</div>
+                <div class="bg-white/5 backdrop-blur-sm border border-white/10 p-7 rounded-2xl text-center min-w-[220px]">
+                    <div class="text-xs font-black text-blue-400 uppercase tracking-widest mb-1">Total Complaints</div>
+                    <div class="text-5xl font-black text-white">{{ $totalEntries }}</div>
+                    <div class="mt-3 text-[10px] font-bold text-slate-500 uppercase tracking-tighter italic">Last updated: {{ now()->format('d M, Y') }}</div>
                 </div>
             </div>
         </div>
