@@ -24,10 +24,19 @@
                     </div>
                 </div>
                 
-                <div class="bg-white/5 backdrop-blur-sm border border-white/10 p-7 rounded-2xl text-center min-w-[220px]">
-                    <div class="text-xs font-black text-blue-400 uppercase tracking-widest mb-1">Total Complaints</div>
-                    <div class="text-5xl font-black text-white">{{ $totalEntries }}</div>
-                    <div class="mt-3 text-[10px] font-bold text-slate-500 uppercase tracking-tighter italic">Last updated: {{ now()->format('d M, Y') }}</div>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <div class="bg-white/5 backdrop-blur-sm border border-white/10 p-5 rounded-2xl text-center min-w-[160px]">
+                        <div class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">Total Records</div>
+                        <div class="text-4xl font-black text-white">{{ $totalEntries }}</div>
+                    </div>
+                    <div class="bg-white/5 backdrop-blur-sm border border-white/10 p-5 rounded-2xl text-center min-w-[160px]">
+                        <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Pending</div>
+                        <div class="text-4xl font-black text-white">{{ $totalPending }}</div>
+                    </div>
+                    <div class="bg-rose-500/10 backdrop-blur-sm border border-rose-500/20 p-5 rounded-2xl text-center min-w-[160px]">
+                        <div class="text-[10px] font-black text-rose-400 uppercase tracking-widest mb-1">Critical Overdue</div>
+                        <div class="text-4xl font-black text-rose-500">{{ $totalOverdueSensitive }}</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -54,12 +63,12 @@
             @endphp
             @forelse($policeStations as $index => $station)
                 @php
-                    $count = $stationCounts[$station->id] ?? 0;
+                    $stationStats = $stats[$station->id] ?? (object)['total' => 0, 'resolved' => 0, 'pending' => 0, 'overdue_sensitive' => 0];
                     $isAssigned = auth()->user()->hasRole('superior') && auth()->user()->police_station_id == $station->id;
                     $color = $colors[$index % count($colors)];
                 @endphp
-                <a href="{{ route('complaints.index', ['police_station_id' => $station->id]) }}" class="{{ $color['bg'] }} group p-4 rounded-2xl shadow-sm border {{ $isAssigned ? 'border-blue-500 ring-4 ring-blue-500/10' : $color['border'] . ' hover:border-slate-300' }} transition-all duration-300 hover:shadow-lg block">
-                    <div class="flex justify-between items-start mb-3">
+                <a href="{{ route('complaints.index', ['police_station_id' => $station->id]) }}" class="{{ $color['bg'] }} group p-5 rounded-2xl shadow-sm border {{ $isAssigned ? 'border-blue-500 ring-4 ring-blue-500/10' : $color['border'] . ' hover:border-slate-300' }} transition-all duration-300 hover:shadow-lg block">
+                    <div class="flex justify-between items-start mb-4">
                         <div class="p-2 {{ $color['icon_bg'] }} rounded-lg group-hover:bg-white transition-colors">
                             <svg class="w-5 h-5 {{ $color['text'] }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
@@ -70,17 +79,34 @@
                         @endif
                     </div>
 
-                    <h3 class="text-lg font-black text-slate-800 mb-0.5 tracking-tight">{{ $station->name }}</h3>
-                    <p class="text-[10px] font-bold text-slate-500/60 uppercase tracking-widest mb-3">Jurisdiction</p>
-
-                    <div class="flex items-end justify-between">
-                        <div class="text-3xl font-black text-slate-900">{{ $count }}</div>
-                        <div class="text-[10px] font-black {{ $count > 0 ? $color['text'] : 'text-slate-300' }} uppercase tracking-widest">Complains</div>
+                    <h3 class="text-lg font-black text-slate-800 mb-4 tracking-tight leading-tight">{{ $station->name }}</h3>
+                    
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <div class="bg-white/60 rounded-xl p-2 border border-black/5">
+                            <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Total / Done</div>
+                            <div class="text-lg font-black text-slate-900">
+                                {{ $stationStats->total }} / <span class="text-emerald-600">{{ $stationStats->resolved }}</span>
+                            </div>
+                        </div>
+                        <div class="bg-white/60 rounded-xl p-2 border border-black/5">
+                            <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Pending</div>
+                            <div class="text-lg font-black text-slate-700">{{ $stationStats->pending }}</div>
+                        </div>
                     </div>
 
-                    <div class="mt-3 w-full bg-white/50 h-1.5 rounded-full overflow-hidden border border-black/5">
-                        <div class="{{ $isAssigned ? 'bg-blue-600' : $color['text'] }} opacity-70 h-full rounded-full transition-all duration-1000" style="width: {{ $totalEntries > 0 ? ($count / $totalEntries) * 100 : 0 }}%"></div>
-                    </div>
+                    @if($stationStats->overdue_sensitive > 0)
+                        <div class="bg-rose-100/80 border border-rose-200 rounded-xl p-2.5 flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="w-2 h-2 rounded-full bg-rose-600 animate-pulse mr-2"></div>
+                                <span class="text-[10px] font-black text-rose-700 uppercase tracking-tight">Sensitive Overdue</span>
+                            </div>
+                            <span class="text-sm font-black text-rose-800">{{ $stationStats->overdue_sensitive }}</span>
+                        </div>
+                    @else
+                        <div class="bg-slate-100/50 border border-slate-200/50 rounded-xl p-2.5 flex items-center justify-center">
+                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">No Critical Overdue</span>
+                        </div>
+                    @endif
                 </a>            @empty
                 <div class="col-span-full p-8 text-center bg-white rounded-3xl border-2 border-dashed border-slate-200">
                     <svg class="w-10 h-12 text-slate-200 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">

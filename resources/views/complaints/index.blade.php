@@ -169,16 +169,31 @@
                                     </div>
                                 </td>
                                 <td class="px-6 py-4">
+                                    @php
+                                        $isHighPriority = (strcasecmp(trim($complaint->subCategory->category->priority ?? ''), 'High Priority') === 0);
+                                        $isOverdue = $complaint->created_at->diffInHours(now()) >= 24;
+                                        $hasNoAction = empty($complaint->action_taken);
+                                    @endphp
+
                                     @if($complaint->action_taken)
                                         <div class="font-black text-[11px] text-slate-800 uppercase tracking-wide flex items-center mb-1">
-                                            <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-2"></div>
+                                            <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-2 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
                                             {{ $complaint->action_taken }}
                                         </div>
                                         <p class="text-[11px] text-slate-500 line-clamp-2 leading-snug">
                                             {{ $complaint->action_details }}
                                         </p>
+                                    @elseif($isHighPriority && $isOverdue && $hasNoAction)
+                                        <div class="inline-flex items-center px-2.5 py-1 rounded-lg bg-rose-50 border border-rose-200 shadow-sm animate-pulse">
+                                            <div class="w-2 h-2 rounded-full bg-rose-600 mr-2"></div>
+                                            <span class="text-[10px] font-black text-rose-700 uppercase tracking-tighter">Immediate Action Required</span>
+                                        </div>
+                                        <p class="text-[9px] text-rose-500 font-bold mt-1 uppercase tracking-widest leading-none">No action taken within 24 hours</p>
                                     @else
-                                        <span class="text-[10px] font-bold text-slate-400 italic uppercase tracking-widest">Pending Action</span>
+                                        <div class="flex items-center text-slate-400 italic">
+                                            <svg class="w-3 h-3 mr-1.5 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            <span class="text-[10px] font-bold uppercase tracking-widest">Pending Action</span>
+                                        </div>
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 text-right">
