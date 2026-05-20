@@ -22,8 +22,6 @@ class _SuperiorComplaintDetailScreenState extends State<SuperiorComplaintDetailS
   final ComplaintsService _complaintsService = ComplaintsService();
   bool _isDeleting = false;
   final TextEditingController _noteController = TextEditingController();
-  final TextEditingController _actionController = TextEditingController();
-  final TextEditingController _actionDetailsController = TextEditingController();
   bool _isUpdating = false;
   late Map<String, dynamic> _complaint;
   bool _isLoading = false;
@@ -36,8 +34,6 @@ class _SuperiorComplaintDetailScreenState extends State<SuperiorComplaintDetailS
       _loadComplaintDetails();
     } else {
       _noteController.text = _complaint['note'] ?? '';
-      _actionController.text = _complaint['action_taken'] ?? '';
-      _actionDetailsController.text = _complaint['action_details'] ?? '';
     }
   }
 
@@ -51,8 +47,6 @@ class _SuperiorComplaintDetailScreenState extends State<SuperiorComplaintDetailS
         _complaint = fullComplaint;
         _isLoading = false;
         _noteController.text = _complaint['note'] ?? '';
-        _actionController.text = _complaint['action_taken'] ?? '';
-        _actionDetailsController.text = _complaint['action_details'] ?? '';
       });
     } catch (e) {
       setState(() => _isLoading = false);
@@ -69,19 +63,20 @@ class _SuperiorComplaintDetailScreenState extends State<SuperiorComplaintDetailS
   }
 
   Future<void> _submitUpdate() async {
+    if (_noteController.text.isEmpty) return;
     setState(() => _isUpdating = true);
     try {
+      // Android App only updates the Superior Note.
+      // We pass the current action values to ensure they aren't cleared by the controller if it's not smart enough.
       await _complaintsService.updateAction(
         _complaint['id'], 
-        _actionController.text, 
-        _actionDetailsController.text, 
+        _complaint['action_taken'] ?? '', 
+        _complaint['action_details'] ?? '', 
         _noteController.text
       );
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Record updated successfully')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Note updated successfully')));
       setState(() {
         _complaint['note'] = _noteController.text;
-        _complaint['action_taken'] = _actionController.text;
-        _complaint['action_details'] = _actionDetailsController.text;
         _isUpdating = false;
       });
     } catch (e) {
@@ -154,7 +149,7 @@ class _SuperiorComplaintDetailScreenState extends State<SuperiorComplaintDetailS
                   const SizedBox(height: 32),
                   _buildSuperiorDetailCard(),
                   const SizedBox(height: 32),
-                  _buildUpdateSection(),
+                  _buildNoteUpdateSection(),
                   const SizedBox(height: 32),
                   _buildAdminActions(),
                   const SizedBox(height: 40),
@@ -169,7 +164,7 @@ class _SuperiorComplaintDetailScreenState extends State<SuperiorComplaintDetailS
     );
   }
 
-  Widget _buildUpdateSection() {
+  Widget _buildNoteUpdateSection() {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -180,42 +175,16 @@ class _SuperiorComplaintDetailScreenState extends State<SuperiorComplaintDetailS
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text("OFFICIAL UPDATE", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: Color(0xFF00137F), letterSpacing: 1.5)),
+          const Text("OFFICIAL INSTRUCTIONS", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: Color(0xFF00137F), letterSpacing: 1.5)),
           const SizedBox(height: 24),
           
-          // Superior Note
           const Text("SUPERIOR NOTE", style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.blueGrey, letterSpacing: 1)),
           const SizedBox(height: 8),
           TextField(
             controller: _noteController,
-            maxLines: 3,
+            maxLines: 4,
             decoration: InputDecoration(
-              hintText: "Instructions or guidance...",
-              fillColor: const Color(0xFFF8FAFC),
-              filled: true,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade200)),
-            ),
-          ),
-          const SizedBox(height: 20),
-          
-          // Action Taken
-          const Text("ACTION TAKEN", style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.blueGrey, letterSpacing: 1)),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _actionController,
-            decoration: InputDecoration(
-              hintText: "e.g. FIR Registered, Resolved...",
-              fillColor: const Color(0xFFF8FAFC),
-              filled: true,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade200)),
-            ),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _actionDetailsController,
-            maxLines: 2,
-            decoration: InputDecoration(
-              hintText: "Action details...",
+              hintText: "Enter instructions or guidance here...",
               fillColor: const Color(0xFFF8FAFC),
               filled: true,
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade200)),
@@ -231,7 +200,7 @@ class _SuperiorComplaintDetailScreenState extends State<SuperiorComplaintDetailS
               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00137F), foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
               child: _isUpdating 
                 ? const CircularProgressIndicator(color: Colors.white) 
-                : const Text("COMMIT CHANGES", style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1)),
+                : const Text("SAVE OFFICIAL NOTE", style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1)),
             ),
           ),
         ],
@@ -282,6 +251,35 @@ class _SuperiorComplaintDetailScreenState extends State<SuperiorComplaintDetailS
           _buildInfoRow(Icons.person_pin_rounded, "Receptionist Info", 
             "${_complaint['receptionist_name'] ?? _complaint['receptionist']?['name'] ?? 'N/A'} (${_complaint['receptionist_mobile'] ?? _complaint['receptionist']?['phone_number'] ?? 'N/A'})", isLongText: true),
           _buildInfoRow(Icons.watch_later_rounded, "Logged On", formatTimestamp(_complaint['created_at'])),
+          if (_complaint['action_taken'] != null) ...[
+            const Divider(height: 1, indent: 20, endIndent: 20, color: Color(0xFFF1F5F9)),
+            _buildActionDisplayRow(),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionDisplayRow() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.check_circle_rounded, size: 20, color: Colors.emerald),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text("ACTION TAKEN (FROM WEB)", style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: Colors.emerald, letterSpacing: 1)),
+                const SizedBox(height: 4),
+                Text(_complaint['action_taken'], style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Color(0xFF1E293B))),
+                if (_complaint['action_details'] != null)
+                  Text(_complaint['action_details'], style: const TextStyle(fontSize: 14, color: Color(0xFF334155), height: 1.4)),
+              ],
+            ),
+          ),
         ],
       ),
     );

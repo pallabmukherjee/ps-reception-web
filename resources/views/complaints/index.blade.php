@@ -195,7 +195,7 @@
                                         </button>
 
                                         @if(auth()->user()->hasRole(['super', 'admin', 'superior']))
-                                        <button onclick="openActionModal({{ $complaint->id }}, '{{ addslashes($complaint->note) }}', '{{ addslashes($complaint->action_taken) }}', '{{ addslashes($complaint->action_details) }}')" class="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all" title="Update Action">
+                                        <button onclick="openActionModal({{ $complaint->id }}, '{{ addslashes($complaint->action_taken) }}', '{{ addslashes($complaint->action_details) }}')" class="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all" title="Update Action">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                             </svg>
@@ -330,13 +330,7 @@
             
             <form id="actionForm" method="POST" class="p-6 space-y-5">
                 @csrf
-                <!-- Instructions Field (Restored) -->
-                <div>
-                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Instructions or Remarks</label>
-                    <textarea id="input_note" name="note" rows="3" class="block w-full rounded-xl border-slate-200 text-sm font-bold shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all" placeholder="Enter official guidance..."></textarea>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-100 pt-5">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Choose Action</label>
                         <select id="input_action_taken" name="action_taken" class="block w-full rounded-xl border-slate-200 text-sm font-bold shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all">
@@ -354,15 +348,14 @@
                 
                 <div class="pt-4 flex gap-3">
                     <button type="button" onclick="closeActionModal()" class="flex-1 py-2.5 bg-slate-100 text-slate-600 text-xs font-black rounded-xl hover:bg-slate-200 transition-all uppercase tracking-widest">Cancel</button>
-                    <button type="submit" class="flex-1 py-2.5 bg-blue-600 text-white text-xs font-black rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 uppercase tracking-widest">Commit Update</button>
+                    <button type="submit" class="flex-1 py-2.5 bg-blue-600 text-white text-xs font-black rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 uppercase tracking-widest">Commit Action</button>
                 </div>
             </form>
         </div>
     </div>
 
     <script>
-        function openActionModal(id, note, currentAction, currentDetails) {
-            document.getElementById('input_note').value = note || '';
+        function openActionModal(id, currentAction, currentDetails) {
             document.getElementById('input_action_taken').value = currentAction || '';
             document.getElementById('input_action_details').value = currentDetails || '';
             document.getElementById('actionForm').action = `/complaints/${id}/action`;
