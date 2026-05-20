@@ -109,11 +109,11 @@ class ComplaintController extends Controller
         $response = new StreamedResponse(function() use ($complaints) {
             $handle = fopen('php://output', 'w');
             
-            // CSV Header (Matching React exactly)
+            // CSV Header
             fputcsv($handle, [
                 'Name', 'Phone', 'Address', 'Complain Type', 'Description', 
                 'Police Station', 'Receptionist Name', 'Receptionist Mobile', 'Complain Register Time',
-                'Official Note', 'Action Taken', 'Action Details'
+                'Action Taken', 'Action Details'
             ]);
 
             foreach ($complaints as $complaint) {
@@ -127,7 +127,6 @@ class ComplaintController extends Controller
                     $complaint->receptionist->name ?? 'N/A',
                     $complaint->receptionist->phone_number ?? 'N/A',
                     $complaint->created_at->format('d/m/Y h:i A'),
-                    $complaint->note ?? '',
                     $complaint->action_taken ?? '',
                     $complaint->action_details ?? '',
                 ]);
@@ -163,7 +162,6 @@ class ComplaintController extends Controller
         $complaint->update([
             'action_taken' => $request->action_taken,
             'action_details' => $request->action_details,
-            'note_updated_at' => now(),
         ]);
 
         // Notify receptionist and admins (deduplicated)
@@ -180,9 +178,9 @@ class ComplaintController extends Controller
                 Notification::send($recipients, new \App\Notifications\SuperiorNoteAdded($complaint));
             }
         } catch (\Exception $e) {
-            \Log::error("Note notification failed: " . $e->getMessage());
+            \Log::error("Action notification failed: " . $e->getMessage());
         }
 
-        return redirect()->back()->with('success', 'Official note added successfully.');
+        return redirect()->back()->with('success', 'Official action updated successfully.');
     }
 }

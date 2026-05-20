@@ -38,8 +38,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('profile', [\App\Http\Controllers\Api\ProfileApiController::class, 'updateProfile']);
     Route::post('change-password', [\App\Http\Controllers\Api\ProfileApiController::class, 'changePassword']);
 
-    // Note API
-    Route::post('complaints/{complaint}/note', [ComplaintApiController::class, 'addNote']);
+    // Action Taken API
+    Route::post('complaints/{complaint}/action', [ComplaintApiController::class, 'addNote']);
 
     // Notifications API
     Route::get('notifications', [ComplaintApiController::class, 'notifications']);

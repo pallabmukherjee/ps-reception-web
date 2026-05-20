@@ -21,8 +21,6 @@ class _SuperiorComplaintDetailScreenState extends State<SuperiorComplaintDetailS
   int _selectedIndex = 1;
   final ComplaintsService _complaintsService = ComplaintsService();
   bool _isDeleting = false;
-  final TextEditingController _noteController = TextEditingController();
-  bool _isAddingNote = false;
   late Map<String, dynamic> _complaint;
   bool _isLoading = false;
 
@@ -58,23 +56,6 @@ class _SuperiorComplaintDetailScreenState extends State<SuperiorComplaintDetailS
     setState(() {
       _selectedIndex = index;
     });
-  }
-
-  Future<void> _submitNote() async {
-    if (_noteController.text.isEmpty) return;
-    setState(() => _isAddingNote = true);
-    try {
-      await _complaintsService.addNote(_complaint['id'], _noteController.text);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Note added successfully')));
-      setState(() {
-        _complaint['note'] = _noteController.text;
-        _isAddingNote = false;
-        _noteController.clear();
-      });
-    } catch (e) {
-      setState(() => _isAddingNote = false);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add note: $e')));
-    }
   }
 
   void _deleteComplaint() async {
@@ -140,12 +121,8 @@ class _SuperiorComplaintDetailScreenState extends State<SuperiorComplaintDetailS
                   _buildSuperiorHeader(),
                   const SizedBox(height: 32),
                   _buildSuperiorDetailCard(),
-                  if (_complaint['note'] != null) ...[
-                    const SizedBox(height: 24),
-                    _buildNoteSection(),
-                  ],
-                  const SizedBox(height: 24),
-                  _buildAddNoteField(),
+                  const SizedBox(height: 32),
+                  if (_complaint['action_taken'] != null) _buildActionSection(),
                   const SizedBox(height: 32),
                   _buildAdminActions(),
                   const SizedBox(height: 40),
@@ -160,57 +137,39 @@ class _SuperiorComplaintDetailScreenState extends State<SuperiorComplaintDetailS
     );
   }
 
-  Widget _buildNoteSection() {
+  Widget _buildActionSection() {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.amber.shade50,
+        color: Colors.blue.shade50,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.amber.shade100),
+        border: Border.all(color: Colors.blue.shade100),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.notes_rounded, color: Colors.amber.shade900, size: 18),
+              Icon(Icons.check_circle_outline_rounded, color: Colors.blue.shade900, size: 18),
               const SizedBox(width: 8),
-              Text("YOUR OFFICIAL NOTE", style: TextStyle(fontWeight: FontWeight.w900, color: Colors.amber.shade900, fontSize: 11, letterSpacing: 1)),
+              Text("ACTION TAKEN", style: TextStyle(fontWeight: FontWeight.w900, color: Colors.blue.shade900, fontSize: 11, letterSpacing: 1)),
             ],
           ),
           const SizedBox(height: 8),
           Text(
-            _complaint['note'] ?? '',
-            style: const TextStyle(fontSize: 14, color: Color(0xFF334155), height: 1.5, fontWeight: FontWeight.w600),
+            _complaint['action_taken'] ?? '',
+            style: TextStyle(fontSize: 15, color: Colors.blue.shade900, fontWeight: FontWeight.w900),
           ),
+          if (_complaint['action_details'] != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              _complaint['action_details'],
+              style: const TextStyle(fontSize: 14, color: Color(0xFF334155), height: 1.5, fontWeight: FontWeight.w500),
+            ),
+          ]
         ],
       ),
-    );
-  }
-
-  Widget _buildAddNoteField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text("UPDATE OFFICIAL GUIDANCE", style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.blueGrey, letterSpacing: 1)),
-        const SizedBox(height: 8),
-        TextField(
-          controller: _noteController,
-          maxLines: 3,
-          decoration: InputDecoration(
-            hintText: "Enter instructions for receptionist...",
-            fillColor: Colors.white,
-            suffixIcon: IconButton(
-              icon: _isAddingNote ? const Padding(
-                padding: EdgeInsets.all(8.0),
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ) : const Icon(Icons.send_rounded, color: Color(0xFF00137F)),
-              onPressed: _isAddingNote ? null : _submitNote,
-            ),
-          ),
-        ),
-      ],
     );
   }
 
@@ -303,7 +262,7 @@ class _SuperiorComplaintDetailScreenState extends State<SuperiorComplaintDetailS
               onPressed: _deleteComplaint,
               icon: const Icon(Icons.delete_forever_rounded, color: Colors.white),
               label: const Text("DELETE JURISDICTIONAL RECORD"),
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF0000), foregroundColor: Colors.white),
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF0000), foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 56), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
             ),
           ),
       ],

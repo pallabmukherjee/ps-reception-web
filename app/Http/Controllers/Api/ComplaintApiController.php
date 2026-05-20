@@ -201,12 +201,13 @@ class ComplaintApiController extends Controller
         }
 
         $request->validate([
-            'note' => 'required|string',
+            'action_taken' => 'nullable|string',
+            'action_details' => 'nullable|string',
         ]);
 
         $complaint->update([
-            'note' => $request->note,
-            'note_updated_at' => now(),
+            'action_taken' => $request->action_taken,
+            'action_details' => $request->action_details,
         ]);
 
         // Notify receptionist and admins (deduplicated)
@@ -223,10 +224,10 @@ class ComplaintApiController extends Controller
                 Notification::send($recipients, new SuperiorNoteAdded($complaint));
             }
         } catch (\Exception $e) {
-            \Log::error("Note notification failed: " . $e->getMessage());
+            \Log::error("Action notification failed: " . $e->getMessage());
         }
 
-        return response()->json(['message' => 'Note added successfully', 'note' => $complaint->note]);
+        return response()->json(['message' => 'Action updated successfully', 'action_taken' => $complaint->action_taken]);
     }
 
     public function update(Request $request, Complaint $complaint)

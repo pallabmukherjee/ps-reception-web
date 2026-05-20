@@ -39,14 +39,15 @@ class SuperiorNoteAdded extends Notification
      */
     public function toArray(object $notifiable): array
     {
-        $message = $this->complaint->note;
+        $message = $this->complaint->action_taken ?? 'No action specified';
 
         return [
             'complaint_id' => $this->complaint->id,
-            'title' => '📝 New Official Note Added',
+            'title' => '✅ Official Action Updated',
             'message' => $message,
-            'type' => 'note_added',
-            'note' => $this->complaint->note,
+            'type' => 'action_updated',
+            'action_taken' => $this->complaint->action_taken,
+            'action_details' => $this->complaint->action_details,
         ];
     }
 
@@ -55,10 +56,10 @@ class SuperiorNoteAdded extends Notification
      */
     public function toFcm(object $notifiable): CloudMessage
     {
-        $message = $this->complaint->note;
+        $message = $this->complaint->action_taken ?? 'No action specified';
 
         return CloudMessage::new()
-            ->withNotification(FcmNotification::create('📝 New Official Note Added', $message))
+            ->withNotification(FcmNotification::create('✅ Official Action Updated', $message))
             ->withAndroidConfig(AndroidConfig::fromArray([
                 'priority' => 'high',
             ]))
@@ -71,13 +72,12 @@ class SuperiorNoteAdded extends Notification
                 ],
             ]))
             ->withData([
-                'title' => '📝 New Official Note Added',
+                'title' => '✅ Official Action Updated',
                 'message' => $message,
                 'complaint_id' => (string) $this->complaint->id,
                 'complainant_name' => $this->complaint->complainant_name,
                 'phone' => $this->complaint->phone,
-                'note' => (string) $this->complaint->note,
-                'type' => 'note_added',
+                'type' => 'action_updated',
                 'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
             ]);
     }

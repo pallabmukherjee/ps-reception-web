@@ -17,8 +17,6 @@ class Complaint extends Model
         'receptionist_mobile',
         'police_station_id',
         'is_editable',
-        'note',
-        'note_updated_at',
         'action_taken',
         'action_details',
         'created_at',

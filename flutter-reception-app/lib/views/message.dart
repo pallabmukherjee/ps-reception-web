@@ -67,7 +67,7 @@ class _MessageState extends State<Message> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      appBar: CustomAppBar(title: "Emergency Alert", showBackButton: true),
+      appBar: CustomAppBar(title: "Official Alert", showBackButton: true),
       drawer: CustomDrawer(),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -85,11 +85,12 @@ class _MessageState extends State<Message> {
                     onPressed: _navigateToComplain,
                     icon: const Icon(Icons.zoom_in_rounded),
                     label: const Text("VIEW FULL COMPLAIN RECORD"),
-                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00137F), foregroundColor: Colors.white),
+                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00137F), foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 56), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
                   ),
                   const SizedBox(height: 12),
                   OutlinedButton(
                     onPressed: () => Navigator.pushReplacementNamed(context, '/adminhome'),
+                    style: OutlinedButton.styleFrom(minimumSize: const Size(double.infinity, 56), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
                     child: const Text("BACK TO DASHBOARD"),
                   ),
                 ],
@@ -114,14 +115,14 @@ class _MessageState extends State<Message> {
     return Column(
       children: [
         const Text(
-          "URGENT NOTIFICATION",
+          "SYSTEM NOTIFICATION",
           style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: Color(0xFFFF0000), letterSpacing: 2),
         ),
         const SizedBox(height: 12),
         Text(
-          payload['category_name'] ?? payload['sub_category_name'] ?? 'CRITICAL ALERT',
+          payload['title'] ?? 'CRITICAL ALERT',
           textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Color(0xFF0F172A), letterSpacing: -0.5),
+          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFF0F172A), letterSpacing: -0.5),
         ),
       ],
     );
@@ -142,10 +143,6 @@ class _MessageState extends State<Message> {
           _buildInfoItem(Icons.phone_android_rounded, "Contact ID", payload['phone'] ?? 'N/A'),
           _buildDivider(),
           _buildInfoItem(Icons.feedback_outlined, "Incident Brief", payload['message'] ?? 'Official dispatch notification.', isLast: true),
-          if (payload['note'] != null) ...[
-            _buildDivider(),
-            _buildInfoItem(Icons.note_alt_outlined, "Superior Note", payload['note'], isLast: true),
-          ],
         ],
       ),
     );
