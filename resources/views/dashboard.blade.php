@@ -58,7 +58,7 @@
                     $isAssigned = auth()->user()->hasRole('superior') && auth()->user()->police_station_id == $station->id;
                     $color = $colors[$index % count($colors)];
                 @endphp
-                <div class="{{ $color['bg'] }} group p-6 rounded-2xl shadow-sm border {{ $isAssigned ? 'border-blue-500 ring-4 ring-blue-500/10' : $color['border'] . ' hover:border-slate-300' }} transition-all duration-300 hover:shadow-xl hover:shadow-slate-200/50">
+                <a href="{{ route('complaints.index', ['police_station_id' => $station->id]) }}" class="{{ $color['bg'] }} group p-6 rounded-2xl shadow-sm border {{ $isAssigned ? 'border-blue-500 ring-4 ring-blue-500/10' : $color['border'] . ' hover:border-slate-300' }} transition-all duration-300 hover:shadow-xl hover:shadow-slate-200/50 block">
                     <div class="flex justify-between items-start mb-4">
                         <div class="p-3 {{ $color['icon_bg'] }} rounded-xl group-hover:bg-white transition-colors">
                             <svg class="w-6 h-6 {{ $color['text'] }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -69,20 +69,19 @@
                         <span class="text-[8px] font-black bg-blue-600 text-white px-2 py-0.5 rounded-full uppercase tracking-tighter shadow-lg shadow-blue-600/20">My Station</span>
                         @endif
                     </div>
-                    
+
                     <h3 class="text-lg font-black text-slate-800 mb-1 tracking-tight">{{ $station->name }}</h3>
                     <p class="text-[10px] font-bold text-slate-500/60 uppercase tracking-widest mb-4">Subdivision Jurisdiction</p>
-                    
+
                     <div class="flex items-end justify-between">
                         <div class="text-3xl font-black text-slate-900">{{ $count }}</div>
                         <div class="text-[10px] font-black {{ $count > 0 ? $color['text'] : 'text-slate-300' }} uppercase tracking-widest">Complains</div>
                     </div>
-                    
+
                     <div class="mt-4 w-full bg-white/50 h-1.5 rounded-full overflow-hidden border border-black/5">
                         <div class="{{ $isAssigned ? 'bg-blue-600' : $color['text'] }} opacity-70 h-full rounded-full transition-all duration-1000" style="width: {{ $totalEntries > 0 ? ($count / $totalEntries) * 100 : 0 }}%"></div>
                     </div>
-                </div>
-            @empty
+                </a>            @empty
                 <div class="col-span-full p-12 text-center bg-white rounded-3xl border-2 border-dashed border-slate-200">
                     <svg class="w-12 h-12 text-slate-200 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
