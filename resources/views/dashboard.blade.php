@@ -75,7 +75,7 @@
                     
                     <div class="flex items-end justify-between">
                         <div class="text-3xl font-black text-slate-900">{{ $count }}</div>
-                        <div class="text-[10px] font-black {{ $count > 0 ? $color['text'] : 'text-slate-300' }} uppercase tracking-widest">Active Cases</div>
+                        <div class="text-[10px] font-black {{ $count > 0 ? $color['text'] : 'text-slate-300' }} uppercase tracking-widest">Complains</div>
                     </div>
                     
                     <div class="mt-4 w-full bg-white/50 h-1.5 rounded-full overflow-hidden border border-black/5">
